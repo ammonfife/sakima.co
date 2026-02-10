@@ -1,0 +1,25 @@
+{
+  "whatnot": {
+    "rating": 5.0,
+    "count": 448,
+    "avgShip": "<1d",
+    "sold": "3.7K",
+    "followers": "6.7K"
+  },
+  "ebay": {
+    "rating": 100,
+    "count": 849,
+    "positive12mo": 102,
+    "neutral12mo": 1,
+    "negative12mo": 0,
+    "memberSince": "1998",
+    "itemsSold": 897,
+    "reviews": [
+      {"rating": "positive", "comment": "A+", "item": "Caitlin Clark #DN-1 Panini Instant WNBA Draft Night", "price": "$153.50"},
+      {"rating": "positive", "comment": "Order delivered on time with no issues", "item": "2024 Panini Donruss Rated Rookie Jayden Daniels Optic Preview Pink Prizm", "price": "$46.00"},
+      {"rating": "positive", "comment": "Thank you for an easy, pleasant transaction. Excellent buyer. A++++++", "item": null, "price": null},
+      {"rating": "positive", "comment": "Valued customer, fast payment, thank you for your business!", "item": null, "price": null},
+      {"rating": "positive", "comment": "Smooth Transaction, Thanks for supporting our Family Business", "item": null, "price": null}
+    ]
+  }
+}

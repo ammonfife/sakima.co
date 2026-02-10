@@ -3,59 +3,614 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakima</title>
+  <title>Sakima — Coins, Slabs & Collectibles</title>
+  <meta name="description" content="Slingin' treasures since dial-up. Live coin auctions on Whatnot, slabs and collectibles on eBay. Shop, watch, or sell to us.">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #222;
+      --border-hover: #444;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --accent: #c9a84c;
+      --accent-dim: #a8883a;
+      --green: #4caf50;
+      --red: #e74c3c;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
     }
-    .container {
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: #fff; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; }
+    nav .nav-links { display: flex; gap: 1.5rem; font-size: 0.85rem; }
+    nav .nav-links a { color: var(--text-dim); }
+    nav .nav-links a:hover { color: #fff; }
+
+    /* HERO */
+    .hero {
       text-align: center;
-      padding: 2rem;
+      padding: 4rem 1.5rem 2rem;
+      max-width: 720px;
+      margin: 0 auto;
     }
-    h1 {
+    .hero h1 {
       font-size: 3rem;
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      margin-bottom: 2rem;
+      margin-bottom: 0.75rem;
     }
-    .links {
-      display: flex;
-      gap: 1.5rem;
-      justify-content: center;
-      flex-wrap: wrap;
+    .hero .tagline {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      max-width: 560px;
+      margin: 0 auto 1.5rem;
     }
-    .links a {
+    .hero .platforms {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    }
+    .btn {
       display: inline-block;
-      padding: 0.75rem 2rem;
-      border: 1px solid #333;
+      padding: 0.65rem 1.75rem;
+      border: 1px solid var(--border);
       border-radius: 6px;
       color: #fff;
-      text-decoration: none;
-      font-size: 1rem;
-      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      background: transparent;
+      cursor: pointer;
     }
-    .links a:hover {
-      border-color: #fff;
-      background: rgba(255,255,255,0.05);
+    .btn:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent); color: #000; }
+
+    /* STATS */
+    .stats {
+      display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .stat { text-align: center; }
+    .stat .num { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .stat .label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* SECTIONS */
+    section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+    section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #fff;
+    }
+    .section-sub { color: var(--text-dim); font-size: 0.9rem; margin-top: -1rem; margin-bottom: 1.5rem; }
+
+    /* SHOWS */
+    .shows-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .show-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .show-card:hover { border-color: var(--border-hover); }
+    .show-card .show-date {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .show-card .show-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .show-card .show-tags {
+      display: flex; gap: 0.4rem; flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      background: rgba(201,168,76,0.15);
+      color: var(--accent);
+    }
+    .show-card .show-rsvp {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.5rem;
+    }
+    .show-live {
+      border-color: var(--green);
+    }
+    .show-live .show-date { color: var(--green); }
+    .shows-more {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    /* LISTINGS */
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .listing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .listing-card:hover { border-color: var(--border-hover); }
+    .listing-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #1a1a1a;
+    }
+    .listing-card .listing-info {
+      padding: 0.75rem 1rem;
+    }
+    .listing-card .listing-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.35rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .listing-card .listing-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .listing-card .listing-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+    .listing-card .listing-platform {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text-dim);
+      display: inline-block;
+      margin-top: 0.35rem;
+    }
+    #listings-empty {
+      text-align: center;
+      color: var(--text-dim);
+      padding: 2rem;
+    }
+
+    /* REVIEWS */
+    .reviews-summary {
+      display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .review-platform {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    .review-platform .rp-name {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+    .review-platform .rp-score {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .review-platform .rp-score span {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+    .review-platform .rp-detail {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+    .stars { color: var(--accent); letter-spacing: 2px; }
+
+    /* VIP SIGNUP */
+    .vip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      text-align: center;
+    }
+    .vip h2 { margin-bottom: 0.5rem; }
+    .vip p { color: var(--text-dim); margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .vip-form {
+      display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .vip-form input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .vip-form input:focus { outline: none; border-color: var(--accent); }
+    .vip-form button {
+      padding: 0.65rem 1.5rem;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .vip-form button:hover { background: #fff; border-color: #fff; }
+    .vip-legal { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.75rem; }
+    .vip-legal a { color: var(--text-dim); text-decoration: underline; }
+    .vip-success { color: var(--green); font-weight: 600; display: none; margin-top: 1rem; }
+
+    /* OFFER */
+    .offer {
+      background: var(--surface);
+      border: 1px solid var(--accent-dim);
+      border-radius: 12px;
+      padding: 2.5rem;
+    }
+    .offer h2 { color: var(--accent); }
+    .offer p { color: var(--text-dim); margin-bottom: 1.5rem; }
+    .offer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .offer-grid .full { grid-column: 1 / -1; }
+    .offer-grid input, .offer-grid textarea, .offer-grid select {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: #fff;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .offer-grid textarea { resize: vertical; min-height: 80px; }
+    .offer-grid input:focus, .offer-grid textarea:focus, .offer-grid select:focus { outline: none; border-color: var(--accent); }
+    .offer-grid select option { background: var(--bg); }
+    .offer-submit { margin-top: 1rem; text-align: right; }
+    .offer-success { color: var(--green); font-weight: 600; display: none; margin-top: 1rem; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    footer .footer-links {
+      display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    footer .footer-links a { color: var(--text-dim); }
+    footer .footer-links a:hover { color: #fff; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .stats { gap: 1.5rem; }
+      .offer-grid { grid-template-columns: 1fr; }
+      nav .nav-links { gap: 1rem; font-size: 0.8rem; }
+      section { padding: 2rem 1rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Sakima</h1>
-    <div class="links">
-      <a href="https://www.ebay.com/usr/sakima" target="_blank">eBay</a>
-      <a href="https://www.whatnot.com/user/sakima" target="_blank">Whatnot</a>
+
+<nav>
+  <div class="logo">Sakima</div>
+  <div class="nav-links">
+    <a href="#shows">Shows</a>
+    <a href="#listings">Shop</a>
+    <a href="#reviews">Reviews</a>
+    <a href="#vip">VIP</a>
+    <a href="#offer">Sell to Us</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Sakima</h1>
+  <p class="tagline">Slingin' treasures since dial-up and selling as Sakima since '97. Collector, husband, dad of three. Some folks think I've got a big bank account... turns out I just don't check it. I might pay too much, but that just means you can snag it here for a whole lot less.</p>
+  <div class="platforms">
+    <a href="https://www.whatnot.com/user/sakima" target="_blank" class="btn btn-accent">Watch on Whatnot</a>
+    <a href="https://www.ebay.com/usr/sakima" target="_blank" class="btn">Shop on eBay</a>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="num">5.0</div><div class="label">Whatnot Rating</div></div>
+  <div class="stat"><div class="num">6.7K</div><div class="label">Followers</div></div>
+  <div class="stat"><div class="num">3.7K</div><div class="label">Items Sold</div></div>
+  <div class="stat"><div class="num">100%</div><div class="label">eBay Positive</div></div>
+  <div class="stat"><div class="num">&lt;1d</div><div class="label">Avg Ship</div></div>
+</div>
+
+<!-- UPCOMING SHOWS -->
+<section id="shows">
+  <h2>Upcoming Shows</h2>
+  <p class="section-sub">Live coin auctions on Whatnot. Tap a show to set a reminder.</p>
+  <div class="shows-grid" id="shows-grid"></div>
+  <div class="shows-more"><a href="https://www.whatnot.com/user/sakima" target="_blank" class="btn">View All Shows on Whatnot</a></div>
+</section>
+
+<!-- LISTINGS -->
+<section id="listings">
+  <h2>Current Listings</h2>
+  <p class="section-sub">Active auctions and buy-it-now items across platforms.</p>
+  <div class="listings-grid" id="listings-grid"></div>
+  <div id="listings-empty">Loading listings...</div>
+  <div style="text-align:center; margin-top:1rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+    <a href="https://www.ebay.com/usr/sakima" target="_blank" class="btn">All eBay Listings</a>
+    <a href="https://www.whatnot.com/user/sakima" target="_blank" class="btn">Whatnot Shop</a>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <h2>Reviews</h2>
+  <div class="reviews-summary">
+    <div class="review-platform">
+      <div class="rp-name">Whatnot</div>
+      <div class="rp-score">5.0 <span>/ 5</span></div>
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="rp-detail">448 reviews &middot; 3.7K sold</div>
+    </div>
+    <div class="review-platform">
+      <div class="rp-name">eBay</div>
+      <div class="rp-score">100% <span>positive</span></div>
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="rp-detail">849 feedback &middot; Member since 1998</div>
     </div>
   </div>
+  <div id="reviews-list"></div>
+</section>
+
+<!-- VIP SIGNUP -->
+<section id="vip">
+  <div class="vip">
+    <h2>Join the VIP List</h2>
+    <p>Get exclusive show alerts, early access, promo codes, and first dibs on new inventory. Text or email &mdash; your choice.</p>
+    <div class="vip-form" id="vip-form-email">
+      <input type="email" id="vip-email" placeholder="your@email.com" required>
+      <button type="button" onclick="submitVIP()">Join VIP</button>
+    </div>
+    <div class="vip-legal">
+      Or text <strong>YES</strong> to our SMS line to join via text. Msg &amp; data rates may apply. <a href="/sms">Terms &amp; Privacy</a>.
+    </div>
+    <div class="vip-success" id="vip-success">You're in! Watch your inbox.</div>
+  </div>
+</section>
+
+<!-- MAKE AN OFFER / SELL TO US -->
+<section id="offer">
+  <div class="offer">
+    <h2>Make an Offer / Sell to Us</h2>
+    <p>Got coins, slabs, or collections to sell? Want to make an offer on something you saw? Drop us a line. We buy collections of all sizes.</p>
+    <div class="offer-grid">
+      <input type="text" id="offer-name" placeholder="Your name">
+      <input type="email" id="offer-email" placeholder="Email address">
+      <input type="tel" id="offer-phone" placeholder="Phone (optional)">
+      <select id="offer-type">
+        <option value="">What are you looking to do?</option>
+        <option value="sell">Sell coins/collection to Sakima</option>
+        <option value="offer">Make an offer on a listed item</option>
+        <option value="appraisal">Get a price check / appraisal</option>
+        <option value="other">Something else</option>
+      </select>
+      <textarea class="full" id="offer-desc" placeholder="Tell us what you've got — coin types, grades, quantities, photos welcome. Or reference a specific listing you'd like to make an offer on."></textarea>
+    </div>
+    <div class="offer-submit">
+      <button class="btn btn-accent" type="button" onclick="submitOffer()">Send Message</button>
+    </div>
+    <div class="offer-success" id="offer-success">Message sent! We'll get back to you shortly.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://www.whatnot.com/user/sakima" target="_blank">Whatnot</a>
+    <a href="https://www.ebay.com/usr/sakima" target="_blank">eBay</a>
+    <a href="mailto:sakima@boringdata.com">Customer Service</a>
+    <a href="/sms">SMS Terms</a>
+  </div>
+  <div>Customer service: <a href="mailto:sakima@boringdata.com">sakima@boringdata.com</a></div>
+  <div style="margin-top:0.5rem;">&copy; 2026 Sakima. Selling since '97.</div>
+</footer>
+
+<script>
+// --- SHOWS ---
+async function loadShows() {
+  try {
+    const res = await fetch('/data/shows.json');
+    const shows = await res.json();
+    const grid = document.getElementById('shows-grid');
+    const now = new Date();
+    const upcoming = shows.filter(s => new Date(s.date) >= now).slice(0, 8);
+
+    upcoming.forEach(show => {
+      const d = new Date(show.date);
+      const isToday = d.toDateString() === now.toDateString();
+      const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+      let dateStr;
+      if (isToday) {
+        dateStr = 'Today ' + d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+      } else if (isTomorrow) {
+        dateStr = 'Tomorrow ' + d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+      } else {
+        dateStr = d.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}) + ' ' + d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+      }
+
+      const card = document.createElement('a');
+      card.href = 'https://www.whatnot.com/user/sakima';
+      card.target = '_blank';
+      card.className = 'show-card' + (isToday ? ' show-live' : '');
+      card.style.textDecoration = 'none';
+      card.style.color = 'inherit';
+      card.innerHTML = `
+        <div class="show-date">${isToday ? 'LIVE TODAY &mdash; ' : ''}${dateStr}</div>
+        <div class="show-title">${show.title}</div>
+        <div class="show-tags">${show.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        ${show.rsvp ? `<div class="show-rsvp">${show.rsvp} RSVPs</div>` : ''}
+      `;
+      grid.appendChild(card);
+    });
+  } catch(e) {
+    console.error('Failed to load shows', e);
+  }
+}
+
+// --- LISTINGS (eBay) ---
+async function loadListings() {
+  try {
+    const res = await fetch('/data/listings.json');
+    if (!res.ok) throw new Error('No listings data');
+    const listings = await res.json();
+    const grid = document.getElementById('listings-grid');
+    const empty = document.getElementById('listings-empty');
+
+    if (!listings.length) {
+      empty.textContent = 'No active listings right now. Check back soon or visit our stores.';
+      return;
+    }
+    empty.style.display = 'none';
+
+    listings.forEach(item => {
+      const card = document.createElement('a');
+      card.href = item.url;
+      card.target = '_blank';
+      card.className = 'listing-card';
+      card.style.textDecoration = 'none';
+      card.style.color = 'inherit';
+      const buyingOpts = item.buyingOptions || [];
+      const isAuction = buyingOpts.includes('AUCTION');
+      const isBIN = buyingOpts.includes('FIXED_PRICE');
+      let priceLabel = item.price || '';
+      if (isAuction && isBIN) priceLabel += ' / BIN ' + (item.binPrice || '');
+      else if (isAuction) priceLabel += ' (Auction)';
+      else if (isBIN) priceLabel += ' (Buy It Now)';
+
+      card.innerHTML = `
+        ${item.image ? `<img src="${item.image}" alt="${item.title}" loading="lazy">` : ''}
+        <div class="listing-info">
+          <div class="listing-title">${item.title}</div>
+          <div class="listing-price">${priceLabel}</div>
+          ${item.bids !== undefined ? `<div class="listing-meta">${item.bids} bid${item.bids !== 1 ? 's' : ''} &middot; Ends ${item.endDate || ''}</div>` : ''}
+          <span class="listing-platform">${item.platform || 'eBay'}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch(e) {
+    document.getElementById('listings-empty').textContent = 'No active listings right now. Check back soon or visit our stores.';
+  }
+}
+
+// --- REVIEWS ---
+async function loadReviews() {
+  try {
+    const res = await fetch('/data/reviews.json');
+    const data = await res.json();
+    const list = document.getElementById('reviews-list');
+    const reviews = data.ebay.reviews.filter(r => r.comment);
+    reviews.forEach(r => {
+      const div = document.createElement('div');
+      div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;';
+      div.innerHTML = `
+        <div style="color:var(--accent);font-size:0.8rem;margin-bottom:0.25rem;">&#9733; eBay Buyer</div>
+        <div style="color:#fff;font-size:0.9rem;">"${r.comment}"</div>
+        ${r.item ? `<div style="color:var(--text-dim);font-size:0.75rem;margin-top:0.25rem;">${r.item} &mdash; ${r.price}</div>` : ''}
+      `;
+      list.appendChild(div);
+    });
+  } catch(e) {
+    console.error('Failed to load reviews', e);
+  }
+}
+
+// --- VIP ---
+function submitVIP() {
+  const email = document.getElementById('vip-email').value;
+  if (!email) return;
+  // Send via mailto for now - can integrate with Surge API later
+  window.location.href = 'mailto:sakima@boringdata.com?subject=VIP%20Signup&body=Please%20add%20me%20to%20the%20VIP%20list.%20Email:%20' + encodeURIComponent(email);
+  document.getElementById('vip-success').style.display = 'block';
+}
+
+// --- OFFER ---
+function submitOffer() {
+  const name = document.getElementById('offer-name').value;
+  const email = document.getElementById('offer-email').value;
+  const phone = document.getElementById('offer-phone').value;
+  const type = document.getElementById('offer-type').value;
+  const desc = document.getElementById('offer-desc').value;
+  if (!email || !desc) { alert('Please fill in your email and description.'); return; }
+  const body = `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nType: ${type}\n\n${desc}`;
+  window.location.href = 'mailto:sakima@boringdata.com?subject=' + encodeURIComponent('Sakima - ' + (type || 'Inquiry')) + '&body=' + encodeURIComponent(body);
+  document.getElementById('offer-success').style.display = 'block';
+}
+
+// --- INIT ---
+loadShows();
+loadListings();
+loadReviews();
+</script>
+
 </body>
 </html>
-<!-- build 1770766212 -->
