@@ -1,0 +1,74 @@
+name: Update eBay Listings
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Every 4 hours
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch eBay listings
+        env:
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+        run: |
+          # Get OAuth token
+          CREDENTIALS=$(echo -n "${EBAY_CLIENT_ID}:${EBAY_CLIENT_SECRET}" | base64 -w0)
+          TOKEN=$(curl -s -X POST https://api.ebay.com/identity/v1/oauth2/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Authorization: Basic ${CREDENTIALS}" \
+            -d "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope" \
+            | jq -r '.access_token')
+
+          if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
+            echo "Failed to get eBay token"
+            exit 1
+          fi
+
+          # Search across major categories for seller sakima
+          CATEGORIES=(11116 1 550 220 64482 172008)
+          ALL_ITEMS="[]"
+
+          for CAT in "${CATEGORIES[@]}"; do
+            RESULT=$(curl -s "https://api.ebay.com/buy/browse/v1/item_summary/search?category_ids=${CAT}&filter=sellers:%7Bsakima%7D&limit=50" \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "X-EBAY-C-MARKETPLACE-ID: EBAY_US")
+
+            ITEMS=$(echo "$RESULT" | jq -r '.itemSummaries // []')
+            ALL_ITEMS=$(echo "$ALL_ITEMS" "$ITEMS" | jq -s 'add')
+          done
+
+          # Deduplicate by itemId
+          ALL_ITEMS=$(echo "$ALL_ITEMS" | jq 'unique_by(.itemId)')
+
+          # Transform to our format
+          echo "$ALL_ITEMS" | jq '[.[] | {
+            title: .title,
+            price: ((.currentBidPrice.value // .price.value // "0") + " " + (.currentBidPrice.currency // .price.currency // "USD") | if endswith("USD") then "$" + ltrimstr("$") | rtrimstr(" USD") else . end),
+            binPrice: (if .buyingOptions and (.buyingOptions | index("FIXED_PRICE")) then ("$" + (.price.value // "0")) else null end),
+            buyingOptions: (.buyingOptions // []),
+            bids: (.bidCount // 0),
+            endDate: (if .itemEndDate then (.itemEndDate | split("T")[0]) else null end),
+            image: (.thumbnailImages[0].imageUrl // .image.imageUrl // null),
+            url: .itemWebUrl,
+            platform: "eBay"
+          }]' > data/listings.json
+
+          echo "Found $(cat data/listings.json | jq length) listings"
+          cat data/listings.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/listings.json
+          if git diff --staged --quiet; then
+            echo "No changes to listings"
+          else
+            git commit -m "Auto-update eBay listings [skip ci]"
+            git push
+          fi
