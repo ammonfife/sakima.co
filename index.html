@@ -117,8 +117,17 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1rem 1.25rem;
+      overflow: hidden;
       transition: border-color 0.2s;
+    }
+    .show-card img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: #1a1a1a;
+    }
+    .show-card .show-body {
+      padding: 0.75rem 1rem;
     }
     .show-card:hover { border-color: var(--border-hover); }
     .show-card .show-date {
@@ -504,10 +513,13 @@ async function loadShows() {
       card.style.textDecoration = 'none';
       card.style.color = 'inherit';
       card.innerHTML = `
-        <div class="show-date">${isToday ? 'LIVE TODAY &mdash; ' : ''}${dateStr}</div>
-        <div class="show-title">${show.title}</div>
-        <div class="show-tags">${show.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-        ${show.rsvp ? `<div class="show-rsvp">${show.rsvp} RSVPs</div>` : ''}
+        ${show.image ? `<img src="${show.image}" alt="${show.title}" loading="lazy">` : ''}
+        <div class="show-body">
+          <div class="show-date">${isToday ? 'LIVE TODAY &mdash; ' : ''}${dateStr}</div>
+          <div class="show-title">${show.title}</div>
+          <div class="show-tags">${show.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+          ${show.rsvp ? `<div class="show-rsvp">${show.rsvp} RSVPs</div>` : ''}
+        </div>
       `;
       grid.appendChild(card);
     });
