@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakima - SMS Alerts</title>
+  <title>Sakima - Alerts &amp; Notifications</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -41,6 +41,15 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: #fff; }
 
+    /* SECTION HEADERS */
+    .section-label {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
     /* CHANNELS */
     .channels {
       display: flex;
@@ -61,6 +70,8 @@
     }
     .channel:hover { border-color: #444; }
     .channel.selected { border-color: var(--accent); background: rgba(201,168,76,0.08); }
+    .channel.locked { cursor: default; opacity: 0.85; }
+    .channel.locked .check { cursor: default; }
     .channel .check {
       width: 24px;
       height: 24px;
@@ -90,11 +101,22 @@
       font-size: 0.85rem;
       color: var(--text-dim);
     }
+    .channel-required {
+      font-size: 0.7rem;
+      color: var(--accent);
+      margin-top: 0.15rem;
+    }
 
     /* FORM */
     .form-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
+    .form-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .form-row .form-section { flex: 1; margin-bottom: 0; }
     label {
       display: block;
       font-size: 0.85rem;
@@ -103,18 +125,18 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    input[type="tel"] {
+    input[type="tel"], input[type="email"] {
       width: 100%;
       padding: 0.75rem 1rem;
       border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--surface);
       color: #fff;
-      font-size: 1.1rem;
-      letter-spacing: 0.05em;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
     }
-    input[type="tel"]:focus { outline: none; border-color: var(--accent); }
-    input[type="tel"]::placeholder { color: #555; }
+    input:focus { outline: none; border-color: var(--accent); }
+    input::placeholder { color: #555; }
 
     .submit-btn {
       width: 100%;
@@ -128,6 +150,7 @@
       cursor: pointer;
       transition: all 0.2s;
       letter-spacing: 0.02em;
+      margin-top: 0.5rem;
     }
     .submit-btn:hover { background: #d4b45a; }
     .submit-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
@@ -148,6 +171,27 @@
     }
     .success p {
       color: var(--text-dim);
+    }
+    .success .summary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    .success .summary dt {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.5rem;
+    }
+    .success .summary dt:first-child { margin-top: 0; }
+    .success .summary dd {
+      color: #fff;
+      font-weight: 500;
     }
 
     /* LEGAL */
@@ -217,16 +261,34 @@
       font-size: 0.9rem;
     }
     .back:hover { color: #fff; }
+
+    @media (max-width: 480px) {
+      .form-row { flex-direction: column; gap: 1rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>SMS Alerts</h1>
-    <p class="subtitle">Get show reminders, deal alerts, and promo codes straight to your phone.</p>
+    <h1>Sakima Alerts</h1>
+    <p class="subtitle">Show reminders, deal alerts, promo codes, and order updates straight to your phone and inbox.</p>
 
     <div id="form-area">
-      <p style="font-size:0.9rem; color:var(--text-dim); margin-bottom:1rem;">Choose your channels:</p>
 
+      <!-- TRANSACTIONAL (required) -->
+      <p class="section-label">Account notifications <span style="color:var(--accent);">(required)</span></p>
+      <div class="channels">
+        <div class="channel selected locked" data-channel="transactional" data-locked="true">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">Order &amp; Account Updates</div>
+            <div class="channel-desc">Shipping confirmations, tracking numbers, offer status, and account notifications</div>
+            <div class="channel-required">Required &mdash; cannot be opted out at signup</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKETING (optional) -->
+      <p class="section-label">Marketing channels <span style="color:var(--text-dim);">(optional)</span></p>
       <div class="channels">
         <div class="channel selected" data-channel="whatnot" onclick="toggleChannel(this)">
           <div class="check">&#10003;</div>
@@ -251,15 +313,22 @@
         </div>
       </div>
 
-      <div class="form-section">
-        <label for="phone">Phone number</label>
-        <input type="tel" id="phone" placeholder="(555) 123-4567" autocomplete="tel">
+      <!-- CONTACT INFO -->
+      <div class="form-row">
+        <div class="form-section">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@email.com" autocomplete="email">
+        </div>
+        <div class="form-section">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" placeholder="(555) 123-4567" autocomplete="tel">
+        </div>
       </div>
 
       <button class="submit-btn" id="submit-btn" onclick="submitOptIn()">Subscribe</button>
 
       <div class="legal">
-        By subscribing, you consent to receive recurring automated text messages from Sakima LC and/or its service providers at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel anytime. Not required to purchase.
+        By subscribing, you consent to receive recurring automated text messages and emails from Sakima LC and/or its service providers at the number and email provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel SMS anytime. Not required to purchase.
         <br><a href="/sms-terms/">SMS Terms</a> &middot; <a href="/privacy/">Privacy Policy</a>
       </div>
 
@@ -279,7 +348,15 @@
     <div class="success" id="success">
       <div class="icon">&#9889;</div>
       <h2>You're in!</h2>
-      <p>We'll send a confirmation text shortly. Reply YES to confirm and you're all set.</p>
+      <dl class="summary">
+        <dt>Email</dt>
+        <dd id="summary-email"></dd>
+        <dt>Phone</dt>
+        <dd id="summary-phone"></dd>
+        <dt>Subscribed to</dt>
+        <dd id="summary-channels"></dd>
+      </dl>
+      <p>We'll send a confirmation shortly. For SMS, reply YES to confirm.</p>
       <p style="margin-top:1rem;"><a href="/">Back to Sakima</a></p>
     </div>
 
@@ -288,18 +365,19 @@
 
   <script>
     function toggleChannel(el) {
+      if (el.dataset.locked === 'true') return;
       el.classList.toggle('selected');
       updateButton();
     }
 
     function updateButton() {
-      const selected = document.querySelectorAll('.channel.selected');
       const phone = document.getElementById('phone').value.replace(/\D/g, '');
-      document.getElementById('submit-btn').disabled = selected.length === 0 || phone.length < 10;
+      const email = document.getElementById('email').value.trim();
+      const hasContact = phone.length >= 10 || email.includes('@');
+      document.getElementById('submit-btn').disabled = !hasContact;
     }
 
     document.getElementById('phone').addEventListener('input', function(e) {
-      // Auto-format phone number
       let val = e.target.value.replace(/\D/g, '');
       if (val.length > 0) {
         if (val.length <= 3) {
@@ -314,23 +392,44 @@
       updateButton();
     });
 
+    document.getElementById('email').addEventListener('input', updateButton);
+
     function submitOptIn() {
       const phone = document.getElementById('phone').value.replace(/\D/g, '');
+      const email = document.getElementById('email').value.trim();
+      const hasContact = phone.length >= 10 || email.includes('@');
+      if (!hasContact) return;
+
       const channels = Array.from(document.querySelectorAll('.channel.selected'))
         .map(el => el.dataset.channel);
 
-      if (phone.length < 10 || channels.length === 0) return;
+      const channelLabels = {
+        transactional: 'Order & Account Updates',
+        whatnot: 'Whatnot',
+        ebay: 'eBay',
+        vip: 'VIP'
+      };
 
-      // For now, send via mailto — will integrate with Surge API
-      const body = `SMS Opt-In Request\nPhone: ${phone}\nChannels: ${channels.join(', ')}`;
+      // Show summary
+      document.getElementById('summary-email').textContent = email || '(not provided)';
+      document.getElementById('summary-phone').textContent = phone.length >= 10
+        ? '(' + phone.slice(0,3) + ') ' + phone.slice(3,6) + '-' + phone.slice(6,10)
+        : '(not provided)';
+      document.getElementById('summary-channels').textContent = channels
+        .map(c => channelLabels[c] || c).join(', ');
+
+      // Send via mailto for now — will integrate with Surge API
+      const lines = ['Sakima Alert Signup'];
+      if (email) lines.push('Email: ' + email);
+      if (phone.length >= 10) lines.push('Phone: ' + phone);
+      lines.push('Channels: ' + channels.join(', '));
       window.location.href = 'mailto:privacy@sakima.co?subject=' +
-        encodeURIComponent('SMS Opt-In') + '&body=' + encodeURIComponent(body);
+        encodeURIComponent('Alert Signup') + '&body=' + encodeURIComponent(lines.join('\n'));
 
       document.getElementById('form-area').style.display = 'none';
       document.getElementById('success').style.display = 'block';
     }
 
-    // Init button state
     updateButton();
   </script>
 </body>
