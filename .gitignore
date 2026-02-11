@@ -1,0 +1,67 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Secrets and credentials
+*.key
+*.pem
+*.p12
+secrets/
+credentials/
+auth/
+
+# Node modules (if using any build tools)
+node_modules/
+
+# Build artifacts
+dist/
+build/
+.cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test files (optional - comment out if you add tests)
+test/
+tests/
+*.test.html
+
+# Local development
+.local/
+
+# GitHub Pages
+.jekyll-cache/
+_site/
