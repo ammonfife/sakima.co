@@ -3,99 +3,335 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakima - SMS Terms & Privacy</title>
+  <title>Sakima - SMS Alerts</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #222;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --accent: #c9a84c;
+      --green: #4caf50;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0a0a0a;
-      color: #ddd;
-      line-height: 1.7;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
       padding: 2rem 1rem;
     }
     .container {
-      max-width: 640px;
+      max-width: 520px;
       margin: 0 auto;
     }
     h1 {
       color: #fff;
       font-size: 1.75rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
+      text-align: center;
     }
-    h2 {
+    .subtitle {
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: #fff; }
+
+    /* CHANNELS */
+    .channels {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .channel {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .channel:hover { border-color: #444; }
+    .channel.selected { border-color: var(--accent); background: rgba(201,168,76,0.08); }
+    .channel .check {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #444;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 14px;
+      color: transparent;
+    }
+    .channel.selected .check {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #000;
+    }
+    .channel-info { flex: 1; }
+    .channel-name {
+      font-weight: 600;
       color: #fff;
-      font-size: 1.25rem;
-      margin-top: 2rem;
+      font-size: 1rem;
+      margin-bottom: 0.15rem;
+    }
+    .channel-desc {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* FORM */
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    input[type="tel"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: #fff;
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+    }
+    input[type="tel"]:focus { outline: none; border-color: var(--accent); }
+    input[type="tel"]::placeholder { color: #555; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #000;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .submit-btn:hover { background: #d4b45a; }
+    .submit-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+    /* SUCCESS */
+    .success {
+      display: none;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .success .icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+    .success h2 {
+      color: #fff;
       margin-bottom: 0.5rem;
     }
-    p, li { font-size: 0.95rem; }
-    ul { padding-left: 1.25rem; margin: 0.5rem 0; }
-    a { color: #7db4ff; }
+    .success p {
+      color: var(--text-dim);
+    }
+
+    /* LEGAL */
+    .legal {
+      font-size: 0.75rem;
+      color: #666;
+      text-align: center;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+    .legal a { color: #888; text-decoration: underline; }
+
+    /* OR DIVIDER */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      color: #555;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* TEXT KEYWORD */
+    .keyword-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .keyword-section p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+    .keywords {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .keyword {
+      background: rgba(201,168,76,0.12);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--accent);
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
     .back {
-      display: inline-block;
+      display: block;
+      text-align: center;
       margin-top: 2rem;
       color: #888;
       text-decoration: none;
       font-size: 0.9rem;
     }
     .back:hover { color: #fff; }
-    .updated { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>SMS Terms & Privacy</h1>
-    <p class="updated">Last updated: February 10, 2026</p>
+    <h1>SMS Alerts</h1>
+    <p class="subtitle">Get show reminders, deal alerts, and promo codes straight to your phone.</p>
 
-    <h2>SMS Messaging Program</h2>
-    <p>Sakima offers multiple SMS notification channels. You may subscribe to one or more of the following:</p>
-    <ul>
-      <li><strong>Whatnot</strong> &mdash; Live auction alerts, show reminders, and Whatnot-exclusive deals</li>
-      <li><strong>eBay</strong> &mdash; New listing alerts, auction updates, and eBay-exclusive offers</li>
-      <li><strong>VIP</strong> &mdash; Promo codes, early access, and general announcements</li>
-    </ul>
-    <p>By opting in to any channel, you consent to receive recurring automated text messages from Sakima on that channel. Consent is not a condition of purchase.</p>
+    <div id="form-area">
+      <p style="font-size:0.9rem; color:var(--text-dim); margin-bottom:1rem;">Choose your channels:</p>
 
-    <h2>Opt-In</h2>
-    <p>You may subscribe by texting any of the following keywords to our SMS number:</p>
-    <ul>
-      <li><strong>COIN</strong> &mdash; Subscribe to all channels (Whatnot + eBay + VIP)</li>
-      <li><strong>WHATNOT</strong> &mdash; Subscribe to Whatnot alerts only</li>
-      <li><strong>EBAY</strong> &mdash; Subscribe to eBay alerts only</li>
-      <li><strong>VIP</strong> &mdash; Subscribe to VIP announcements only</li>
-      <li><strong>YES</strong> &mdash; Subscribe to all channels</li>
-    </ul>
-    <p>You may also opt in via the signup form on our website at <a href="/">sakima.co</a>.</p>
+      <div class="channels">
+        <div class="channel selected" data-channel="whatnot" onclick="toggleChannel(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">Whatnot</div>
+            <div class="channel-desc">Live auction alerts, show reminders, Whatnot-exclusive deals</div>
+          </div>
+        </div>
+        <div class="channel selected" data-channel="ebay" onclick="toggleChannel(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">eBay</div>
+            <div class="channel-desc">New listing alerts, auction updates, eBay-exclusive offers</div>
+          </div>
+        </div>
+        <div class="channel selected" data-channel="vip" onclick="toggleChannel(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">VIP</div>
+            <div class="channel-desc">Promo codes, early access, and general announcements</div>
+          </div>
+        </div>
+      </div>
 
-    <h2>Message Frequency</h2>
-    <p>Message frequency varies by channel. You may receive up to 10 messages per channel per month depending on promotions, events, and new inventory.</p>
+      <div class="form-section">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" placeholder="(555) 123-4567" autocomplete="tel">
+      </div>
 
-    <h2>Message & Data Rates</h2>
-    <p>Message and data rates may apply. Check with your wireless carrier for details about your text messaging plan.</p>
+      <button class="submit-btn" id="submit-btn" onclick="submitOptIn()">Subscribe</button>
 
-    <h2>Carrier Liability</h2>
-    <p>Carriers (e.g., T-Mobile, AT&amp;T, Verizon) are not liable for delayed or undelivered messages. Message delivery is subject to effective transmission from your network operator and is not guaranteed.</p>
+      <div class="legal">
+        By subscribing, you consent to receive recurring automated text messages from Sakima at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel anytime. Not required to purchase.
+        <br><a href="/sms-terms/">SMS Terms</a> &middot; <a href="/privacy/">Privacy Policy</a>
+      </div>
 
-    <h2>Opt-Out</h2>
-    <p>You can manage your subscriptions at any time by texting any of the following:</p>
-    <ul>
-      <li><strong>STOP</strong> &mdash; Unsubscribe from all channels immediately</li>
-      <li><strong>STOP WHATNOT</strong> &mdash; Unsubscribe from Whatnot alerts only</li>
-      <li><strong>STOP EBAY</strong> &mdash; Unsubscribe from eBay alerts only</li>
-      <li><strong>STOP VIP</strong> &mdash; Unsubscribe from VIP announcements only</li>
-    </ul>
-    <p>Replying <strong>STOP</strong> by itself will always unsubscribe you from all channels. You will receive a confirmation message. To re-subscribe after opting out, text any opt-in keyword above.</p>
+      <div class="or-divider">or text a keyword</div>
 
-    <h2>Help</h2>
-    <p>For help, reply <strong>HELP</strong> to any message or contact us at <a href="mailto:privacy@sakima.co">privacy@sakima.co</a>. You may also text <strong>STATUS</strong> to see which channels you are currently subscribed to.</p>
+      <div class="keyword-section">
+        <p>Text any keyword to our SMS number to subscribe:</p>
+        <div class="keywords">
+          <span class="keyword">COIN</span>
+          <span class="keyword">WHATNOT</span>
+          <span class="keyword">EBAY</span>
+          <span class="keyword">VIP</span>
+        </div>
+      </div>
+    </div>
 
-    <h2>Privacy</h2>
-    <p>Your phone number and SMS opt-in data will not be shared with any third parties. For our full privacy policy, see <a href="/privacy/">sakima.co/privacy</a>.</p>
-
-    <h2>Contact</h2>
-    <p>Sakima<br>Email: <a href="mailto:privacy@sakima.co">privacy@sakima.co</a></p>
+    <div class="success" id="success">
+      <div class="icon">&#9889;</div>
+      <h2>You're in!</h2>
+      <p>We'll send a confirmation text shortly. Reply YES to confirm and you're all set.</p>
+      <p style="margin-top:1rem;"><a href="/">Back to Sakima</a></p>
+    </div>
 
     <a class="back" href="/">&larr; Back to Sakima</a>
   </div>
+
+  <script>
+    function toggleChannel(el) {
+      el.classList.toggle('selected');
+      updateButton();
+    }
+
+    function updateButton() {
+      const selected = document.querySelectorAll('.channel.selected');
+      const phone = document.getElementById('phone').value.replace(/\D/g, '');
+      document.getElementById('submit-btn').disabled = selected.length === 0 || phone.length < 10;
+    }
+
+    document.getElementById('phone').addEventListener('input', function(e) {
+      // Auto-format phone number
+      let val = e.target.value.replace(/\D/g, '');
+      if (val.length > 0) {
+        if (val.length <= 3) {
+          val = '(' + val;
+        } else if (val.length <= 6) {
+          val = '(' + val.slice(0, 3) + ') ' + val.slice(3);
+        } else {
+          val = '(' + val.slice(0, 3) + ') ' + val.slice(3, 6) + '-' + val.slice(6, 10);
+        }
+      }
+      e.target.value = val;
+      updateButton();
+    });
+
+    function submitOptIn() {
+      const phone = document.getElementById('phone').value.replace(/\D/g, '');
+      const channels = Array.from(document.querySelectorAll('.channel.selected'))
+        .map(el => el.dataset.channel);
+
+      if (phone.length < 10 || channels.length === 0) return;
+
+      // For now, send via mailto — will integrate with Surge API
+      const body = `SMS Opt-In Request\nPhone: ${phone}\nChannels: ${channels.join(', ')}`;
+      window.location.href = 'mailto:privacy@sakima.co?subject=' +
+        encodeURIComponent('SMS Opt-In') + '&body=' + encodeURIComponent(body);
+
+      document.getElementById('form-area').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    }
+
+    // Init button state
+    updateButton();
+  </script>
 </body>
 </html>
