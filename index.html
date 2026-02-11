@@ -447,7 +447,7 @@
     <h2>Join the VIP List</h2>
     <p>Get exclusive show alerts, early access, promo codes, and first dibs on new inventory. Text or email &mdash; your choice.</p>
     <div class="vip-form" id="vip-form-email">
-      <input type="email" id="vip-email" placeholder="your@email.com" required>
+      <input type="email" id="vip-email" name="email" autocomplete="email" placeholder="your@email.com" required>
       <button type="button" onclick="submitVIP()">Join VIP</button>
     </div>
     <div class="vip-legal">
@@ -463,9 +463,9 @@
     <h2>Make an Offer / Sell to Us</h2>
     <p>Got coins, slabs, or collections to sell? Want to make an offer on something you saw? Drop us a line. We buy collections of all sizes.</p>
     <div class="offer-grid">
-      <input type="text" id="offer-name" placeholder="Your name">
-      <input type="email" id="offer-email" placeholder="Email address">
-      <input type="tel" id="offer-phone" placeholder="Phone (optional)">
+      <input type="text" id="offer-name" name="name" autocomplete="name" placeholder="Your name">
+      <input type="email" id="offer-email" name="email" autocomplete="email" placeholder="Email address">
+      <input type="tel" id="offer-phone" name="phone" autocomplete="tel" placeholder="Phone (optional)">
       <select id="offer-type">
         <option value="">What are you looking to do?</option>
         <option value="sell">Sell coins/collection to Sakima</option>
