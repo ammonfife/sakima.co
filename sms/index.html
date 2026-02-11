@@ -125,7 +125,7 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    input[type="tel"], input[type="email"] {
+    input[type="text"], input[type="tel"], input[type="email"] {
       width: 100%;
       padding: 0.75rem 1rem;
       border: 1px solid var(--border);
@@ -137,6 +137,30 @@
     }
     input:focus { outline: none; border-color: var(--accent); }
     input::placeholder { color: #555; }
+
+    /* PREFS */
+    .prefs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .pref-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .pref-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
 
     .submit-btn {
       width: 100%;
@@ -334,15 +358,30 @@
       </div>
 
       <!-- CONTACT INFO -->
+      <p class="section-label">Your info</p>
+      <div class="form-section">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name">
+      </div>
       <div class="form-row">
         <div class="form-section">
           <label for="email">Email</label>
-          <input type="email" id="email" placeholder="you@email.com" autocomplete="email">
+          <input type="email" id="email" name="email" placeholder="you@email.com" autocomplete="email">
         </div>
         <div class="form-section">
           <label for="phone">Phone</label>
-          <input type="tel" id="phone" placeholder="(555) 123-4567" autocomplete="tel">
+          <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" autocomplete="tel">
         </div>
+      </div>
+
+      <!-- CONTACT PREFERENCES -->
+      <div class="prefs">
+        <label class="pref-toggle" id="pref-email">
+          <input type="checkbox" checked> <span>Receive email notifications</span>
+        </label>
+        <label class="pref-toggle" id="pref-sms">
+          <input type="checkbox" checked> <span>Receive SMS notifications</span>
+        </label>
       </div>
 
       <button class="submit-btn" id="submit-btn" onclick="submitOptIn()">Subscribe</button>
@@ -371,14 +410,18 @@
       <div class="icon">&#9889;</div>
       <h2>You're in!</h2>
       <dl class="summary">
+        <dt>Name</dt>
+        <dd id="summary-name"></dd>
         <dt>Email</dt>
         <dd id="summary-email"></dd>
         <dt>Phone</dt>
         <dd id="summary-phone"></dd>
+        <dt>Contact via</dt>
+        <dd id="summary-prefs"></dd>
         <dt>Subscribed to</dt>
         <dd id="summary-channels"></dd>
       </dl>
-      <p>We'll send a confirmation shortly. For SMS, reply YES to confirm.</p>
+      <p id="summary-msg">We'll send a confirmation shortly. For SMS, reply YES to confirm.</p>
       <p style="margin-top:1rem;"><a href="/">Back to Sakima</a></p>
     </div>
 
@@ -386,18 +429,25 @@
   </div>
 
   <script>
+    const channelLabels = {
+      transactional: 'Order & Account Updates',
+      everything: 'Everything',
+      coins: 'Coins',
+      cards: 'Cards',
+      whatnot: 'Whatnot',
+      ebay: 'eBay',
+      vip: 'VIP'
+    };
+
     function toggleChannel(el) {
       if (el.dataset.locked === 'true') return;
       el.classList.toggle('selected');
-      // If any marketing channel is deselected, deselect Everything
       if (!el.classList.contains('selected')) {
         const everything = document.querySelector('.channel[data-channel="everything"]');
         if (everything) everything.classList.remove('selected');
       }
-      // If all individual marketing channels are selected, select Everything
-      const indivChannels = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-locked="true"])');
-      const allSelected = Array.from(indivChannels).every(c => c.classList.contains('selected'));
-      if (allSelected) {
+      const indiv = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-channel="transactional"])');
+      if (Array.from(indiv).every(c => c.classList.contains('selected'))) {
         const everything = document.querySelector('.channel[data-channel="everything"]');
         if (everything) everything.classList.add('selected');
       }
@@ -406,13 +456,10 @@
 
     function toggleEverything(el) {
       el.classList.toggle('selected');
-      const marketingChannels = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-locked="true"])');
-      marketingChannels.forEach(c => {
-        if (el.classList.contains('selected')) {
-          c.classList.add('selected');
-        } else {
-          c.classList.remove('selected');
-        }
+      const marketing = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-channel="transactional"])');
+      marketing.forEach(c => {
+        if (el.classList.contains('selected')) c.classList.add('selected');
+        else c.classList.remove('selected');
       });
       updateButton();
     }
@@ -427,13 +474,9 @@
     document.getElementById('phone').addEventListener('input', function(e) {
       let val = e.target.value.replace(/\D/g, '');
       if (val.length > 0) {
-        if (val.length <= 3) {
-          val = '(' + val;
-        } else if (val.length <= 6) {
-          val = '(' + val.slice(0, 3) + ') ' + val.slice(3);
-        } else {
-          val = '(' + val.slice(0, 3) + ') ' + val.slice(3, 6) + '-' + val.slice(6, 10);
-        }
+        if (val.length <= 3) val = '(' + val;
+        else if (val.length <= 6) val = '(' + val.slice(0,3) + ') ' + val.slice(3);
+        else val = '(' + val.slice(0,3) + ') ' + val.slice(3,6) + '-' + val.slice(6,10);
       }
       e.target.value = val;
       updateButton();
@@ -441,40 +484,82 @@
 
     document.getElementById('email').addEventListener('input', updateButton);
 
-    function submitOptIn() {
+    async function submitOptIn() {
+      const name = document.getElementById('name').value.trim();
       const phone = document.getElementById('phone').value.replace(/\D/g, '');
       const email = document.getElementById('email').value.trim();
       const hasContact = phone.length >= 10 || email.includes('@');
       if (!hasContact) return;
 
+      const wantEmail = document.querySelector('#pref-email input').checked;
+      const wantSMS = document.querySelector('#pref-sms input').checked;
+
       const channels = Array.from(document.querySelectorAll('.channel.selected'))
         .map(el => el.dataset.channel);
 
-      const channelLabels = {
-        transactional: 'Order & Account Updates',
-        everything: 'Everything',
-        coins: 'Coins',
-        cards: 'Cards',
-        whatnot: 'Whatnot',
-        ebay: 'eBay',
-        vip: 'VIP'
+      const phoneFmt = phone.length >= 10
+        ? '(' + phone.slice(0,3) + ') ' + phone.slice(3,6) + '-' + phone.slice(6,10)
+        : '';
+
+      // Build submission payload
+      const submission = {
+        name: name || null,
+        email: email || null,
+        phone: phone.length >= 10 ? phone : null,
+        emailOptIn: wantEmail,
+        smsOptIn: wantSMS,
+        channels: channels,
+        timestamp: new Date().toISOString(),
+        source: 'sakima.co/sms'
       };
 
-      // Show summary
-      document.getElementById('summary-email').textContent = email || '(not provided)';
-      document.getElementById('summary-phone').textContent = phone.length >= 10
-        ? '(' + phone.slice(0,3) + ') ' + phone.slice(3,6) + '-' + phone.slice(6,10)
-        : '(not provided)';
-      document.getElementById('summary-channels').textContent = channels
-        .map(c => channelLabels[c] || c).join(', ');
+      // Disable button during submit
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Subscribing...';
 
-      // Send via mailto for now — will integrate with Surge API
-      const lines = ['Sakima Alert Signup'];
-      if (email) lines.push('Email: ' + email);
-      if (phone.length >= 10) lines.push('Phone: ' + phone);
-      lines.push('Channels: ' + channels.join(', '));
-      window.location.href = 'mailto:privacy@sakima.co?subject=' +
-        encodeURIComponent('Alert Signup') + '&body=' + encodeURIComponent(lines.join('\n'));
+      // Store locally
+      try {
+        const existing = JSON.parse(localStorage.getItem('sakima_signups') || '[]');
+        existing.push(submission);
+        localStorage.setItem('sakima_signups', JSON.stringify(existing));
+      } catch(e) {}
+
+      // POST to backend (configure endpoint when ready)
+      const SIGNUP_ENDPOINT = null; // TODO: set to Surge API or webhook URL
+      if (SIGNUP_ENDPOINT) {
+        try {
+          await fetch(SIGNUP_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(submission)
+          });
+        } catch(e) {
+          console.error('Signup POST failed:', e);
+        }
+      }
+
+      // Show summary
+      document.getElementById('summary-name').textContent = name || '(not provided)';
+      document.getElementById('summary-email').textContent = email || '(not provided)';
+      document.getElementById('summary-phone').textContent = phoneFmt || '(not provided)';
+
+      const prefParts = [];
+      if (wantEmail && email) prefParts.push('Email');
+      if (wantSMS && phone.length >= 10) prefParts.push('SMS');
+      if (!prefParts.length) prefParts.push('None selected');
+      document.getElementById('summary-prefs').textContent = prefParts.join(' + ');
+
+      document.getElementById('summary-channels').textContent = channels
+        .map(c => channelLabels[c] || c).join(', ') || 'None';
+
+      // Tailor confirmation message
+      const msgs = [];
+      if (wantEmail && email) msgs.push('a confirmation email');
+      if (wantSMS && phone.length >= 10) msgs.push('a confirmation text — reply YES to confirm');
+      document.getElementById('summary-msg').textContent = msgs.length
+        ? "We'll send " + msgs.join(' and ') + ' shortly.'
+        : "We've saved your preferences. You can update them anytime.";
 
       document.getElementById('form-area').style.display = 'none';
       document.getElementById('success').style.display = 'block';
