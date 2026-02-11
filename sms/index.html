@@ -290,6 +290,27 @@
       <!-- MARKETING (optional) -->
       <p class="section-label">Marketing channels <span style="color:var(--text-dim);">(optional)</span></p>
       <div class="channels">
+        <div class="channel selected" data-channel="everything" onclick="toggleEverything(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">Everything</div>
+            <div class="channel-desc">All current and future categories &mdash; never miss a thing</div>
+          </div>
+        </div>
+        <div class="channel selected" data-channel="coins" onclick="toggleChannel(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">Coins</div>
+            <div class="channel-desc">Coin drops, slab alerts, bullion deals, and numismatic news</div>
+          </div>
+        </div>
+        <div class="channel selected" data-channel="cards" onclick="toggleChannel(this)">
+          <div class="check">&#10003;</div>
+          <div class="channel-info">
+            <div class="channel-name">Cards</div>
+            <div class="channel-desc">Trading card drops, sports cards, TCG, and card show alerts</div>
+          </div>
+        </div>
         <div class="channel selected" data-channel="whatnot" onclick="toggleChannel(this)">
           <div class="check">&#10003;</div>
           <div class="channel-info">
@@ -337,7 +358,9 @@
       <div class="keyword-section">
         <p>Text any keyword to our SMS number to subscribe:</p>
         <div class="keywords">
-          <span class="keyword">COIN</span>
+          <span class="keyword">EVERYTHING</span>
+          <span class="keyword">COINS</span>
+          <span class="keyword">CARDS</span>
           <span class="keyword">WHATNOT</span>
           <span class="keyword">EBAY</span>
           <span class="keyword">VIP</span>
@@ -367,6 +390,31 @@
     function toggleChannel(el) {
       if (el.dataset.locked === 'true') return;
       el.classList.toggle('selected');
+      // If any marketing channel is deselected, deselect Everything
+      if (!el.classList.contains('selected')) {
+        const everything = document.querySelector('.channel[data-channel="everything"]');
+        if (everything) everything.classList.remove('selected');
+      }
+      // If all individual marketing channels are selected, select Everything
+      const indivChannels = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-locked="true"])');
+      const allSelected = Array.from(indivChannels).every(c => c.classList.contains('selected'));
+      if (allSelected) {
+        const everything = document.querySelector('.channel[data-channel="everything"]');
+        if (everything) everything.classList.add('selected');
+      }
+      updateButton();
+    }
+
+    function toggleEverything(el) {
+      el.classList.toggle('selected');
+      const marketingChannels = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-locked="true"])');
+      marketingChannels.forEach(c => {
+        if (el.classList.contains('selected')) {
+          c.classList.add('selected');
+        } else {
+          c.classList.remove('selected');
+        }
+      });
       updateButton();
     }
 
@@ -405,6 +453,9 @@
 
       const channelLabels = {
         transactional: 'Order & Account Updates',
+        everything: 'Everything',
+        coins: 'Coins',
+        cards: 'Cards',
         whatnot: 'Whatnot',
         ebay: 'eBay',
         vip: 'VIP'
