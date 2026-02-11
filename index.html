@@ -48,7 +48,8 @@
       padding: 0.75rem 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
     }
-    nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; }
+    nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    nav .logo img { width: 32px; height: 32px; border-radius: 50%; }
     nav .nav-links { display: flex; gap: 1.5rem; font-size: 0.85rem; }
     nav .nav-links a { color: var(--text-dim); }
     nav .nav-links a:hover { color: #fff; }
@@ -59,6 +60,12 @@
       padding: 4rem 1.5rem 2rem;
       max-width: 720px;
       margin: 0 auto;
+    }
+    .hero-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
     }
     .hero h1 {
       font-size: 3rem;
@@ -372,7 +379,7 @@
 <body>
 
 <nav>
-  <div class="logo">Sakima</div>
+  <div class="logo"><img src="/assets/sakimalogo.png" alt="Sakima"> Sakima</div>
   <div class="nav-links">
     <a href="#shows">Shows</a>
     <a href="#listings">Shop</a>
@@ -384,6 +391,7 @@
 
 <!-- HERO -->
 <div class="hero">
+  <img src="/assets/sakimalogo.png" alt="Sakima" class="hero-logo">
   <h1>Sakima</h1>
   <p class="tagline">Slingin' treasures since dial-up and selling as Sakima since '97. Collector, husband, dad of three. Some folks think I've got a big bank account... turns out I just don't check it. I might pay too much, but that just means you can snag it here for a whole lot less.</p>
   <div class="platforms">
