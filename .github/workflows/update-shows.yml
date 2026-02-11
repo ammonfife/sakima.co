@@ -33,7 +33,6 @@ jobs:
 
           r = sbx.run_code("""
           import requests, json, re
-          from datetime import datetime, timezone
 
           s = requests.Session()
           s.headers.update({
@@ -41,106 +40,111 @@ jobs:
               'Accept': 'text/html',
           })
           resp = s.get("https://www.whatnot.com/user/sakima", timeout=30)
+          text = resp.text
 
-          shows = []
+          # Parse Apollo SSR data from script tags
+          scripts = re.findall(r'<script[^>]*>(.*?)</script>', text, re.DOTALL)
+          apollo_data = []
+          for scr in scripts:
+              if 'ApolloSSRDataTransport' in scr and '.push(' in scr:
+                  idx = scr.index('.push(') + 6
+                  ridx = scr.rindex(')')
+                  try:
+                      blob = json.loads(scr[idx:ridx])
+                      apollo_data.append(blob)
+                  except:
+                      pass
 
-          # Try __NEXT_DATA__ for structured show data
-          match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', resp.text, re.DOTALL)
-          if match:
-              try:
-                  next_data = json.loads(match.group(1))
+          # Recursively find livestream-like objects in Apollo cache
+          def find_livestreams(obj, depth=0):
+              if depth > 30:
+                  return []
+              results = []
+              if isinstance(obj, dict):
+                  tn = str(obj.get('__typename', '')).lower()
+                  has_title = 'title' in obj
+                  is_livestream = 'livestream' in tn or 'stream' in tn
+                  is_node = is_livestream and has_title and 'edges' not in obj and 'totalCount' not in obj
+                  if is_node:
+                      results.append(obj)
+                  for v in obj.values():
+                      if isinstance(v, (dict, list)):
+                          results.extend(find_livestreams(v, depth + 1))
+              elif isinstance(obj, list):
+                  for v in obj:
+                      if isinstance(v, (dict, list)):
+                          results.extend(find_livestreams(v, depth + 1))
+              return results
 
-                  # Recursively find show-like objects (have startAt/title/thumbnail)
-                  def find_shows(obj):
-                      results = []
-                      if isinstance(obj, dict):
-                          has_time = any(k in obj for k in ('startAt', 'startDate', 'scheduledStartTime', 'startsAt'))
-                          has_title = 'title' in obj or 'name' in obj
-                          if has_time and has_title:
-                              results.append(obj)
-                          for v in obj.values():
-                              results.extend(find_shows(v))
-                      elif isinstance(obj, list):
-                          for v in obj:
-                              results.extend(find_shows(v))
-                      return results
+          all_shows = []
+          sample_keys = None
+          for blob in apollo_data:
+              found = find_livestreams(blob)
+              for item in found:
+                  if sample_keys is None:
+                      sample_keys = list(item.keys())
+                  all_shows.append(item)
 
-                  found = find_shows(next_data)
-                  for item in found:
-                      title = item.get('title', item.get('name', ''))
-                      date_val = None
-                      for key in ('startAt', 'startDate', 'scheduledStartTime', 'startsAt'):
-                          if key in item:
-                              date_val = item[key]
+          # Deduplicate by title+date combo
+          seen = set()
+          unique_shows = []
+          for item in all_shows:
+              title = item.get('title', '')
+              # Find date: check all string values for ISO date patterns
+              date_val = None
+              for k, v in item.items():
+                  if isinstance(v, str) and re.match(r'\\d{4}-\\d{2}-\\d{2}', v):
+                      date_val = v
+                      break
+              key = f"{title}|{date_val}"
+              if key not in seen:
+                  seen.add(key)
+                  # Find thumbnail URL from nested objects
+                  thumb = None
+                  for tk in ('thumbnailImage', 'thumbnailUrl', 'thumbnail', 'image', 'coverImage'):
+                      val = item.get(tk)
+                      if val:
+                          if isinstance(val, dict):
+                              thumb = val.get('url', val.get('src', ''))
+                          elif isinstance(val, str) and ('http' in val or 'whatnot' in val):
+                              thumb = val
+                          if thumb:
                               break
-
-                      # Build thumbnail URL from various possible fields
-                      thumb = item.get('thumbnailUrl', item.get('thumbnail', item.get('thumbnailImage', '')))
-                      if isinstance(thumb, dict):
-                          thumb = thumb.get('url', thumb.get('src', ''))
-                      # If thumbnail is a path/ID, build full URL
-                      if thumb and not thumb.startswith('http'):
-                          thumb = f"https://images.whatnot.com/fit-in/640x0/filters:format(webp)/{thumb}"
-
-                      # Extract tags/categories
-                      tags = item.get('categories', item.get('tags', []))
-                      if isinstance(tags, list):
-                          tag_names = []
-                          for t in tags:
+                  # Find RSVP count
+                  rsvp = None
+                  for rk in ('rsvpCount', 'numRsvps', 'rsvps', 'rsvpTotal', 'numReminders', 'reminderCount'):
+                      if rk in item and isinstance(item[rk], (int, float)):
+                          rsvp = int(item[rk])
+                          break
+                  # Find tags/categories
+                  tags = []
+                  for ck in ('categories', 'tags', 'categoryNames', 'labels'):
+                      if ck in item and isinstance(item[ck], list):
+                          for t in item[ck]:
                               if isinstance(t, dict):
-                                  tag_names.append(t.get('name', t.get('title', str(t))))
-                              else:
-                                  tag_names.append(str(t))
-                          tags = tag_names
-                      else:
-                          tags = []
+                                  tags.append(t.get('name', t.get('title', str(t))))
+                              elif isinstance(t, str):
+                                  tags.append(t)
+                          break
 
-                      rsvp = item.get('rsvpCount', item.get('numRsvps', item.get('rsvps', None)))
+                  unique_shows.append({
+                      "title": title,
+                      "date": date_val,
+                      "image": thumb,
+                      "rsvp": rsvp,
+                      "tags": tags,
+                  })
 
-                      shows.append({
-                          "title": title,
-                          "date": date_val,
-                          "image": thumb if thumb else None,
-                          "rsvp": rsvp,
-                          "tags": tags,
-                      })
-              except Exception as e:
-                  print(f"NEXT_DATA parse error: {e}", flush=True)
-
-          # Fallback: pair thumbnails with show titles from HTML order
-          if not shows:
-              # Find show blocks - thumbnail followed by title text
-              # Each show on the page has a thumbnail and title in sequence
-              pattern = r'livestream_thumbnails[%/]+([a-f0-9-]+)\.png.*?(?:\"title\"|>)([^\"<]{3,60})'
-              pairs = re.findall(pattern, resp.text, re.DOTALL)
-
-              seen = set()
-              for thumb_id, title in pairs:
-                  key = f"{title.strip()}_{thumb_id}"
-                  if key not in seen:
-                      seen.add(key)
-                      shows.append({
-                          "title": title.strip(),
-                          "date": None,
-                          "image": f"https://images.whatnot.com/fit-in/640x0/filters:format(webp)/livestream_thumbnails%2F{thumb_id}.png",
-                          "rsvp": None,
-                          "tags": [],
-                      })
-
-          # Debug info
-          debug = {
-              "page_length": len(resp.text),
-              "has_next_data": match is not None,
-              "shows_found": len(shows),
-          }
-          if match:
-              try:
-                  nd = json.loads(match.group(1))
-                  debug["pageProps_keys"] = list(nd.get("props", {}).get("pageProps", {}).keys())
-              except:
-                  pass
-
-          print(json.dumps({"shows": shows, "debug": debug}))
+          print(json.dumps({
+              "shows": unique_shows,
+              "debug": {
+                  "apollo_blobs": len(apollo_data),
+                  "raw_shows": len(all_shows),
+                  "unique_shows": len(unique_shows),
+                  "sample_keys": sample_keys,
+                  "page_length": len(text),
+              }
+          }))
           """, timeout=60)
 
           output = ""
@@ -162,25 +166,18 @@ jobs:
               print(f"Failed to parse output: {output[:1000]}")
 
           if scraped:
-              # Filter to future shows and write directly
-              from datetime import datetime, timezone
-              now = datetime.now(timezone.utc)
               shows = []
               for s in scraped:
-                  show = {
+                  shows.append({
                       "title": s.get("title", ""),
                       "tags": s.get("tags", []),
                       "date": s.get("date"),
                       "rsvp": s.get("rsvp"),
                       "image": s.get("image"),
-                  }
-                  shows.append(show)
+                  })
 
               # Sort by date
-              def sort_key(s):
-                  try: return s["date"] or ""
-                  except: return ""
-              shows.sort(key=sort_key)
+              shows.sort(key=lambda s: s.get("date") or "")
 
               with open("data/shows.json", "w") as f:
                   json.dump(shows, f, indent=2)
