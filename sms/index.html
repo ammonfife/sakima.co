@@ -275,14 +275,13 @@
     <div id="form-area">
 
       <!-- TRANSACTIONAL (required) -->
-      <p class="section-label">Account notifications <span style="color:var(--accent);">(required)</span></p>
+      <p class="section-label">Account notifications <span style="color:var(--text-dim);">(on by default)</span></p>
       <div class="channels">
-        <div class="channel selected locked" data-channel="transactional" data-locked="true">
+        <div class="channel selected" data-channel="transactional" onclick="toggleChannel(this)">
           <div class="check">&#10003;</div>
           <div class="channel-info">
             <div class="channel-name">Order &amp; Account Updates</div>
             <div class="channel-desc">Shipping confirmations, tracking numbers, offer status, and account notifications</div>
-            <div class="channel-required">Required &mdash; cannot be opted out at signup</div>
           </div>
         </div>
       </div>
