@@ -535,18 +535,23 @@
         localStorage.setItem('sakima_signups', JSON.stringify(existing));
       } catch(e) {}
 
-      // POST to backend (configure endpoint when ready)
-      const SIGNUP_ENDPOINT = null; // TODO: set to Surge API or webhook URL
-      if (SIGNUP_ENDPOINT) {
-        try {
-          await fetch(SIGNUP_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(submission)
-          });
-        } catch(e) {
-          console.error('Signup POST failed:', e);
+      // POST to Surge via Cloudflare Worker
+      const SIGNUP_ENDPOINT = 'https://api.sakima.co/signup';
+      try {
+        const res = await fetch(SIGNUP_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submission)
+        });
+        if (!res.ok) {
+          console.error('Signup failed:', res.status);
+        } else {
+          if (typeof gtag === 'function') {
+            gtag('event', 'sign_up', { method: 'sms_form', channels: channels.join(',') });
+          }
         }
+      } catch(e) {
+        console.error('Signup POST failed:', e);
       }
 
       // Show summary

@@ -1,0 +1,20 @@
+name = "sakima-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+account_id = "187de0c1d881a4a2254008f31d8e93d4"
+routes = [
+  { pattern = "api.sakima.co/*", zone_id = "5919fb554b24ae7a3d58cb26a08fc663" }
+]
+
+[vars]
+SURGE_ACCOUNT_ID = "acct_01kh4tqhbnfrjbf861t3n0dec2"
+SURGE_PHONE_NUMBER = "+18773579997"
+ALLOWED_ORIGIN = "https://sakima.co"
+
+# Secrets (set via `wrangler secret put`):
+# SURGE_API_KEY          - sk_live_* Bearer token
+# SURGE_SIGNING_KEY_ID   - sgn_* key ID for JWT kid header
+# SURGE_SIGNING_KEY_JWK  - Ed25519 private key as JSON string
+# SURGE_WEBHOOK_SECRET   - HMAC secret from Surge dashboard
+# ADMIN_PASSWORD         - Password for /admin/token endpoint
+# SURGE_ADMIN_USER_ID    - Surge user ID for embed auth
