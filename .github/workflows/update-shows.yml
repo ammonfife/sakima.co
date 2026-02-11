@@ -85,34 +85,70 @@ jobs:
                       sample_keys = list(item.keys())
                   all_shows.append(item)
 
+          # Debug: dump raw field values from first show
+          first_raw = None
+          if all_shows:
+              first = all_shows[0]
+              first_raw = {}
+              for k in ('startTime', 'thumbnail', 'totalWatchlistUsers', 'tags', 'title', 'id'):
+                  v = first.get(k)
+                  first_raw[k] = repr(v)[:200] if v is not None else None
+
           # Extract show data using known Whatnot field names
           seen = set()
           unique_shows = []
           for item in all_shows:
               title = item.get('title', '')
               date_val = item.get('startTime')
+              # Handle thumbnail - could be dict, __ref, or string
               thumb_obj = item.get('thumbnail')
               thumb = None
               if isinstance(thumb_obj, dict):
-                  thumb = thumb_obj.get('url', thumb_obj.get('src', ''))
+                  if '__ref' in thumb_obj:
+                      # Apollo cache reference - try to resolve from blob
+                      ref = thumb_obj['__ref']
+                      for blob in apollo_data:
+                          rehydrate = blob.get('rehydrate', {})
+                          for cache_val in rehydrate.values():
+                              if isinstance(cache_val, dict):
+                                  data = cache_val.get('data', {})
+                                  # Deep search for the ref
+                                  def resolve_ref(obj, ref_id, d=0):
+                                      if d > 10: return None
+                                      if isinstance(obj, dict):
+                                          if obj.get('id') == ref_id or obj.get('__ref') == ref_id:
+                                              return obj.get('url', obj.get('src', ''))
+                                          for v in obj.values():
+                                              r = resolve_ref(v, ref_id, d+1)
+                                              if r: return r
+                                      elif isinstance(obj, list):
+                                          for v in obj:
+                                              r = resolve_ref(v, ref_id, d+1)
+                                              if r: return r
+                                      return None
+                                  thumb = resolve_ref(data, ref)
+                                  if thumb: break
+                  else:
+                      thumb = thumb_obj.get('url', thumb_obj.get('src', thumb_obj.get('uri', '')))
               elif isinstance(thumb_obj, str):
                   thumb = thumb_obj
+
               rsvp = item.get('totalWatchlistUsers')
               if isinstance(rsvp, (int, float)):
                   rsvp = int(rsvp)
               else:
                   rsvp = None
 
-              # Tags from both tags and livestreamCategories
+              # Tags - extract 'label' field from LivestreamTagNode objects
               tags = []
               for ck in ('tags', 'livestreamCategories', 'livestreamLabels'):
                   val = item.get(ck)
                   if isinstance(val, list):
                       for t in val:
                           if isinstance(t, dict):
-                              name = t.get('name', t.get('title', ''))
-                              if name and name not in tags:
-                                  tags.append(name)
+                              label = t.get('label', t.get('name', t.get('title', '')))
+                              if label and label not in tags:
+                                  tags.append(label)
                           elif isinstance(t, str) and t not in tags:
                               tags.append(t)
 
@@ -134,6 +170,7 @@ jobs:
                   "raw_shows": len(all_shows),
                   "unique_shows": len(unique_shows),
                   "sample_keys": sample_keys,
+                  "first_raw": first_raw,
                   "page_length": len(text),
               }
           }))
