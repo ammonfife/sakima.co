@@ -1,0 +1,108 @@
+name: Debug Whatnot Page
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install e2b-code-interpreter
+
+      - name: Explore Whatnot page
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          python3 << 'PYEOF'
+          import os, json, re
+          from e2b_code_interpreter import Sandbox
+
+          sbx = Sandbox.create(timeout=120)
+
+          r = sbx.run_code("""
+          import requests, json, re
+
+          s = requests.Session()
+          s.headers.update({
+              'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+              'Accept': 'text/html',
+          })
+          resp = s.get("https://www.whatnot.com/user/sakima", timeout=30)
+          text = resp.text
+
+          # 1. Find all script tags and their content snippets
+          scripts = re.findall(r'<script[^>]*>(.*?)</script>', text, re.DOTALL)
+          print(f"Found {len(scripts)} script tags")
+          for i, s in enumerate(scripts):
+              if len(s) > 50:
+                  print(f"  Script {i}: {len(s)} chars, starts with: {s[:200]}")
+
+          # 2. Find context around thumbnails
+          thumb_pattern = r'livestream_thumbnails[%/]+([a-f0-9-]+)\.png'
+          for m in re.finditer(thumb_pattern, text):
+              start = max(0, m.start() - 300)
+              end = min(len(text), m.end() + 200)
+              context = text[start:end]
+              # Clean up for readability
+              context = context.replace('\\n', ' ').replace('\\t', ' ')
+              print(f"\\nTHUMB CONTEXT ({m.group(1)[:8]}...): ...{context}...")
+              break  # just first one to understand pattern
+
+          # 3. Look for JSON blobs with show data
+          json_patterns = [
+              r'"livestreams?":\s*\[',
+              r'"upcomingLivestreams?":\s*\[', 
+              r'"scheduledStreams?":\s*\[',
+              r'"shows?":\s*\[',
+              r'"startAt"',
+              r'"startsAt"',
+              r'"scheduledStartTime"',
+              r'"title":\s*"[^"]*Sakima',
+              r'"title":\s*"[^"]*Pop up',
+              r'"title":\s*"[^"]*Auction',
+              r'"rsvp',
+          ]
+          for pat in json_patterns:
+              matches = re.findall(pat, text)
+              if matches:
+                  print(f"\\nPattern '{pat}': {len(matches)} matches")
+                  # Show context of first match
+                  m = re.search(pat, text)
+                  if m:
+                      start = max(0, m.start() - 100)
+                      end = min(len(text), m.end() + 300)
+                      print(f"  Context: ...{text[start:end][:500]}...")
+
+          # 4. Look for any large JSON inside script tags
+          for i, scr in enumerate(scripts):
+              if len(scr) > 1000:
+                  # Try to find JSON arrays or objects
+                  json_starts = [(m.start(), m.group()) for m in re.finditer(r'[\[{]', scr[:100])]
+                  print(f"\\nLarge script {i} ({len(scr)} chars): starts={json_starts[:5]}, first 300: {scr[:300]}")
+
+          # 5. Look for show title patterns near thumbnails
+          title_near_thumb = re.findall(r'((?:Super Sakima|Pop up|Post Game|Recovery|Auction|Grams)[^<"]{0,60})', text)
+          print(f"\\nTitle-like strings: {title_near_thumb[:20]}")
+
+          # 6. What does the HTML structure look like around show cards?
+          # Find aria-label or data attributes that might identify shows
+          show_attrs = re.findall(r'(?:aria-label|data-[\w-]+)="[^"]*(?:show|live|stream|sakima)[^"]*"', text, re.IGNORECASE)
+          print(f"\\nShow-related attributes: {show_attrs[:10]}")
+          """, timeout=60)
+
+          for log in r.logs.stdout:
+              print(str(log))
+          for log in r.logs.stderr:
+              print(f"STDERR: {str(log)}")
+          for res in r.results:
+              print(res.text if hasattr(res, 'text') else str(res))
+
+          sbx.kill()
+          PYEOF
