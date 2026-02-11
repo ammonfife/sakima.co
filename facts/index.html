@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazing Facts Collection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: white; text-align: center; font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { color: rgba(255,255,255,0.9); text-align: center; margin-bottom: 40px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card-icon { font-size: 2em; margin-bottom: 10px; }
+        .card-title { font-size: 1.2em; font-weight: 600; color: #667eea; }
+        .card-desc { font-size: 0.9em; color: #666; margin-top: 8px; }
+        .footer { text-align: center; color: rgba(255,255,255,0.7); margin-top: 40px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 Amazing Facts Collection</h1>
+        <p class="subtitle">Explore 20 categories of fascinating facts about our world</p>
+        
+        <div class="grid">
+            <a href="science-basics.html" class="card">
+                <div class="card-icon">🔬</div>
+                <div class="card-title">Science Basics</div>
+                <div class="card-desc">Fundamental scientific facts everyone should know</div>
+            </a>
+            
+            <a href="weather-facts.html" class="card">
+                <div class="card-icon">🌤️</div>
+                <div class="card-title">Weather Facts</div>
+                <div class="card-desc">Surprising facts about weather phenomena</div>
+            </a>
+            
+            <a href="nature-guide.html" class="card">
+                <div class="card-icon">🌿</div>
+                <div class="card-title">Nature Guide</div>
+                <div class="card-desc">Discover the wonders of the natural world</div>
+            </a>
+            
+            <a href="psychology-101.html" class="card">
+                <div class="card-icon">🧠</div>
+                <div class="card-title">Psychology 101</div>
+                <div class="card-desc">How the human mind works</div>
+            </a>
+            
+            <a href="space-exploration.html" class="card">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Space Exploration</div>
+                <div class="card-desc">Facts about our universe</div>
+            </a>
+            
+            <a href="animal-kingdom.html" class="card">
+                <div class="card-icon">🦁</div>
+                <div class="card-title">Animal Kingdom</div>
+                <div class="card-desc">Amazing facts about wildlife</div>
+            </a>
+            
+            <a href="health-wellness.html" class="card">
+                <div class="card-icon">💪</div>
+                <div class="card-title">Health & Wellness</div>
+                <div class="card-desc">Tips for a healthier life</div>
+            </a>
+            
+            <a href="world-history.html" class="card">
+                <div class="card-icon">📜</div>
+                <div class="card-title">World History</div>
+                <div class="card-desc">Fascinating historical facts</div>
+            </a>
+            
+            <a href="ocean-depths.html" class="card">
+                <div class="card-icon">🌊</div>
+                <div class="card-title">Ocean Depths</div>
+                <div class="card-desc">Mysteries of the deep sea</div>
+            </a>
+            
+            <a href="tech-timeline.html" class="card">
+                <div class="card-icon">💻</div>
+                <div class="card-title">Tech Timeline</div>
+                <div class="card-desc">History of technology milestones</div>
+            </a>
+            
+            <a href="food-science.html" class="card">
+                <div class="card-icon">🍎</div>
+                <div class="card-title">Food Science</div>
+                <div class="card-desc">Surprising facts about food</div>
+            </a>
+            
+            <a href="geography-101.html" class="card">
+                <div class="card-icon">🗺️</div>
+                <div class="card-title">Geography 101</div>
+                <div class="card-desc">Our planet's amazing features</div>
+            </a>
+            
+            <a href="music-theory.html" class="card">
+                <div class="card-icon">🎵</div>
+                <div class="card-title">Music Theory</div>
+                <div class="card-desc">Facts about music and sound</div>
+            </a>
+            
+            <a href="human-body.html" class="card">
+                <div class="card-icon">🫀</div>
+                <div class="card-title">Human Body</div>
+                <div class="card-desc">How your body works</div>
+            </a>
+            
+            <a href="math-wonders.html" class="card">
+                <div class="card-icon">🔢</div>
+                <div class="card-title">Math Wonders</div>
+                <div class="card-desc">Fascinating mathematical facts</div>
+            </a>
+            
+            <a href="language-facts.html" class="card">
+                <div class="card-icon">🗣️</div>
+                <div class="card-title">Language Facts</div>
+                <div class="card-desc">How humans communicate</div>
+            </a>
+            
+            <a href="weather-patterns.html" class="card">
+                <div class="card-icon">⛈️</div>
+                <div class="card-title">Weather Patterns</div>
+                <div class="card-desc">Understanding weather systems</div>
+            </a>
+            
+            <a href="art-history.html" class="card">
+                <div class="card-icon">🎨</div>
+                <div class="card-title">Art History</div>
+                <div class="card-desc">Stories behind famous artworks</div>
+            </a>
+            
+            <a href="sports-records.html" class="card">
+                <div class="card-icon">🏆</div>
+                <div class="card-title">Sports Records</div>
+                <div class="card-desc">Amazing athletic achievements</div>
+            </a>
+            
+            <a href="inventions.html" class="card">
+                <div class="card-icon">💡</div>
+                <div class="card-title">Famous Inventions</div>
+                <div class="card-desc">How everyday items were created</div>
+            </a>
+        </div>
+        
+        <p class="footer">A curated collection of verified facts • Updated 2024</p>
+    </div>
+</body>
+</html>
