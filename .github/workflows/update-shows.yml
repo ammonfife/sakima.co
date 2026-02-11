@@ -1,0 +1,202 @@
+name: Update Whatnot Shows
+
+on:
+  schedule:
+    - cron: '30 */6 * * *'  # Every 6 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install e2b-code-interpreter
+
+      - name: Fetch Whatnot shows
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          python3 << 'PYEOF'
+          import os, json, re
+          from e2b_code_interpreter import Sandbox
+
+          sbx = Sandbox.create(timeout=120)
+
+          r = sbx.run_code("""
+          import requests, json, re
+          from datetime import datetime, timezone
+
+          s = requests.Session()
+          s.headers.update({
+              'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+              'Accept': 'text/html',
+          })
+          resp = s.get("https://www.whatnot.com/user/sakima", timeout=30)
+
+          shows = []
+
+          # Try __NEXT_DATA__ for structured show data
+          match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', resp.text, re.DOTALL)
+          if match:
+              try:
+                  next_data = json.loads(match.group(1))
+
+                  # Recursively find show-like objects (have startAt/title/thumbnail)
+                  def find_shows(obj):
+                      results = []
+                      if isinstance(obj, dict):
+                          has_time = any(k in obj for k in ('startAt', 'startDate', 'scheduledStartTime', 'startsAt'))
+                          has_title = 'title' in obj or 'name' in obj
+                          if has_time and has_title:
+                              results.append(obj)
+                          for v in obj.values():
+                              results.extend(find_shows(v))
+                      elif isinstance(obj, list):
+                          for v in obj:
+                              results.extend(find_shows(v))
+                      return results
+
+                  found = find_shows(next_data)
+                  for item in found:
+                      title = item.get('title', item.get('name', ''))
+                      date_val = None
+                      for key in ('startAt', 'startDate', 'scheduledStartTime', 'startsAt'):
+                          if key in item:
+                              date_val = item[key]
+                              break
+
+                      # Build thumbnail URL from various possible fields
+                      thumb = item.get('thumbnailUrl', item.get('thumbnail', item.get('thumbnailImage', '')))
+                      if isinstance(thumb, dict):
+                          thumb = thumb.get('url', thumb.get('src', ''))
+                      # If thumbnail is a path/ID, build full URL
+                      if thumb and not thumb.startswith('http'):
+                          thumb = f"https://images.whatnot.com/fit-in/640x0/filters:format(webp)/{thumb}"
+
+                      # Extract tags/categories
+                      tags = item.get('categories', item.get('tags', []))
+                      if isinstance(tags, list):
+                          tag_names = []
+                          for t in tags:
+                              if isinstance(t, dict):
+                                  tag_names.append(t.get('name', t.get('title', str(t))))
+                              else:
+                                  tag_names.append(str(t))
+                          tags = tag_names
+                      else:
+                          tags = []
+
+                      rsvp = item.get('rsvpCount', item.get('numRsvps', item.get('rsvps', None)))
+
+                      shows.append({
+                          "title": title,
+                          "date": date_val,
+                          "image": thumb if thumb else None,
+                          "rsvp": rsvp,
+                          "tags": tags,
+                      })
+              except Exception as e:
+                  print(f"NEXT_DATA parse error: {e}", flush=True)
+
+          # Fallback: pair thumbnails with show titles from HTML order
+          if not shows:
+              # Find show blocks - thumbnail followed by title text
+              # Each show on the page has a thumbnail and title in sequence
+              pattern = r'livestream_thumbnails[%/]+([a-f0-9-]+)\.png.*?(?:\"title\"|>)([^\"<]{3,60})'
+              pairs = re.findall(pattern, resp.text, re.DOTALL)
+
+              seen = set()
+              for thumb_id, title in pairs:
+                  key = f"{title.strip()}_{thumb_id}"
+                  if key not in seen:
+                      seen.add(key)
+                      shows.append({
+                          "title": title.strip(),
+                          "date": None,
+                          "image": f"https://images.whatnot.com/fit-in/640x0/filters:format(webp)/livestream_thumbnails%2F{thumb_id}.png",
+                          "rsvp": None,
+                          "tags": [],
+                      })
+
+          # Debug info
+          debug = {
+              "page_length": len(resp.text),
+              "has_next_data": match is not None,
+              "shows_found": len(shows),
+          }
+          if match:
+              try:
+                  nd = json.loads(match.group(1))
+                  debug["pageProps_keys"] = list(nd.get("props", {}).get("pageProps", {}).keys())
+              except:
+                  pass
+
+          print(json.dumps({"shows": shows, "debug": debug}))
+          """, timeout=60)
+
+          output = ""
+          for log in r.logs.stdout:
+              output += str(log)
+          for res in r.results:
+              output += res.text if hasattr(res, 'text') else str(res)
+
+          sbx.kill()
+
+          # Parse scraped data
+          try:
+              data = json.loads(output.strip())
+              scraped = data.get("shows", [])
+              debug = data.get("debug", {})
+              print(f"Debug: {json.dumps(debug)}")
+          except:
+              scraped = []
+              print(f"Failed to parse output: {output[:1000]}")
+
+          if scraped:
+              # Filter to future shows and write directly
+              from datetime import datetime, timezone
+              now = datetime.now(timezone.utc)
+              shows = []
+              for s in scraped:
+                  show = {
+                      "title": s.get("title", ""),
+                      "tags": s.get("tags", []),
+                      "date": s.get("date"),
+                      "rsvp": s.get("rsvp"),
+                      "image": s.get("image"),
+                  }
+                  shows.append(show)
+
+              # Sort by date
+              def sort_key(s):
+                  try: return s["date"] or ""
+                  except: return ""
+              shows.sort(key=sort_key)
+
+              with open("data/shows.json", "w") as f:
+                  json.dump(shows, f, indent=2)
+              print(f"Wrote {len(shows)} shows from scraped data")
+          else:
+              print("No shows scraped - keeping existing data")
+          PYEOF
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/shows.json
+          if git diff --staged --quiet; then
+            echo "No changes to shows"
+          else
+            git commit -m "Auto-update Whatnot show thumbnails [skip ci]"
+            git push
+          fi
