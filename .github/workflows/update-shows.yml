@@ -85,48 +85,40 @@ jobs:
                       sample_keys = list(item.keys())
                   all_shows.append(item)
 
-          # Deduplicate by title+date combo
+          # Extract show data using known Whatnot field names
           seen = set()
           unique_shows = []
           for item in all_shows:
               title = item.get('title', '')
-              # Find date: check all string values for ISO date patterns
-              date_val = None
-              for k, v in item.items():
-                  if isinstance(v, str) and re.match(r'\\d{4}-\\d{2}-\\d{2}', v):
-                      date_val = v
-                      break
+              date_val = item.get('startTime')
+              thumb_obj = item.get('thumbnail')
+              thumb = None
+              if isinstance(thumb_obj, dict):
+                  thumb = thumb_obj.get('url', thumb_obj.get('src', ''))
+              elif isinstance(thumb_obj, str):
+                  thumb = thumb_obj
+              rsvp = item.get('totalWatchlistUsers')
+              if isinstance(rsvp, (int, float)):
+                  rsvp = int(rsvp)
+              else:
+                  rsvp = None
+
+              # Tags from both tags and livestreamCategories
+              tags = []
+              for ck in ('tags', 'livestreamCategories', 'livestreamLabels'):
+                  val = item.get(ck)
+                  if isinstance(val, list):
+                      for t in val:
+                          if isinstance(t, dict):
+                              name = t.get('name', t.get('title', ''))
+                              if name and name not in tags:
+                                  tags.append(name)
+                          elif isinstance(t, str) and t not in tags:
+                              tags.append(t)
+
               key = f"{title}|{date_val}"
               if key not in seen:
                   seen.add(key)
-                  # Find thumbnail URL from nested objects
-                  thumb = None
-                  for tk in ('thumbnailImage', 'thumbnailUrl', 'thumbnail', 'image', 'coverImage'):
-                      val = item.get(tk)
-                      if val:
-                          if isinstance(val, dict):
-                              thumb = val.get('url', val.get('src', ''))
-                          elif isinstance(val, str) and ('http' in val or 'whatnot' in val):
-                              thumb = val
-                          if thumb:
-                              break
-                  # Find RSVP count
-                  rsvp = None
-                  for rk in ('rsvpCount', 'numRsvps', 'rsvps', 'rsvpTotal', 'numReminders', 'reminderCount'):
-                      if rk in item and isinstance(item[rk], (int, float)):
-                          rsvp = int(item[rk])
-                          break
-                  # Find tags/categories
-                  tags = []
-                  for ck in ('categories', 'tags', 'categoryNames', 'labels'):
-                      if ck in item and isinstance(item[ck], list):
-                          for t in item[ck]:
-                              if isinstance(t, dict):
-                                  tags.append(t.get('name', t.get('title', str(t))))
-                              elif isinstance(t, str):
-                                  tags.append(t)
-                          break
-
                   unique_shows.append({
                       "title": title,
                       "date": date_val,
