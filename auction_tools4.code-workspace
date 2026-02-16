@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../auction_tools"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"openclaw.gatewayUrl": "http://127.0.0.1:18789"
+	}
+}

@@ -1,0 +1,8 @@
+          $106859.78  Assets:Whatnot:Pending
+           $14360.62  Expenses:Fees
+             $463.41  Expenses:Giveaways
+         $-121239.99  Revenue:Sales
+            $-523.00  Revenue:Tips
+              $79.18  Revenue:Other
+--------------------
+                   0  

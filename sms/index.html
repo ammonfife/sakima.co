@@ -60,61 +60,86 @@
       margin-bottom: 0.75rem;
     }
 
-    /* CHANNELS */
-    .channels {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+    /* NOTIFICATION MATRIX */
+    .matrix-note {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    .matrix {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
       margin-bottom: 1.5rem;
     }
-    .channel {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .matrix table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: collapse;
     }
-    .channel:hover { border-color: #444; }
-    .channel.selected { border-color: var(--accent); background: rgba(201,168,76,0.08); }
-    .channel.locked { cursor: default; opacity: 0.85; }
-    .channel.locked .check { cursor: default; }
-    .channel .check {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #444;
-      border-radius: 6px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      font-size: 14px;
-      color: transparent;
+    .matrix thead {
+      background: rgba(255,255,255,0.03);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
     }
-    .channel.selected .check {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: #000;
+    .matrix th, .matrix td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
     }
-    .channel-info { flex: 1; }
-    .channel-name {
+    .matrix tbody tr:last-child th,
+    .matrix tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .matrix-row:hover td {
+      background: rgba(255,255,255,0.015);
+    }
+    .matrix-info .channel-name {
       font-weight: 600;
       color: #fff;
-      font-size: 1rem;
       margin-bottom: 0.15rem;
     }
-    .channel-desc {
+    .matrix-info .channel-desc {
       font-size: 0.85rem;
       color: var(--text-dim);
     }
-    .channel-required {
+    .matrix-info .channel-required {
       font-size: 0.7rem;
       color: var(--accent);
-      margin-top: 0.15rem;
+      margin-top: 0.25rem;
+    }
+    .matrix-checkbox {
+      text-align: center;
+    }
+    .checkbox-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .checkbox-pill input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+    .checkbox-pill input:checked + span,
+    .checkbox-pill input:checked ~ span {
+      color: #fff;
+    }
+    .checkbox-pill:hover {
+      border-color: var(--accent);
+    }
+    .checkbox-pill.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     /* FORM */
@@ -147,30 +172,6 @@
     }
     input:focus { outline: none; border-color: var(--accent); }
     input::placeholder { color: #555; }
-
-    /* PREFS */
-    .prefs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-    }
-    .pref-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: var(--text);
-      text-transform: none;
-      letter-spacing: 0;
-    }
-    .pref-toggle input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
 
     .submit-btn {
       width: 100%;
@@ -309,63 +310,129 @@
 
     <div id="form-area">
 
-      <!-- TRANSACTIONAL (required) -->
-      <p class="section-label">Account notifications <span style="color:var(--text-dim);">(on by default)</span></p>
-      <div class="channels">
-        <div class="channel selected" data-channel="transactional" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">Order &amp; Account Updates</div>
-            <div class="channel-desc">Shipping confirmations, tracking numbers, offer status, and account notifications</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MARKETING (optional) -->
-      <p class="section-label">Marketing channels <span style="color:var(--text-dim);">(optional)</span></p>
-      <div class="channels">
-        <div class="channel selected" data-channel="everything" onclick="toggleEverything(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">Everything</div>
-            <div class="channel-desc">All current and future categories &mdash; never miss a thing</div>
-          </div>
-        </div>
-        <div class="channel selected" data-channel="coins" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">Coins</div>
-            <div class="channel-desc">Coin drops, slab alerts, bullion deals, and numismatic news</div>
-          </div>
-        </div>
-        <div class="channel selected" data-channel="cards" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">Cards</div>
-            <div class="channel-desc">Trading card drops, sports cards, TCG, and card show alerts</div>
-          </div>
-        </div>
-        <div class="channel selected" data-channel="whatnot" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">Whatnot</div>
-            <div class="channel-desc">Live auction alerts, show reminders, Whatnot-exclusive deals</div>
-          </div>
-        </div>
-        <div class="channel selected" data-channel="ebay" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">eBay</div>
-            <div class="channel-desc">New listing alerts, auction updates, eBay-exclusive offers</div>
-          </div>
-        </div>
-        <div class="channel selected" data-channel="vip" onclick="toggleChannel(this)">
-          <div class="check">&#10003;</div>
-          <div class="channel-info">
-            <div class="channel-name">VIP</div>
-            <div class="channel-desc">Promo codes, early access, and general announcements</div>
-          </div>
-        </div>
+      <p class="section-label">Notification preferences</p>
+      <p class="matrix-note">Pick where you want to hear about each topic. Email boxes are pre-selected; SMS requires a manual opt-in.</p>
+      <div class="matrix" role="table" aria-label="Notification preferences">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Email</th>
+              <th scope="col">SMS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="matrix-row" data-channel="transactional">
+              <td class="matrix-info">
+                <div class="channel-name">Order &amp; Account Updates</div>
+                <div class="channel-desc">Shipping confirmations, tracking numbers, offer status, and account notifications</div>
+                <div class="channel-required">Transactional notices</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for Order and Account Updates">
+                  <input type="checkbox" data-type="email" data-channel="transactional" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for Order and Account Updates">
+                  <input type="checkbox" data-type="sms" data-channel="transactional">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+            <tr class="matrix-row" data-channel="coins">
+              <td class="matrix-info">
+                <div class="channel-name">Coins</div>
+                <div class="channel-desc">Coin drops, slab alerts, bullion deals, and numismatic news</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for Coins">
+                  <input type="checkbox" data-type="email" data-channel="coins" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for Coins">
+                  <input type="checkbox" data-type="sms" data-channel="coins">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+            <tr class="matrix-row" data-channel="cards">
+              <td class="matrix-info">
+                <div class="channel-name">Cards</div>
+                <div class="channel-desc">Trading card drops, sports cards, TCG, and card show alerts</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for Cards">
+                  <input type="checkbox" data-type="email" data-channel="cards" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for Cards">
+                  <input type="checkbox" data-type="sms" data-channel="cards">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+            <tr class="matrix-row" data-channel="whatnot">
+              <td class="matrix-info">
+                <div class="channel-name">Whatnot</div>
+                <div class="channel-desc">Live auction alerts, show reminders, Whatnot-exclusive deals</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for Whatnot">
+                  <input type="checkbox" data-type="email" data-channel="whatnot" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for Whatnot">
+                  <input type="checkbox" data-type="sms" data-channel="whatnot">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+            <tr class="matrix-row" data-channel="ebay">
+              <td class="matrix-info">
+                <div class="channel-name">eBay</div>
+                <div class="channel-desc">New listing alerts, auction updates, eBay-exclusive offers</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for eBay">
+                  <input type="checkbox" data-type="email" data-channel="ebay" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for eBay">
+                  <input type="checkbox" data-type="sms" data-channel="ebay">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+            <tr class="matrix-row" data-channel="vip">
+              <td class="matrix-info">
+                <div class="channel-name">VIP</div>
+                <div class="channel-desc">Promo codes, early access, and general announcements</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for VIP">
+                  <input type="checkbox" data-type="email" data-channel="vip" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for VIP">
+                  <input type="checkbox" data-type="sms" data-channel="vip">
+                  <span>SMS</span>
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- CONTACT INFO -->
@@ -385,20 +452,10 @@
         </div>
       </div>
 
-      <!-- CONTACT PREFERENCES -->
-      <div class="prefs">
-        <label class="pref-toggle" id="pref-email">
-          <input type="checkbox" checked> <span>Receive email notifications</span>
-        </label>
-        <label class="pref-toggle" id="pref-sms">
-          <input type="checkbox" checked> <span>Receive SMS notifications</span>
-        </label>
-      </div>
-
       <button class="submit-btn" id="submit-btn" onclick="submitOptIn()">Subscribe</button>
 
       <div class="legal">
-        By subscribing, you consent to receive recurring automated text messages and/or emails from Sakima LC and/or its service providers at the number and/or email provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel SMS anytime. Not required to purchase.
+        By subscribing, you consent to receive recurring automated text messages and/or emails from Sakima LC and/or its service providers at the number and/or email provided. Msg &amp; data rates may apply. Msg frequency varies. Reply HELP for help or STOP to opt out. Not required to purchase.
         <br><a href="/sms-terms/">SMS Terms</a> &middot; <a href="/privacy/">Privacy Policy</a>
       </div>
 
@@ -442,7 +499,6 @@
   <script>
     const channelLabels = {
       transactional: 'Order & Account Updates',
-      everything: 'Everything',
       coins: 'Coins',
       cards: 'Cards',
       whatnot: 'Whatnot',
@@ -450,29 +506,17 @@
       vip: 'VIP'
     };
 
-    function toggleChannel(el) {
-      if (el.dataset.locked === 'true') return;
-      el.classList.toggle('selected');
-      if (!el.classList.contains('selected')) {
-        const everything = document.querySelector('.channel[data-channel="everything"]');
-        if (everything) everything.classList.remove('selected');
-      }
-      const indiv = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-channel="transactional"])');
-      if (Array.from(indiv).every(c => c.classList.contains('selected'))) {
-        const everything = document.querySelector('.channel[data-channel="everything"]');
-        if (everything) everything.classList.add('selected');
-      }
-      updateButton();
-    }
-
-    function toggleEverything(el) {
-      el.classList.toggle('selected');
-      const marketing = document.querySelectorAll('.channel[data-channel]:not([data-channel="everything"]):not([data-channel="transactional"])');
-      marketing.forEach(c => {
-        if (el.classList.contains('selected')) c.classList.add('selected');
-        else c.classList.remove('selected');
+    function getChannelSelections() {
+      return Array.from(document.querySelectorAll('.matrix-row')).map(row => {
+        const channel = row.dataset.channel;
+        const emailBox = row.querySelector('input[data-type="email"]');
+        const smsBox = row.querySelector('input[data-type="sms"]');
+        return {
+          channel,
+          email: emailBox ? emailBox.checked : false,
+          sms: smsBox ? smsBox.checked : false,
+        };
       });
-      updateButton();
     }
 
     function updateButton() {
@@ -502,11 +546,13 @@
       const hasContact = phone.length >= 10 || email.includes('@');
       if (!hasContact) return;
 
-      const wantEmail = document.querySelector('#pref-email input').checked;
-      const wantSMS = document.querySelector('#pref-sms input').checked;
+      const selections = getChannelSelections();
+      const wantEmail = selections.some(sel => sel.email);
+      const wantSMS = selections.some(sel => sel.sms);
 
-      const channels = Array.from(document.querySelectorAll('.channel.selected'))
-        .map(el => el.dataset.channel);
+      const channels = selections
+        .filter(sel => sel.email || sel.sms)
+        .map(sel => sel.channel);
 
       const phoneFmt = phone.length >= 10
         ? '(' + phone.slice(0,3) + ') ' + phone.slice(3,6) + '-' + phone.slice(6,10)
@@ -560,11 +606,17 @@
       document.getElementById('summary-email').textContent = email || '(not provided)';
       document.getElementById('summary-phone').textContent = phoneFmt || '(not provided)';
 
+      const emailList = selections
+        .filter(sel => sel.email)
+        .map(sel => channelLabels[sel.channel] || sel.channel);
+      const smsList = selections
+        .filter(sel => sel.sms)
+        .map(sel => channelLabels[sel.channel] || sel.channel);
       const prefParts = [];
-      if (wantEmail && email) prefParts.push('Email');
-      if (wantSMS && phone.length >= 10) prefParts.push('SMS');
+      if (emailList.length) prefParts.push('Email (' + emailList.join(', ') + ')');
+      if (smsList.length) prefParts.push('SMS (' + smsList.join(', ') + ')');
       if (!prefParts.length) prefParts.push('None selected');
-      document.getElementById('summary-prefs').textContent = prefParts.join(' + ');
+      document.getElementById('summary-prefs').textContent = prefParts.join(' • ');
 
       document.getElementById('summary-channels').textContent = channels
         .map(c => channelLabels[c] || c).join(', ') || 'None';
