@@ -635,6 +635,26 @@
       vip: 'VIP'
     };
 
+    const PREF_COOKIE = 'sakima_sms_prefs';
+
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${date.toUTCString()}; path=/; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+      const prefix = `${name}=`;
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(prefix)) {
+          return decodeURIComponent(cookie.substring(prefix.length));
+        }
+      }
+      return null;
+    }
+
     function getChannelSelections() {
       return Array.from(document.querySelectorAll('.matrix-row'))
         .filter(row => row.dataset.channel !== 'all')
@@ -649,6 +669,41 @@
             sms: preference === 'sms' || preference === 'both'
           };
         });
+    }
+
+    function saveSelections() {
+      const selections = {};
+      document.querySelectorAll('.matrix-row').forEach(row => {
+        if (row.dataset.channel === 'all') return;
+        const selected = row.querySelector(`input[name="pref-${row.dataset.channel}"]:checked`);
+        if (selected) selections[row.dataset.channel] = selected.value;
+      });
+      setCookie(PREF_COOKIE, JSON.stringify(selections), 365);
+    }
+
+    function loadSelections() {
+      const raw = getCookie(PREF_COOKIE);
+      if (!raw) return;
+      let selections = null;
+      try {
+        selections = JSON.parse(raw);
+      } catch (e) {
+        return;
+      }
+      if (!selections || typeof selections !== 'object') return;
+
+      Object.entries(selections).forEach(([channel, value]) => {
+        const input = document.querySelector(`input[name="pref-${channel}"][value="${value}"]`);
+        if (input) input.checked = true;
+      });
+
+      const values = Object.values(selections);
+      if (values.length && values.every(v => v === values[0])) {
+        const allInput = document.querySelector(`input[name="pref-all"][value="${values[0]}"]`);
+        if (allInput) allInput.checked = true;
+      }
+
+      document.querySelectorAll('.matrix-row').forEach(updateRowHighlight);
     }
 
     function updateRowHighlight(row) {
@@ -674,6 +729,7 @@
         if (target) target.checked = true;
         updateRowHighlight(row);
       });
+      saveSelections();
     }
 
     function updateButton() {
@@ -707,6 +763,7 @@
     document.querySelectorAll('.matrix-row input[type="radio"]').forEach(radio => {
       radio.addEventListener('change', () => {
         updateRowHighlight(radio.closest('.matrix-row'));
+        saveSelections();
       });
     });
 
@@ -805,6 +862,7 @@
     }
 
     updateButton();
+    loadSelections();
     document.querySelectorAll('.matrix-row').forEach(updateRowHighlight);
   </script>
 </body>
