@@ -686,6 +686,9 @@
       const payload = {};
       selections.forEach(sel => {
         payload[`pref_${sel.channel}`] = sel.preference;
+        payload[`pref_${sel.channel}_on`] = sel.email || sel.sms ? 'true' : 'false';
+        payload[`pref_${sel.channel}_email`] = sel.email ? 'true' : 'false';
+        payload[`pref_${sel.channel}_sms`] = sel.sms ? 'true' : 'false';
       });
       payload.pref_any_email = selections.some(sel => sel.email) ? 'yes' : 'no';
       payload.pref_any_sms = selections.some(sel => sel.sms) ? 'yes' : 'no';
