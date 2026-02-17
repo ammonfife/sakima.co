@@ -671,6 +671,24 @@
         });
     }
 
+    function trackPreferences(selections) {
+      if (typeof gtag !== 'function') return;
+      const props = {};
+      selections.forEach(sel => {
+        props[`pref_${sel.channel}`] = sel.preference;
+      });
+      props.pref_any_email = selections.some(sel => sel.email) ? 'yes' : 'no';
+      props.pref_any_sms = selections.some(sel => sel.sms) ? 'yes' : 'no';
+      const uniquePrefs = new Set(selections.map(sel => sel.preference));
+      props.pref_all = uniquePrefs.size === 1 ? Array.from(uniquePrefs)[0] : 'mixed';
+      gtag('set', 'user_properties', props);
+      gtag('event', 'pref_update', {
+        pref_all: props.pref_all,
+        pref_any_email: props.pref_any_email,
+        pref_any_sms: props.pref_any_sms
+      });
+    }
+
     function saveSelections() {
       const selections = {};
       document.querySelectorAll('.matrix-row').forEach(row => {
@@ -679,6 +697,7 @@
         if (selected) selections[row.dataset.channel] = selected.value;
       });
       setCookie(PREF_COOKIE, JSON.stringify(selections), 365);
+      trackPreferences(getChannelSelections());
     }
 
     function loadSelections() {
@@ -864,6 +883,7 @@
     updateButton();
     loadSelections();
     document.querySelectorAll('.matrix-row').forEach(updateRowHighlight);
+    trackPreferences(getChannelSelections());
   </script>
 </body>
 </html>
