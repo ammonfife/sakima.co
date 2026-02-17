@@ -311,14 +311,16 @@
     <div id="form-area">
 
       <p class="section-label">Notification preferences</p>
-      <p class="matrix-note">Pick where you want to hear about each topic. Email boxes are pre-selected; SMS requires a manual opt-in.</p>
+      <p class="matrix-note">Pick one option for each topic. Email is pre-selected; SMS or Both require manual opt-in. Choose None to opt out.</p>
       <div class="matrix" role="table" aria-label="Notification preferences">
         <table>
           <thead>
             <tr>
               <th scope="col">Category</th>
+              <th scope="col">None</th>
               <th scope="col">Email</th>
               <th scope="col">SMS</th>
+              <th scope="col">Both</th>
             </tr>
           </thead>
           <tbody>
@@ -329,15 +331,27 @@
                 <div class="channel-required">Transactional notices</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for Order and Account Updates">
+                  <input type="radio" name="pref-transactional" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for Order and Account Updates">
-                  <input type="checkbox" data-type="email" data-channel="transactional" checked>
+                  <input type="radio" name="pref-transactional" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for Order and Account Updates">
-                  <input type="checkbox" data-type="sms" data-channel="transactional">
+                  <input type="radio" name="pref-transactional" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for Order and Account Updates">
+                  <input type="radio" name="pref-transactional" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -347,15 +361,27 @@
                 <div class="channel-desc">Coin drops, slab alerts, bullion deals, and numismatic news</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for Coins">
+                  <input type="radio" name="pref-coins" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for Coins">
-                  <input type="checkbox" data-type="email" data-channel="coins" checked>
+                  <input type="radio" name="pref-coins" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for Coins">
-                  <input type="checkbox" data-type="sms" data-channel="coins">
+                  <input type="radio" name="pref-coins" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for Coins">
+                  <input type="radio" name="pref-coins" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -365,15 +391,27 @@
                 <div class="channel-desc">Trading card drops, sports cards, TCG, and card show alerts</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for Cards">
+                  <input type="radio" name="pref-cards" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for Cards">
-                  <input type="checkbox" data-type="email" data-channel="cards" checked>
+                  <input type="radio" name="pref-cards" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for Cards">
-                  <input type="checkbox" data-type="sms" data-channel="cards">
+                  <input type="radio" name="pref-cards" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for Cards">
+                  <input type="radio" name="pref-cards" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -383,15 +421,27 @@
                 <div class="channel-desc">Live auction alerts, show reminders, Whatnot-exclusive deals</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for Whatnot">
+                  <input type="radio" name="pref-whatnot" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for Whatnot">
-                  <input type="checkbox" data-type="email" data-channel="whatnot" checked>
+                  <input type="radio" name="pref-whatnot" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for Whatnot">
-                  <input type="checkbox" data-type="sms" data-channel="whatnot">
+                  <input type="radio" name="pref-whatnot" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for Whatnot">
+                  <input type="radio" name="pref-whatnot" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -401,15 +451,27 @@
                 <div class="channel-desc">New listing alerts, auction updates, eBay-exclusive offers</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for eBay">
+                  <input type="radio" name="pref-ebay" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for eBay">
-                  <input type="checkbox" data-type="email" data-channel="ebay" checked>
+                  <input type="radio" name="pref-ebay" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for eBay">
-                  <input type="checkbox" data-type="sms" data-channel="ebay">
+                  <input type="radio" name="pref-ebay" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for eBay">
+                  <input type="radio" name="pref-ebay" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -419,15 +481,27 @@
                 <div class="channel-desc">Promo codes, early access, and general announcements</div>
               </td>
               <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for VIP">
+                  <input type="radio" name="pref-vip" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="Email notifications for VIP">
-                  <input type="checkbox" data-type="email" data-channel="vip" checked>
+                  <input type="radio" name="pref-vip" value="email" checked>
                   <span>Email</span>
                 </label>
               </td>
               <td class="matrix-checkbox">
                 <label class="checkbox-pill" aria-label="SMS notifications for VIP">
-                  <input type="checkbox" data-type="sms" data-channel="vip">
+                  <input type="radio" name="pref-vip" value="sms">
                   <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for VIP">
+                  <input type="radio" name="pref-vip" value="both">
+                  <span>Both</span>
                 </label>
               </td>
             </tr>
@@ -510,12 +584,13 @@
     function getChannelSelections() {
       return Array.from(document.querySelectorAll('.matrix-row')).map(row => {
         const channel = row.dataset.channel;
-        const emailBox = row.querySelector('input[data-type="email"]');
-        const smsBox = row.querySelector('input[data-type="sms"]');
+        const selected = row.querySelector(`input[name="pref-${channel}"]:checked`);
+        const preference = selected ? selected.value : 'none';
         return {
           channel,
-          email: emailBox ? emailBox.checked : false,
-          sms: smsBox ? smsBox.checked : false,
+          preference,
+          email: preference === 'email' || preference === 'both',
+          sms: preference === 'sms' || preference === 'both'
         };
       });
     }
