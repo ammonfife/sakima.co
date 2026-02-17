@@ -159,6 +159,11 @@
       color: #1b1400;
       box-shadow: 0 0 0 1px rgba(201,168,76,0.45);
     }
+    .checkbox-pill.secondary-active span {
+      background: rgba(201,168,76,0.18);
+      color: #e6d6a2;
+      box-shadow: inset 0 0 0 1px rgba(201,168,76,0.25);
+    }
     .checkbox-pill:hover {
       border-color: var(--accent);
       color: #fff;
@@ -653,11 +658,28 @@
         });
     }
 
+    function updateRowHighlight(row) {
+      if (!row) return;
+      row.querySelectorAll('.checkbox-pill').forEach(label => {
+        label.classList.remove('secondary-active');
+      });
+      const selected = row.querySelector('input[type="radio"]:checked');
+      if (selected && selected.value === 'both') {
+        row.querySelectorAll('.checkbox-pill').forEach(label => {
+          const input = label.querySelector('input');
+          if (input && (input.value === 'email' || input.value === 'sms')) {
+            label.classList.add('secondary-active');
+          }
+        });
+      }
+    }
+
     function applyGlobalPreference(value) {
       document.querySelectorAll('.matrix-row').forEach(row => {
         if (row.dataset.channel === 'all') return;
         const target = row.querySelector(`input[name="pref-${row.dataset.channel}"][value="${value}"]`);
         if (target) target.checked = true;
+        updateRowHighlight(row);
       });
     }
 
@@ -685,6 +707,13 @@
       radio.addEventListener('change', () => {
         if (!radio.checked) return;
         applyGlobalPreference(radio.value);
+        updateRowHighlight(radio.closest('.matrix-row'));
+      });
+    });
+
+    document.querySelectorAll('.matrix-row input[type="radio"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        updateRowHighlight(radio.closest('.matrix-row'));
       });
     });
 
@@ -783,6 +812,7 @@
     }
 
     updateButton();
+    document.querySelectorAll('.matrix-row').forEach(updateRowHighlight);
   </script>
 </body>
 </html>
