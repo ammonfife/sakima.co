@@ -682,22 +682,23 @@
         });
     }
 
+    function buildPreferencePayload(selections) {
+      const payload = {};
+      selections.forEach(sel => {
+        payload[`pref_${sel.channel}`] = sel.preference;
+      });
+      payload.pref_any_email = selections.some(sel => sel.email) ? 'yes' : 'no';
+      payload.pref_any_sms = selections.some(sel => sel.sms) ? 'yes' : 'no';
+      const uniquePrefs = new Set(selections.map(sel => sel.preference));
+      payload.pref_all = uniquePrefs.size === 1 ? Array.from(uniquePrefs)[0] : 'mixed';
+      return payload;
+    }
+
     function trackPreferences(selections) {
       if (typeof gtag !== 'function') return;
-      const props = {};
-      selections.forEach(sel => {
-        props[`pref_${sel.channel}`] = sel.preference;
-      });
-      props.pref_any_email = selections.some(sel => sel.email) ? 'yes' : 'no';
-      props.pref_any_sms = selections.some(sel => sel.sms) ? 'yes' : 'no';
-      const uniquePrefs = new Set(selections.map(sel => sel.preference));
-      props.pref_all = uniquePrefs.size === 1 ? Array.from(uniquePrefs)[0] : 'mixed';
-      gtag('set', 'user_properties', props);
-      gtag('event', 'pref_update', {
-        pref_all: props.pref_all,
-        pref_any_email: props.pref_any_email,
-        pref_any_sms: props.pref_any_sms
-      });
+      const payload = buildPreferencePayload(selections);
+      gtag('set', 'user_properties', payload);
+      gtag('event', 'pref_update', payload);
     }
 
     function saveSelections() {
@@ -852,7 +853,12 @@
           console.error('Signup failed:', res.status);
         } else {
           if (typeof gtag === 'function') {
-            gtag('event', 'sign_up', { method: 'sms_form', channels: channels.join(',') });
+            const prefPayload = buildPreferencePayload(selections);
+            gtag('event', 'sign_up', {
+              method: 'sms_form',
+              channels: channels.join(','),
+              ...prefPayload
+            });
           }
         }
       } catch(e) {
