@@ -102,6 +102,12 @@
     .matrix-row:hover td {
       background: rgba(255,255,255,0.015);
     }
+    .matrix-row-all td {
+      background: rgba(201,168,76,0.06);
+    }
+    .matrix-row-all .channel-name {
+      color: var(--accent);
+    }
     .matrix-info .channel-name {
       font-weight: 600;
       color: #fff;
@@ -344,6 +350,36 @@
             </tr>
           </thead>
           <tbody>
+            <tr class="matrix-row matrix-row-all" data-channel="all">
+              <td class="matrix-info">
+                <div class="channel-name">Everything</div>
+                <div class="channel-desc">Set one preference for all categories below</div>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="No notifications for all categories">
+                  <input type="radio" name="pref-all" value="none">
+                  <span>None</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email notifications for all categories">
+                  <input type="radio" name="pref-all" value="email" checked>
+                  <span>Email</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="SMS notifications for all categories">
+                  <input type="radio" name="pref-all" value="sms">
+                  <span>SMS</span>
+                </label>
+              </td>
+              <td class="matrix-checkbox">
+                <label class="checkbox-pill" aria-label="Email and SMS notifications for all categories">
+                  <input type="radio" name="pref-all" value="both">
+                  <span>Both</span>
+                </label>
+              </td>
+            </tr>
             <tr class="matrix-row" data-channel="transactional">
               <td class="matrix-info">
                 <div class="channel-name">Order &amp; Account Updates</div>
@@ -602,16 +638,26 @@
     };
 
     function getChannelSelections() {
-      return Array.from(document.querySelectorAll('.matrix-row')).map(row => {
-        const channel = row.dataset.channel;
-        const selected = row.querySelector(`input[name="pref-${channel}"]:checked`);
-        const preference = selected ? selected.value : 'none';
-        return {
-          channel,
-          preference,
-          email: preference === 'email' || preference === 'both',
-          sms: preference === 'sms' || preference === 'both'
-        };
+      return Array.from(document.querySelectorAll('.matrix-row'))
+        .filter(row => row.dataset.channel !== 'all')
+        .map(row => {
+          const channel = row.dataset.channel;
+          const selected = row.querySelector(`input[name="pref-${channel}"]:checked`);
+          const preference = selected ? selected.value : 'none';
+          return {
+            channel,
+            preference,
+            email: preference === 'email' || preference === 'both',
+            sms: preference === 'sms' || preference === 'both'
+          };
+        });
+    }
+
+    function applyGlobalPreference(value) {
+      document.querySelectorAll('.matrix-row').forEach(row => {
+        if (row.dataset.channel === 'all') return;
+        const target = row.querySelector(`input[name="pref-${row.dataset.channel}"][value="${value}"]`);
+        if (target) target.checked = true;
       });
     }
 
@@ -634,6 +680,13 @@
     });
 
     document.getElementById('email').addEventListener('input', updateButton);
+
+    document.querySelectorAll('input[name="pref-all"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        applyGlobalPreference(radio.value);
+      });
+    });
 
     async function submitOptIn() {
       const name = document.getElementById('name').value.trim();
