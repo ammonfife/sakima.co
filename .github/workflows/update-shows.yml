@@ -192,6 +192,17 @@ jobs:
               print("No shows scraped - keeping existing data")
           PYEOF
 
+      - name: Sync to Turso
+        env:
+          TURSO_URL: ${{ secrets.TURSO_URL }}
+          TURSO_TOKEN: ${{ secrets.TURSO_TOKEN }}
+        run: |
+          if [ -n "$TURSO_URL" ] && [ -n "$TURSO_TOKEN" ]; then
+            python3 scripts/sync_to_turso.py shows
+          else
+            echo "Turso credentials not set, skipping sync"
+          fi
+
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
