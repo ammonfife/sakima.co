@@ -1,5 +1,6 @@
 import { createContact, sendMessage, updateContact, listContacts } from './surge';
 import { signJWT } from './jwt';
+import { getTursoClient, saveFormSubmission } from './turso';
 
 interface Env {
   // Vars (in wrangler.toml)
@@ -13,6 +14,9 @@ interface Env {
   SURGE_WEBHOOK_SECRET: string;
   ADMIN_PASSWORD: string;
   SURGE_ADMIN_USER_ID: string;
+  // Turso
+  TURSO_DB_URL: string;
+  TURSO_AUTH_TOKEN: string;
 }
 
 // --- CORS ---
@@ -138,6 +142,20 @@ async function handleSignup(request: Request, env: Env): Promise<Response> {
   if (firstName) contactData.first_name = firstName;
   if (lastName) contactData.last_name = lastName;
 
+  // Persist to Turso
+  try {
+    const db = getTursoClient(env.TURSO_DB_URL, env.TURSO_AUTH_TOKEN);
+    await saveFormSubmission(db, 'signup', {
+      email, name, phone,
+      channels: (channels || []).join(','),
+      emailOptIn: !!emailOptIn,
+      smsOptIn: !!smsOptIn,
+      source: source || 'sakima.co/sms',
+    }, request.headers.get('CF-Connecting-IP') || undefined);
+  } catch (e: any) {
+    console.error('Turso save failed (signup):', e.message);
+  }
+
   // Create contact in Surge
   const result = await createContact(env, contactData);
 
@@ -190,6 +208,14 @@ async function handleVIP(request: Request, env: Env): Promise<Response> {
     return errorResponse(env, 'Valid email required');
   }
 
+  // Persist to Turso
+  try {
+    const db = getTursoClient(env.TURSO_DB_URL, env.TURSO_AUTH_TOKEN);
+    await saveFormSubmission(db, 'vip', { email }, request.headers.get('CF-Connecting-IP') || undefined);
+  } catch (e: any) {
+    console.error('Turso save failed (vip):', e.message);
+  }
+
   const result = await createContact(env, {
     email,
     metadata: {
@@ -230,6 +256,18 @@ async function handleOffer(request: Request, env: Env): Promise<Response> {
   const nameParts = (name || '').trim().split(/\s+/);
   const firstName = nameParts[0] || undefined;
   const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : undefined;
+
+  // Persist to Turso
+  try {
+    const db = getTursoClient(env.TURSO_DB_URL, env.TURSO_AUTH_TOKEN);
+    await saveFormSubmission(db, 'offer', {
+      email, name, phone,
+      type: type || 'inquiry',
+      description: (description || '').slice(0, 2000),
+    }, request.headers.get('CF-Connecting-IP') || undefined);
+  } catch (e: any) {
+    console.error('Turso save failed (offer):', e.message);
+  }
 
   // Create/update contact
   const phoneDigits = (phone || '').replace(/\D/g, '');
