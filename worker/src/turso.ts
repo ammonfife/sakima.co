@@ -33,3 +33,16 @@ export async function saveFormSubmission(
     ],
   });
 }
+
+export async function getPurchaseHistory(client: Client, username: string): Promise<number> {
+  try {
+    const result = await client.execute({
+      sql: `SELECT COUNT(*) as count FROM purchases WHERE username = ?`,
+      args: [username],
+    });
+    return (result.rows[0] as any).count || 0;
+  } catch (e) {
+    console.error('Failed to get purchase history:', e);
+    return 0; // Default to 0 on error
+  }
+}

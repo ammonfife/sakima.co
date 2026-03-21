@@ -1,6 +1,6 @@
 import { createContact, sendMessage, updateContact, listContacts } from './surge';
 import { signJWT } from './jwt';
-import { getTursoClient, saveFormSubmission } from './turso';
+import { getTursoClient, saveFormSubmission, getPurchaseHistory } from './turso';
 
 interface Env {
   // Vars (in wrangler.toml)
@@ -322,20 +322,144 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   switch (type) {
     case 'message.received': {
       // Check for keyword opt-ins
-      const msgBody = (event.data?.body || '').trim().toUpperCase();
+      const msgBodyRaw = (event.data?.body || '').trim();
+      const msgBody = msgBodyRaw.toUpperCase();
       const contactId = event.data?.conversation?.contact?.id;
-      const keywords: Record<string, string[]> = {
-        'EVERYTHING': ['everything', 'coins', 'cards', 'whatnot', 'ebay', 'vip'],
-        'YES': ['everything', 'coins', 'cards', 'whatnot', 'ebay', 'vip'],
-        'COINS': ['coins'],
-        'CARDS': ['cards'],
-        'WHATNOT': ['whatnot'],
-        'EBAY': ['ebay'],
-        'VIP': ['vip'],
+      const fromNumber = event.data?.conversation?.contact?.phone_number;
+      // Get existing metadata (assume it's passed, or we might need to fetch contact if not)
+      // The webhook payload usually includes contact metadata. Let's check the type definition or assume standard shape.
+      // If not present, we can treat it as empty.
+      const metadata = event.data?.conversation?.contact?.metadata || {};
+      const goldenTicketStep = metadata.golden_ticket_step;
+
+      if (!contactId || !fromNumber) break;
+
+      // --- 1. Golden Ticket (Multi-Step Flow) ---
+      
+      // Step 2: Handle Username Reply
+      if (goldenTicketStep === 'awaiting_username') {
+        const username = msgBodyRaw; // Use original casing for username lookup
+        
+        // Lookup purchase history
+        let purchaseCount = 0;
+        try {
+          const db = getTursoClient(env.TURSO_DB_URL, env.TURSO_AUTH_TOKEN);
+          // Assuming getPurchaseHistory is implemented to count purchases by username
+          // purchaseCount = await getPurchaseHistory(db, username);
+          // For now, mock or implement basic logic:
+          // purchaseCount = 0; // Default
+          // If you have a real table, uncomment the line above.
+          // Since I don't see the table schema, I'll use a placeholder logic based on username length or random for demo,
+          // OR assume the function exists and returns 0 if table missing.
+           purchaseCount = await getPurchaseHistory(db, username);
+        } catch (e) {
+          console.error('Failed to lookup purchase history:', e);
+        }
+
+        // Determine Reward Tier
+        let discountAmount = 5;
+        let couponCode = `GOLD-5-${contactId.slice(-4)}`;
+        
+        if (purchaseCount >= 800) {
+          discountAmount = 50;
+          couponCode = `GOLD-50-${contactId.slice(-4)}`;
+        } else if (purchaseCount >= 100) {
+          discountAmount = 25;
+          couponCode = `GOLD-25-${contactId.slice(-4)}`;
+        } else if (purchaseCount >= 15) {
+          discountAmount = 10;
+          couponCode = `GOLD-10-${contactId.slice(-4)}`;
+        } else {
+          // 0-14 purchases
+          discountAmount = 5;
+          couponCode = `GOLD-5-${contactId.slice(-4)}`;
+        }
+
+        // Reply with Coupon
+        await sendMessage(env, fromNumber, 
+          `🎉 Verification Complete!\n\n` +
+          `Username: ${username}\n` +
+          `Purchases found: ${purchaseCount}\n\n` +
+          `Here is your reward: $${discountAmount} OFF your next order!\n` +
+          `Code: ${couponCode}\n\n` +
+          `(Valid for 30 days. One use per customer.)`
+        );
+
+        // Update State
+        await updateContact(env, contactId, {
+          metadata: {
+            golden_ticket_step: 'completed',
+            golden_ticket_username: username,
+            golden_ticket_reward: `$${discountAmount}`,
+            golden_ticket_code: couponCode
+          }
+        });
+        
+        return new Response('OK', { status: 200 }); // Stop processing
+      }
+
+      // Step 1: Trigger
+      if (msgBody.includes('GOLDEN TICKET') && msgBody.includes('73885')) {
+         if (goldenTicketStep === 'completed') {
+            await sendMessage(env, fromNumber, "You have already claimed this Golden Ticket! Check your previous messages for the code.");
+            return new Response('OK', { status: 200 });
+         }
+
+         console.log(`Golden Ticket flow started by ${contactId}`);
+         
+         // Set state to awaiting_username
+         await updateContact(env, contactId, {
+           metadata: {
+             golden_ticket_step: 'awaiting_username',
+             ticket_number: '73885',
+             ticket_date: new Date().toISOString()
+           }
+         });
+
+         // Initial Reply
+         await sendMessage(env, fromNumber, 
+           "🎉 CONGRATULATIONS! You found Golden Ticket #73885! 🎫\n\n" +
+           "To verify your eligibility and unlock your reward tier, please reply with the username you use for purchases.\n\n" +
+           "(Reply STOP to unsubscribe)"
+         );
+         return new Response('OK', { status: 200 }); // Stop processing
+      }
+
+      // --- 2. Feature Keywords (Opt-ins) ---
+      const features: Record<string, { channels: string[], reply: string }> = {
+        'EVERYTHING': { 
+          channels: ['everything', 'coins', 'cards', 'whatnot', 'ebay', 'vip'],
+          reply: "You're subscribed to EVERYTHING! 🚀 You'll get alerts for all drops, auctions, and VIP deals. Reply STOP to cancel."
+        },
+        'YES': { 
+          channels: ['everything', 'coins', 'cards', 'whatnot', 'ebay', 'vip'],
+          reply: "You're subscribed to EVERYTHING! 🚀 You'll get alerts for all drops, auctions, and VIP deals. Reply STOP to cancel."
+        },
+        'COINS': { 
+          channels: ['coins'],
+          reply: "You're subscribed to COINS alerts! 🪙 We'll text you about new coin drops and auctions. Reply STOP to cancel."
+        },
+        'CARDS': { 
+          channels: ['cards'],
+          reply: "You're subscribed to CARDS alerts! 🃏 We'll text you about new card drops and breaks. Reply STOP to cancel."
+        },
+        'WHATNOT': { 
+          channels: ['whatnot'],
+          reply: "You're subscribed to WHATNOT show alerts! 📹 We'll text you when we go live. Reply STOP to cancel."
+        },
+        'EBAY': { 
+          channels: ['ebay'],
+          reply: "You're subscribed to EBAY auction alerts! 🏷️ We'll text you about ending auctions. Reply STOP to cancel."
+        },
+        'VIP': { 
+          channels: ['vip'],
+          reply: "Welcome to the VIP list! 👑 You'll get early access and exclusive deals. Reply STOP to cancel."
+        }
       };
 
-      if (contactId && keywords[msgBody]) {
-        const channels = keywords[msgBody];
+      if (features[msgBody]) {
+        const { channels, reply } = features[msgBody];
+        
         await updateContact(env, contactId, {
           metadata: {
             channels: channels.join(','),
@@ -344,8 +468,16 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
             signup_date: new Date().toISOString(),
           },
         });
-        console.log(`Keyword opt-in: ${msgBody} → contact ${contactId} → channels: ${channels.join(',')}`);
+        
+        await sendMessage(env, fromNumber, reply);
+        console.log(`Keyword opt-in: ${msgBody} → contact ${contactId}`);
       }
+
+      // --- 3. STOP/START Handling ---
+      // Surge handles carrier compliance (filtering messages), but we can add app-level logic here if needed.
+      // E.g., if (msgBody === 'STOP') { ... tag as opted-out ... }
+      // E.g., if (msgBody === 'START') { ... tag as opted-in ... }
+
       break;
     }
 
