@@ -42,18 +42,73 @@ jobs:
           resp = s.get("https://www.whatnot.com/user/sakima", timeout=30)
           text = resp.text
 
-          # Parse Apollo SSR data from script tags
+          # Parse Apollo SSR data from script tags.
+          # Whatnot's Apollo state uses Symbol API: (window[Symbol.for('ApolloSSRDataTransport')] ??= []).push({...})
+          # And may batch multiple push() calls per script tag, so we can't just use
+          # scr.rindex(')') to find the end of the first push — that spans all pushes.
+          # Instead, find every .push( occurrence and walk forward with paren balancing.
+          # Also, Whatnot's Apollo payloads include bare `undefined` JavaScript literals
+          # (invalid JSON). Pre-process to replace `undefined` with `null` before parsing.
+          # Fix committed 2026-04-08 by claude after autonomous debugging revealed the
+          # workflow had been silently failing because of both issues. The old code
+          # (scr.rindex + raw json.loads) returns 0 blobs for every real Whatnot dealer
+          # page as of 2026-Q2, which is why data/shows.json stops updating.
+
+          def find_matching_close(s, open_idx):
+              # s is the script text, open_idx points AFTER the '(' in .push(
+              depth = 1
+              i = open_idx
+              in_string = None
+              escape = False
+              while i < len(s):
+                  c = s[i]
+                  if in_string:
+                      if escape:
+                          escape = False
+                      elif c == '\\\\':
+                          escape = True
+                      elif c == in_string:
+                          in_string = None
+                  else:
+                      if c in ('"', "'", '`'):
+                          in_string = c
+                      elif c in ('(', '{', '['):
+                          depth += 1
+                      elif c in (')', '}', ']'):
+                          depth -= 1
+                          if depth == 0 and c == ')':
+                              return i
+                  i += 1
+              return None
+
           scripts = re.findall(r'<script[^>]*>(.*?)</script>', text, re.DOTALL)
           apollo_data = []
           for scr in scripts:
-              if 'ApolloSSRDataTransport' in scr and '.push(' in scr:
-                  idx = scr.index('.push(') + 6
-                  ridx = scr.rindex(')')
+              if 'ApolloSSRDataTransport' not in scr:
+                  continue
+              start = 0
+              while True:
+                  idx = scr.find('.push(', start)
+                  if idx < 0:
+                      break
+                  arg_start = idx + 6
+                  arg_end = find_matching_close(scr, arg_start)
+                  if arg_end is None:
+                      start = arg_start
+                      continue
+                  raw = scr[arg_start:arg_end]
+                  # Replace JavaScript undefined/NaN/Infinity with null for strict JSON
+                  raw = re.sub(
+                      r'(?<=[:,\\[\\s])(undefined|NaN|Infinity|-Infinity)(?=[,\\}\\]\\s])',
+                      'null',
+                      raw,
+                  )
                   try:
-                      blob = json.loads(scr[idx:ridx])
+                      blob = json.loads(raw)
                       apollo_data.append(blob)
-                  except:
+                  except Exception:
                       pass
+                  start = arg_end + 1
 
           # Recursively find livestream-like objects in Apollo cache
           def find_livestreams(obj, depth=0):
