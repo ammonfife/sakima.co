@@ -121,7 +121,9 @@ def sync_shows(url, token, data_dir):
         shows = json.load(f)
 
     if not shows:
-        print("No shows to sync.")
+        statements = [{"sql": "DELETE FROM sakima_shows"}]
+        turso_execute(url, token, statements)
+        print("Cleared sakima_shows; no shows to sync.")
         return
 
     # Clear and re-insert (simpler than complex upsert for small dataset)
