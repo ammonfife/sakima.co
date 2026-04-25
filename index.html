@@ -413,6 +413,7 @@
   <h2>Upcoming Shows</h2>
   <p class="section-sub">Live coin auctions on Whatnot. Tap a show to set a reminder.</p>
   <div class="shows-grid" id="shows-grid"></div>
+  <div id="shows-empty">Loading shows...</div>
   <div class="shows-more"><a href="https://whatnot.com/invite/sakima" target="_blank" class="btn">View All Shows on Whatnot</a></div>
 </section>
 
@@ -510,8 +511,16 @@ async function loadShows() {
     const res = await fetch('/data/shows.json');
     const shows = await res.json();
     const grid = document.getElementById('shows-grid');
+    const empty = document.getElementById('shows-empty');
     const now = new Date();
     const upcoming = shows.filter(s => new Date(s.date) >= now).slice(0, 8);
+
+    if (!upcoming.length) {
+      empty.textContent = 'No upcoming Whatnot shows right now. Check back soon.';
+      return;
+    }
+
+    empty.style.display = 'none';
 
     upcoming.forEach(show => {
       const d = new Date(show.date);
@@ -544,6 +553,8 @@ async function loadShows() {
       grid.appendChild(card);
     });
   } catch(e) {
+    const empty = document.getElementById('shows-empty');
+    if (empty) empty.textContent = 'Unable to load shows right now.';
     console.error('Failed to load shows', e);
   }
 }
