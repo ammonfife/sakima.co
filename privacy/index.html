@@ -133,5 +133,53 @@
 
     <a class="back" href="/">&larr; Back to Sakima</a>
   </div>
-</body>
+  <script>
+    // GA4 Enhanced Tracking
+    (function() {
+      if (typeof gtag !== 'function') return;
+      
+      // Track outbound links
+      document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (!link || !link.href) return;
+        const isExternal = link.hostname && link.hostname !== window.location.hostname;
+        if (isExternal) {
+          gtag('event', 'click', {
+            event_category: 'outbound',
+            event_label: link.hostname.replace('www.', ''),
+            transport_type: 'beacon'
+          });
+        }
+      });
+    
+      // Track scroll depth
+      let maxScroll = 0, scrolledMilestones = new Set();
+      window.addEventListener('scroll', function() {
+        const pct = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+        if (pct > maxScroll) {
+          maxScroll = pct;
+          [25, 50, 75, 90].forEach(m => {
+            if (pct >= m && !scrolledMilestones.has(m)) {
+              scrolledMilestones.add(m);
+              gtag('event', 'scroll', { percent_scrolled: m });
+            }
+          });
+        }
+      });
+    
+      // Track page engagement time
+      let startTime = Date.now(), engagementSent = false;
+      window.addEventListener('beforeunload', function() {
+        const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+        if (timeOnPage > 30 && !engagementSent) {
+          engagementSent = true;
+          gtag('event', 'timing_complete', {
+            name: 'page_engagement',
+            value: timeOnPage
+          });
+        }
+      });
+    })();
+  </script>
+})();
 </html>

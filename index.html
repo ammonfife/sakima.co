@@ -542,6 +542,16 @@ async function loadShows() {
       card.className = 'show-card' + (isToday ? ' show-live' : '');
       card.style.textDecoration = 'none';
       card.style.color = 'inherit';
+      card.addEventListener('click', function() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'select_content', {
+            content_type: 'show',
+            item_id: show.title,
+            show_date: dateStr,
+            is_live: isToday
+          });
+        }
+      });
       card.innerHTML = `
         ${show.image ? `<img src="${show.image}" alt="${show.title}" loading="lazy">` : ''}
         <div class="show-body">
@@ -583,6 +593,18 @@ async function loadListings() {
       card.style.textDecoration = 'none';
       card.style.color = 'inherit';
       const buyingOpts = item.buyingOptions || [];
+      card.addEventListener('click', function() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'select_item', {
+            items: [{
+              item_id: item.title,
+              item_name: item.title,
+              price: item.price,
+              item_category: item.platform || 'eBay'
+            }]
+          });
+        }
+      });
       const isAuction = buyingOpts.includes('AUCTION');
       const isBIN = buyingOpts.includes('FIXED_PRICE');
       let priceLabel = item.price || '';
@@ -682,6 +704,82 @@ async function submitOffer() {
     document.getElementById('offer-success').style.display = 'block';
   }
 }
+
+// --- GA4 ENHANCED TRACKING ---
+// Track external link clicks
+document.addEventListener('click', function(e) {
+  const link = e.target.closest('a');
+  if (!link || !link.href) return;
+
+  const isExternal = link.hostname && link.hostname !== window.location.hostname;
+  if (isExternal && typeof gtag === 'function') {
+    const destination = link.hostname.replace('www.', '');
+    gtag('event', 'click', {
+      event_category: 'outbound',
+      event_label: destination,
+      transport_type: 'beacon'
+    });
+  }
+});
+
+// Track scroll depth
+let maxScroll = 0;
+const scrollMilestones = [25, 50, 75, 90];
+const scrolledMilestones = new Set();
+
+window.addEventListener('scroll', function() {
+  const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+  if (scrollPercent > maxScroll) {
+    maxScroll = scrollPercent;
+    scrollMilestones.forEach(milestone => {
+      if (scrollPercent >= milestone && !scrolledMilestones.has(milestone)) {
+        scrolledMilestones.add(milestone);
+        if (typeof gtag === 'function') {
+          gtag('event', 'scroll', {
+            percent_scrolled: milestone
+          });
+        }
+      }
+    });
+  }
+});
+
+// Track time on page
+let startTime = Date.now();
+let engagementSent = false;
+
+window.addEventListener('beforeunload', function() {
+  const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+  if (timeOnPage > 30 && !engagementSent && typeof gtag === 'function') {
+    engagementSent = true;
+    gtag('event', 'timing_complete', {
+      name: 'page_engagement',
+      value: timeOnPage,
+      event_category: 'engagement'
+    });
+  }
+});
+
+// Track CTA button impressions
+window.addEventListener('load', function() {
+  const ctaButtons = document.querySelectorAll('.btn-accent, .btn');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && typeof gtag === 'function') {
+        const buttonText = entry.target.textContent.trim();
+        gtag('event', 'view_item', {
+          items: [{
+            item_name: buttonText,
+            item_category: 'CTA Button'
+          }]
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  ctaButtons.forEach(btn => observer.observe(btn));
+});
 
 // --- INIT ---
 loadShows();
