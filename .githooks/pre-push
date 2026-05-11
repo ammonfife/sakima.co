@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# pre-push: auto-commit any untracked changes before push (sakima.co)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+cd "$REPO_ROOT" || exit 0
+# Skip during rebase/merge
+[ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ] && exit 0
+[ -n "$(git status --porcelain 2>/dev/null)" ] && \
+  git add -A && \
+  git -c commit.gpgsign=false commit --no-verify -m "auto: sync $(date '+%Y-%m-%d %H:%M:%S')" >/dev/null 2>&1 || true
+exit 0
