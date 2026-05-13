@@ -1,0 +1,10 @@
+{
+  "env": {
+    "SUPABASE_ACCESS_TOKEN": "sbp_60b7288874e66c5a1a2e33bcbd16eba8b00f4bb2",
+    "GH_TOKEN": "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",
+    "GITHUB_TOKEN": "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",
+    "SUPABASE_PROJECT_ID": "vsotvatntzlrzrhemayh",
+    "SUPABASE_PROJECT_REF": "vsotvatntzlrzrhemayh",
+    "SUPABASE_DB_PASSWORD": "Ob7mhWUjBYsiR5b9"
+  }
+}
