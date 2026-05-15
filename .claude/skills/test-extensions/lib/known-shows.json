@@ -1,0 +1,15 @@
+{
+  "note": "Known Whatnot live shows to target for hot-label tests. Sakima's show UUID stays stable. Live URL used when show is active; recorded-show URL used for replay-testing label webhook wiring when no live show is running.",
+  "shows": [
+    {
+      "dealer": "thesilverbandits",
+      "live_url": "https://www.whatnot.com/live/6a1204bf-d1d8-4287-aa19-618ce60ecc9a",
+      "notes": "Kyle's show — per iter#100 whatnot-tagging notes"
+    },
+    {
+      "dealer": "sakima",
+      "live_url": "https://www.whatnot.com/user/sakima",
+      "notes": "Ben's show (when live)"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "desktop-control",
+  "version": "1.0.0",
+  "description": "Advanced desktop automation with mouse, keyboard, screen control, and autonomous AI agent",
+  "location": "~/.openclaw/skills/desktop-control-1.0.0/",
+  "type": "reference",
+  "tags": ["automation", "desktop", "mouse", "keyboard", "ai-agent"]
+}
