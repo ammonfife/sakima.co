@@ -7,6 +7,53 @@ description: Spin up and use BIGMAC E2B sandboxes for isolated code execution, P
 
 Two sandbox types. Pick the right one, grab from pool, execute, done.
 
+## ⛔ DO NOT INSTALL — Everything Is Pre-Installed
+
+If you find yourself running any of these, **stop and use the pre-installed versions below instead:**
+
+```
+# ❌ NEVER run these inside a desktop sandbox:
+pip install playwright
+pip install e2b-desktop
+playwright install chromium
+apt-get install google-chrome
+npm install puppeteer
+```
+
+**What's already in `bigmac-desktop-v3-3-3`:**
+
+| Tool | Pre-installed path |
+|---|---|
+| `google-chrome-for-testing` | `/usr/bin/google-chrome-for-testing` |
+| `chromium-browser` | `/usr/bin/chromium-browser` |
+| Playwright + Chromium | `python3 -c "from playwright.sync_api import sync_playwright"` |
+| All Playwright system deps | 70+ libs (libnspr4, libgbm1, libgbm-dev, etc.) |
+| `xdotool` | `/usr/bin/xdotool` |
+| `wmctrl` | `/usr/bin/wmctrl` |
+| `xrandr`, `xdpyinfo` | `/usr/bin/xrandr`, `/usr/bin/xdpyinfo` |
+| `ImageMagick` (import/convert) | `/usr/bin/convert` |
+| `PyAutoGUI`, `python-xlib` | `import pyautogui` |
+
+**Bins available inside the sandbox (at `/home/user/bin/`):**
+
+```bash
+# Refresh Chrome cookies from Turso (auth baked in — TURSO_AUTH_TOKEN in template env)
+python3 /home/user/bin/refresh-cookies             # all domains
+python3 /home/user/bin/refresh-cookies --domain google.com
+python3 /home/user/bin/refresh-cookies --list      # show what's in Turso
+
+# Full demo: claim → wait → open Chrome → search → click → screenshot + DOM
+python3 ~/bin/e2b-desktop-example.py
+python3 ~/bin/e2b-desktop-example.py --url https://lkup.info --query "scan"
+```
+
+**Local machine bins (run these to control/drive a sandbox from your laptop):**
+
+```bash
+~/bin/e2b-desktop-example.py    # complete working demo — claim, browse, click, screenshot
+~/bin/e2b-refresh-cookies       # push fresh cookies from Turso into a running sandbox
+```
+
 ## Choosing a Sandbox Type
 
 | Need                             | Type             | Script           |
@@ -176,6 +223,29 @@ python3 scripts/sbx_desktop.py --screenshot /tmp/desktop.png --sandbox-id <id>
 python3 scripts/sbx_run.py --playwright "https://example.com" --screenshot /tmp/page.png
 ```
 
+## Chrome State on a Fresh Desktop Sandbox
+
+**Chrome IS visible (foreground window in XFCE), NOT headless.** It appears as a real Chrome window inside the VNC desktop — exactly what a user sees. Auto-launched at boot by `start-vnc-desktop.sh`.
+
+**CDP on port 9222 is ready as soon as the sandbox boots.** Connect via CDP immediately — no launch step needed from your script.
+
+**VNC "Connect" button:** On first visit to a new sandbox's VNC URL, you may see a noVNC splash with a "Connect" button. Click it once. `?autoconnect=true` usually bypasses it but not always on a brand-new sandbox.
+
+```python
+vnc_url = f"https://8080-{sandbox_id}.e2b.app/vnc.html?autoconnect=true&resize=scale"
+# Open in browser — click "Connect" if you see a splash screen
+```
+
+**If Chrome crashed or was closed**, re-launch it visible:
+```python
+sbx.commands.run(
+    "DISPLAY=:99 google-chrome-for-testing --no-first-run --no-default-browser-check "
+    "--disable-sync --no-sandbox --remote-debugging-port=9222 about:blank &",
+    timeout=5
+)
+time.sleep(4)
+```
+
 ## Getting Bearings Fast — Once Inside a Desktop
 
 **CRITICAL: Don't launch a new browser. Chrome is already running on port 9222. Connect via CDP — no launch latency.**
@@ -309,9 +379,47 @@ See `references/templates.md` for template details and pool architecture.
 - Desktop: `bigmac-desktop-v3-3-3` (Chrome + VNC + Google cookies)
 - Pool API: `https://e2b-pool-lb.sakima-api.workers.dev/health`
 
+## ♻️ KEEP THE SANDBOX ALIVE — Do Not Release Between Actions
+
+**This is the most expensive mistake agents make: releasing and reclaiming a sandbox between every test or action.**
+
+Each cold start = ~30s wait for desktop + Chrome. Reusing the same sandbox = ~50ms per action.
+
+```
+❌ WRONG — kills tokens and time:
+  claim sandbox → do one thing → release → claim sandbox → do one thing → release
+
+✅ RIGHT — claim once, do everything, release at the end:
+  claim sandbox → test A → test B → test C → screenshot → release
+```
+
+**Rule: one sandbox per task session.** Keep it alive for the whole flow:
+
+```python
+# ✅ Claim once at the top
+sandbox_id = pool_claim()
+sbx = Sandbox.connect(sandbox_id, api_key=E2B_API_KEY)
+
+# Do ALL your work with the same sandbox
+run_test_a(sbx, page)
+run_test_b(sbx, page)
+take_screenshots(sbx, page)
+
+# Release only when the entire task is done
+pool_release(sandbox_id)
+```
+
+**Only release early if:**
+- The task genuinely finished (not just one step of it)
+- The sandbox is corrupted / Chrome crashed
+- You've been in it >45 min and need a fresh state
+
+**Store the sandbox_id in a variable at the top of every script. Pass it through the whole flow. Never re-claim mid-task.**
+
 ## Important Notes
 
-- **Always clean up:** Kill sandboxes when done (`--kill`). Pool auto-replenishes.
-- **VNC latency:** Up to 30s to be viewable. Use `--poll` or poll manually.
-- **Cookie injection:** Desktop cookies ready ~10s after boot.
+- **Keep alive:** One sandbox per task. Don't release between steps.
+- **VNC latency:** Up to 30s on first boot. Pool sandboxes are pre-warmed — connect via CDP immediately.
+- **Cookie injection:** Desktop cookies ready ~10s after boot. `bin/refresh-cookies` pulls latest from Turso.
 - **Timeout default:** 300s code, 3600s desktop. Pass `--timeout` to override.
+- **`sbx` CLI is LOCAL MACHINE ONLY** — runs on your Mac to manage sandboxes, not inside the sandbox itself.

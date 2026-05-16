@@ -87,6 +87,62 @@ args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--
 
 **Set DISPLAY when running GUI tools:** `DISPLAY=:99`
 
+## ⛔ DO NOT INSTALL — Everything Is Pre-Installed
+
+Inside `bigmac-desktop-v3-3-3`, **stop** if you find yourself typing any of these:
+
+```bash
+# ❌ Never run inside a desktop sandbox:
+pip install playwright
+playwright install chromium
+apt-get install google-chrome
+pip install e2b-desktop
+```
+
+**What's already there:**
+
+| Tool | Path / import |
+|---|---|
+| `google-chrome-for-testing` | `/usr/bin/google-chrome-for-testing` |
+| Playwright + Chromium | `from playwright.sync_api import sync_playwright` |
+| All system deps (70+ libs) | already installed |
+| `xdotool`, `wmctrl` | `/usr/bin/xdotool`, `/usr/bin/wmctrl` |
+| ImageMagick | `/usr/bin/convert` |
+| PyAutoGUI | `import pyautogui` |
+
+**`sbx` CLI — LOCAL MACHINE ONLY** (runs on your Mac, not inside the sandbox):
+
+```bash
+# ✅ Run on your local Mac:
+sbx ls                        # list running sandboxes
+sbx new bigmac-desktop-v3-3-3 # force-create fresh (when pool empty)
+sbx kill <id>                 # kill a sandbox
+
+# ❌ Do NOT run sbx inside the sandbox — it talks to the E2B API from outside
+```
+
+**In-sandbox `/home/user/bin/` scripts** (call these from inside the sandbox):
+
+```bash
+python3 /home/user/bin/refresh-cookies             # pull fresh cookies from Turso → Chrome DB
+python3 /home/user/bin/refresh-cookies --list      # show all browser_auth:* keys in Turso
+python3 /home/user/bin/refresh-cookies --domain google.com
+```
+
+**Chrome dialog suppression** — the profile is pre-seeded at boot. No dialogs appear because:
+- `Local State` has `check_default_browser: false` + far-future `default_browser_infobar_last_shown`
+- `Default/Preferences` has `distribution.skip_first_run_ui: true` + `suppress_first_run_bubble: true`
+- Profile is named `sakima.lc@gmail.com` with Google as default search
+- `First Run` sentinel file exists (Chrome skips welcome page when this is present)
+- Launch flags add a belt-and-suspenders layer: `--no-first-run --no-default-browser-check --disable-sync`
+
+If you do launch Chrome manually (not via CDP), use:
+```bash
+DISPLAY=:99 google-chrome-for-testing \
+  --no-first-run --no-default-browser-check --disable-sync \
+  --remote-debugging-port=9222 &
+```
+
 ## Getting Bearings Fast — Once Inside a Desktop
 
 **CRITICAL: Don't `p.chromium.launch()`. Chrome is already running on port 9222 in the desktop sandbox. Use CDP — no launch overhead.**
@@ -169,12 +225,29 @@ page.wait_for_selector(".result", timeout=5000)
 sbx.commands.run("cat ~/.google-cookies-injected")
 ```
 
+## ♻️ Keep the Sandbox Alive — Never Release Between Steps
+
+Releasing and reclaiming between every action wastes 30s per reclaim + burns pool slots.
+
+```
+❌ claim → do one thing → release → claim → do one thing → release  (30s tax per action)
+✅ claim → do everything → release at end                            (50ms per action)
+```
+
+Store the `sandbox_id` at the top of your script and pass it through every function. Release only when the **entire task** is done or the sandbox is broken.
+
+**`sbx` CLI is LOCAL MACHINE ONLY** — runs on your Mac to list/create/kill sandboxes. Do not run it from inside the sandbox.
+
 ## VNC / Visual Access
 
 ```python
 vnc_url = f"https://8080-{sandbox_id}.e2b.app/vnc.html?autoconnect=true&resize=scale"
-# Open in browser to see desktop
+# Open in browser to see the XFCE desktop + Chrome window
 ```
+
+**Chrome is VISIBLE (foreground window), NOT headless.** It runs on DISPLAY=:99 which is what VNC shows. You see a real Chrome window in the XFCE desktop — exactly what a user sees.
+
+**VNC "Connect" button:** When you first open the VNC URL, you may see a noVNC splash screen with a "Connect" button. Click it once. After that the desktop is live. The `?autoconnect=true` parameter usually bypasses this but doesn't always work on first visit to a new sandbox.
 
 ## Test Chrome Extension in E2B
 
