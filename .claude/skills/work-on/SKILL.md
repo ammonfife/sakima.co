@@ -166,7 +166,7 @@ When invoked for a known project, load these in priority order:
 
 | Repo | What's authoritative |
 |---|---|
-| `lkup.info` | `lkup_knowledge.md` + `AGENTS.md` + `NEXT_SESSION.md` + `CLAUDE.md` (in that order). **NOT** `lkup-plan.json` or `work-on-lkup` skill — both are stale as of 2026-05. |
+| `lkup.info` | **Read in this order:** (1) `NEXT_SESSION.md` — operating rules + punch list + what was shipped last session. (2) `docs/integrity/CURRENT_PLAN.md` Section 7 — commit drift audit, migration tracker gap. (3) `docs/integrity/WIRING.md` — full WIRED/UNWIRED/BROKEN map. (4) `bash scripts/verify-wiring.sh` — actual pipeline state. Then run `/work-on-lkup` for full architecture context. **NOT** `lkup-plan.json` alone — it is outdated and has not been maintained since recovery work 2026-05-09. **Do NOT run `supabase db push`** — migration tracker divergence, see CURRENT_PLAN.md Section 7. |
 | `heimdall-archive` | `/work-on-heimdall` skill (15-year methodology context, IP stance) |
 | Any other | This skill alone is sufficient |
 
