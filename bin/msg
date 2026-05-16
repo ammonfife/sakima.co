@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# msg — unified messaging for all BigMac surfaces
+# Usage:
+#   msg poke "text"          → send SMS via Poke API
+#   msg inbox "text"         → write to ~/.claude/.inbox (agent inbox)
+#   msg turso "text"         → insert row into Turso messages table
+#   msg log "text"           → captains-log add entry
+#   msg                      → show recent inbox
+
+TURSO_URL="${TURSO_DATABASE_URL:-libsql://bigmac-ammonfife.aws-us-west-2.turso.io}"
+TURSO_TOK="${TURSO_AUTH_TOKEN}"
+INBOX=~/.claude/projects/-Users-benfife/.inbox
+
+cmd="${1:-}"
+shift 2>/dev/null || true
+text="$*"
+
+case "$cmd" in
+  poke)
+    POKE_KEY=$(turso db shell "${TURSO_URL}?authToken=${TURSO_TOK}" \
+      "SELECT value FROM secrets WHERE key='POKE_API_KEY';" 2>/dev/null \
+      | grep -v "^value\|^-\|^$" | tr -d ' ' | head -1)
+    [ -z "$POKE_KEY" ] && { echo "❌ POKE_API_KEY not found in Turso"; exit 1; }
+    result=$(curl -s -X POST "https://poke.com/api/v1/inbound/api-message" \
+      -H "Authorization: Bearer $POKE_KEY" \
+      -H "Content-Type: application/json" \
+      -d "{\"message\": \"🤖 [BIGMAC] ${text}\"}")
+    echo "✓ Poke: $result"
+    ;;
+  inbox)
+    SID=$(~/bin/my-claude-session-id 2>/dev/null || echo "unknown")
+    echo "[Session $SID] $text" >> "$INBOX"
+    echo "✓ Written to inbox"
+    ;;
+  turso)
+    turso db shell "${TURSO_URL}?authToken=${TURSO_TOK}" \
+      "INSERT INTO captains_log (agent_id, session_id, topic, summary, type, created_at) \
+       VALUES ('claude', 'cli', 'msg', '${text//\'/\'\'}', 'note', strftime('%Y-%m-%dT%H:%M:%SZ','now'));" 2>/dev/null
+    echo "✓ Logged to Turso captains_log"
+    ;;
+  log)
+    captains-log add --topic="msg-cli" --type=note --summary="$text" 2>/dev/null
+    echo "✓ Captains log entry added"
+    ;;
+  ""|show)
+    echo "=== Inbox ($INBOX) ==="
+    [ -s "$INBOX" ] && cat "$INBOX" || echo "(empty)"
+    echo ""
+    echo "=== Recent Poke messages (Turso) ==="
+    turso db shell "${TURSO_URL}?authToken=${TURSO_TOK}" \
+      "SELECT sent_at, message FROM poke_messages ORDER BY sent_at DESC LIMIT 5;" 2>/dev/null || echo "(no poke_messages table)"
+    ;;
+  *)
+    echo "Usage: msg [poke|inbox|turso|log|show] \"text\""
+    exit 1
+    ;;
+esac

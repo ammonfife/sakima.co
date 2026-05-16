@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# db — Turso shell, bigmac DB, pre-authed from env
+URL="${TURSO_DATABASE_URL:-libsql://bigmac-ammonfife.aws-us-west-2.turso.io}"
+TOK="${TURSO_AUTH_TOKEN:-$(security find-generic-password -a bigmac -s turso-bigmac-token -w 2>/dev/null)}"
+[ -z "$TOK" ] && { echo "❌ No TURSO_AUTH_TOKEN"; exit 1; }
+exec turso db shell "${URL}?authToken=${TOK}" "$@"

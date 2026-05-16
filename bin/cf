@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# cf — Cloudflare wrangler wrapper, pre-authed from env
+export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN}"
+export CLOUDFLARE_ACCOUNT_ID="${CF_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID}}"
+if [ "$1" = "api" ]; then
+  shift; path="$1"; shift
+  exec curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    "https://api.cloudflare.com/client/v4${path}" "$@"
+fi
+exec wrangler "$@"

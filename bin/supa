@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# supa — psql into Supabase, pre-authed (PGPASSWORD from env)
+URL="${LKUP_DB_URL:-${DATABASE_URL:-}}"
+[ -z "$URL" ] && [ -f ".env" ] && URL=$(grep -m1 'LKUP_DB_URL\|DATABASE_URL\|POSTGRES_URL' .env 2>/dev/null | cut -d= -f2-)
+[ -z "$URL" ] && { echo "❌ No LKUP_DB_URL or DATABASE_URL found"; exit 1; }
+export PGPASSWORD="${PGPASSWORD:-Ob7mhWUjBYsiR5b9}"
+exec psql "$URL" "$@"

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# hub — gh CLI wrapper; gh reads GITHUB_TOKEN automatically if set
+# Falls back to keychain auth already done via gh auth login
+export GH_TOKEN="${GITHUB_TOKEN:-}"
+exec gh "$@"
