@@ -1,0 +1,55 @@
+{
+  "_comment": "Canonical extension registry. LOCAL paths are on Ben's Mac. SANDBOX paths are where they land in E2B. Edit extensions locally, push to GitHub, then run resync-extensions to reload in E2B.",
+  "extensions": [
+    {
+      "id": "lkup-helper",
+      "name": "lkup.info",
+      "primary": true,
+      "local_path": "~/github/ammonfife/lkup.info/extension",
+      "sandbox_path": "/home/user/extensions/lkup-helper",
+      "github_repo": "ammonfife/lkup.info",
+      "github_subpath": "extension",
+      "description": "Primary lkup.info extension — cert scraping, price overlay, live-show label"
+    },
+    {
+      "id": "bigmac-scope",
+      "name": "BigMac Scope",
+      "primary": false,
+      "local_path": "~/github/ammonfife/bigmac-scope",
+      "sandbox_path": "/home/user/extensions/bigmac-scope",
+      "github_repo": "ammonfife/bigmac-scope",
+      "github_subpath": "",
+      "description": "Universal network recorder — XHR/fetch/WebSocket capture"
+    },
+    {
+      "id": "coin-cert-scraper",
+      "name": "Coin Cert Metadata Scraper",
+      "primary": false,
+      "local_path": "~/github/ammonfife/auction_tools/browser_extensions/coin-cert-scraper",
+      "sandbox_path": "/home/user/extensions/coin-cert-scraper",
+      "github_repo": "ammonfife/auction_tools",
+      "github_subpath": "browser_extensions/coin-cert-scraper",
+      "description": "Legacy cert scraper baseline (NGC/PCGS/CAC/ANACS/ICG/Gongbo)"
+    },
+    {
+      "id": "price-overlay",
+      "name": "Universal Price Guide Overlay",
+      "primary": false,
+      "local_path": "~/github/ammonfife/auction_tools/browser_extensions/whatnot-price-overlay-extension",
+      "sandbox_path": "/home/user/extensions/price-overlay",
+      "github_repo": "ammonfife/auction_tools",
+      "github_subpath": "browser_extensions/whatnot-price-overlay-extension",
+      "description": "Legacy price overlay baseline (Whatnot + eBay)"
+    },
+    {
+      "id": "hot-label",
+      "name": "Hot-Label Fixed (Local)",
+      "primary": false,
+      "local_path": "~/github/ammonfife/auction_tools/browser_extensions/hot-label",
+      "sandbox_path": "/home/user/extensions/hot-label",
+      "github_repo": "ammonfife/auction_tools",
+      "github_subpath": "browser_extensions/hot-label",
+      "description": "Live-show label print webhook"
+    }
+  ]
+}
