@@ -39,7 +39,27 @@ todo add "describe the failure" --tags=lkup,test --assign=claude --priority=p1
 
 ---
 
-## Pre-Run: Refresh Fixtures
+## Pre-Run Checklist
+
+### 1. Sync knowledge files (do this first — agents need current schema context)
+
+```bash
+cd ~/github/ammonfife/lkup.info
+
+# Refresh lkup_knowledge.md (Turso facts + policies + todos → markdown)
+node scripts/snapshot-lkup-knowledge.mjs
+
+# Refresh SCHEMA_DICTIONARY.md (DB → markdown, report undocumented columns)
+python3 scripts/sync-column-dictionary.py --check --export
+```
+
+Then READ the relevant sections before testing:
+- **`lkup_knowledge.md`** — what the system currently knows: schema state, enrichment pipeline status, todos. Read the `certs`, `grader_data`, `pricing_consensus` sections before barcode/enrichment tests.
+- **`docs/SCHEMA_DICTIONARY.md`** — column semantics and UUID linkage. Read the table section for any table you'll be querying or asserting against. Tells you which columns are canonical vs. derived vs. deprecated.
+
+Both files are auto-refreshed on every `git push` via `.githooks/pre-push`. If the repo is fresh and you haven't pushed recently, refresh manually above.
+
+### 2. Refresh test fixtures
 
 ```bash
 # Append new valid barcodes/certs from Supabase (validity-gated, append-only)
