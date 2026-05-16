@@ -176,6 +176,111 @@ python3 scripts/sbx_desktop.py --screenshot /tmp/desktop.png --sandbox-id <id>
 python3 scripts/sbx_run.py --playwright "https://example.com" --screenshot /tmp/page.png
 ```
 
+## Getting Bearings Fast — Once Inside a Desktop
+
+**CRITICAL: Don't launch a new browser. Chrome is already running on port 9222. Connect via CDP — no launch latency.**
+
+**Don't pip install anything. Every browser tool is pre-installed: Playwright, Selenium, ChromeDriver, undetected-chromedriver, xdotool, wmctrl, ImageMagick.**
+
+### Fastest: CDP connect (skip browser launch entirely)
+
+```python
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0]
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
+    # connected in ~50ms — no 5-10s launch overhead
+```
+
+### Orient on a web page: accessibility tree + coord dump
+
+```python
+import json
+
+# Full semantic tree — every role/name/clickable in ~5ms
+snapshot = page.accessibility.snapshot()
+print(json.dumps(snapshot, indent=2))
+
+# All visible clickables with pixel coords
+elements = page.evaluate("""
+    [...document.querySelectorAll('button,[role=button],a,input,select')]
+    .filter(el => { const r = el.getBoundingClientRect(); return r.width > 0; })
+    .map(el => ({ text: el.innerText?.trim().slice(0, 40), rect: el.getBoundingClientRect() }))
+""")
+for el in elements:
+    r = el['rect']
+    print(f"{el['text']:40} x={r['x']:.0f} y={r['y']:.0f}")
+```
+
+### Orient on the X11 desktop (non-browser windows)
+
+```python
+# What windows are open
+result = sbx.commands.run("DISPLAY=:99 wmctrl -l")
+
+# Active window name + geometry
+result = sbx.commands.run("DISPLAY=:99 xdotool getactivewindow getwindowname getwindowgeometry")
+
+# Mouse cursor position
+result = sbx.commands.run("DISPLAY=:99 xdotool getmouselocation")
+
+# Find window by name → click inside it
+sbx.commands.run("""
+DISPLAY=:99 WID=$(xdotool search --name 'Files' | head -1)
+xdotool windowactivate --sync $WID
+xdotool mousemove --window $WID 200 150 click 1
+""")
+```
+
+### Click by text — no coords needed
+
+```python
+page.get_by_text("Sign In").click()
+page.get_by_role("button", name="Submit").click()
+page.get_by_placeholder("Search...").fill("query")
+page.get_by_label("Email").fill("user@example.com")
+```
+
+### Human-like interaction (avoid bot detection)
+
+```python
+page.hover(selector)            # hover first — many sites require it
+page.wait_for_timeout(100)      # brief human pause
+page.click(selector)
+
+page.type("#input", "text", delay=80)  # 80ms per keystroke feels human
+
+# Autocomplete / dropdowns: type → wait → arrow → enter → enter
+page.type(".search", "1881-S Morgan")
+page.wait_for_timeout(600)              # wait for dropdown
+page.keyboard.press("ArrowDown")
+page.keyboard.press("Enter")           # select from dropdown
+page.keyboard.press("Enter")           # confirm/send (Whatnot needs two Enters)
+```
+
+### Wait correctly — never fixed sleep
+
+```python
+page.wait_for_load_state("networkidle")           # no pending XHR
+page.wait_for_selector(".result", timeout=5000)   # DOM element appears
+page.wait_for_function("() => document.querySelectorAll('.item').length > 0")
+# For SPAs only: page.wait_for_timeout(200) is OK after navigation
+```
+
+### See-act-verify loop (rapid feedback)
+
+```python
+from pathlib import Path
+
+before = page.screenshot()
+page.click("#button")
+page.wait_for_timeout(300)     # let DOM settle
+after = page.screenshot()
+Path("~/clawd/data/e2b-proof.png").expanduser().write_bytes(after)
+```
+
 ## Self-Sufficient Testing Pattern
 
 When testing your own work, don't ask Ben to verify — grab a sandbox and test yourself:

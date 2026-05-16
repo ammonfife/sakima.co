@@ -87,6 +87,75 @@ args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--
 
 **Set DISPLAY when running GUI tools:** `DISPLAY=:99`
 
+## Getting Bearings Fast — Once Inside a Desktop
+
+**CRITICAL: Don't `p.chromium.launch()`. Chrome is already running on port 9222 in the desktop sandbox. Use CDP — no launch overhead.**
+
+**Don't pip install anything — Playwright, Selenium, ChromeDriver, xdotool, wmctrl are all pre-installed.**
+
+### Connect via CDP (fastest path)
+
+```python
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0]
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
+```
+
+### What's on screen — accessibility tree + coords
+
+```python
+import json
+# Full semantic tree in ~5ms
+print(json.dumps(page.accessibility.snapshot(), indent=2))
+
+# All visible clickables with pixel coords
+elements = page.evaluate("""
+    [...document.querySelectorAll('button,[role=button],a,input,select')]
+    .filter(el => el.getBoundingClientRect().width > 0)
+    .map(el => ({ text: el.innerText?.trim().slice(0, 40), rect: el.getBoundingClientRect() }))
+""")
+for el in elements:
+    r = el['rect']
+    print(f"{el['text']:40} x={r['x']:.0f} y={r['y']:.0f}")
+```
+
+### X11 orientation (non-browser)
+
+```python
+sbx.commands.run("DISPLAY=:99 wmctrl -l")                                              # list windows
+sbx.commands.run("DISPLAY=:99 xdotool getactivewindow getwindowname getwindowgeometry") # active window
+sbx.commands.run("DISPLAY=:99 xdotool getmouselocation")                               # cursor position
+```
+
+### Click by text — skip coord math
+
+```python
+page.get_by_text("Sign In").click()
+page.get_by_role("button", name="Submit").click()
+page.get_by_placeholder("Search...").fill("query")
+```
+
+### Human-like typing + autocomplete
+
+```python
+page.hover(selector); page.wait_for_timeout(100); page.click(selector)
+page.type("#input", "text", delay=80)   # 80ms/keystroke
+# Two-Enter for autocomplete (Whatnot, etc.):
+page.type(".search", "query"); page.wait_for_timeout(600)
+page.keyboard.press("ArrowDown"); page.keyboard.press("Enter"); page.keyboard.press("Enter")
+```
+
+### Wait correctly
+
+```python
+page.wait_for_load_state("networkidle")
+page.wait_for_selector(".result", timeout=5000)
+# NOT: page.wait_for_timeout(3000)  ← never fixed sleep to wait for content
+```
+
 ## Google Auth (desktop v3-3-1+)
 
 16 Google session cookies pre-baked. Injected on first boot automatically.

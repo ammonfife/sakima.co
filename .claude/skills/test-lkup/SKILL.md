@@ -112,11 +112,34 @@ node run-icp-test.js ben    # or marcus, dave, jess, patricia
 
 ```bash
 # Claim a desktop sandbox
-SANDBOX_ID=$(curl -s https://e2b-pool-lb.sakima-api.workers.dev/pool/desktop | jq -r '.sandboxId')
+SANDBOX_ID=$(curl -s https://e2b-pool-lb.sakima-api.workers.dev/pool/desktop | jq -r '.sandboxId // .sandbox_id')
 
 # Upload test files + run script inside sandbox
 # (See run-in-e2b.sh for full orchestration)
 ```
+
+**Inside the sandbox — connect via CDP, don't launch a new browser:**
+
+```python
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    # Chrome already runs on port 9222 in desktop template — connect, don't launch
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0]
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
+
+    # Orient fast — accessibility tree shows all clickable elements in ~5ms
+    import json
+    print(json.dumps(page.accessibility.snapshot(), indent=2))
+
+    # Click by role/text — no pixel math needed
+    page.get_by_role("button", name="Scan").click()
+    page.wait_for_load_state("networkidle")
+    page.screenshot(path="results/screenshots/ben-scan.png")
+```
+
+**Don't pip install — Playwright, xdotool, wmctrl already in desktop template.**
 
 ## Output
 

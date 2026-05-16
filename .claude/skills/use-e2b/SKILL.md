@@ -87,6 +87,82 @@ turso.execute(
 requests.post(f"{POOL_LB}/pool/release/{sb_id}")
 ```
 
+## Getting Bearings Fast — Once Inside a Desktop
+
+**Don't launch a new browser. Connect via CDP to Chrome already running on port 9222.**
+**Don't pip install — Playwright, xdotool, wmctrl are pre-installed in every desktop template.**
+
+### CDP connect — no launch latency
+
+```python
+async with async_playwright() as p:
+    browser = await p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0]
+    page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+```
+
+### Orient immediately — accessibility snapshot + coord dump
+
+```python
+import json
+# Full semantic tree of every clickable element — ~5ms
+snapshot = await page.accessibility.snapshot()
+print(json.dumps(snapshot, indent=2))
+
+# Pixel coords for every visible button/link/input
+elements = await page.evaluate("""
+    [...document.querySelectorAll('button,[role=button],a,input,select')]
+    .filter(el => el.getBoundingClientRect().width > 0)
+    .map(el => ({ text: el.innerText?.trim().slice(0, 40), rect: el.getBoundingClientRect() }))
+""")
+for el in elements:
+    r = el['rect']
+    print(f"{el['text']:40} x={r['x']:.0f} y={r['y']:.0f}")
+```
+
+### Click by text — no pixel math
+
+```python
+await page.get_by_text("Sign In").click()
+await page.get_by_role("button", name="Publish").click()
+await page.get_by_placeholder("Search...").fill("1881-S Morgan")
+```
+
+### Human-like interaction
+
+```python
+await page.hover(selector); await page.wait_for_timeout(100); await page.click(selector)
+await page.type("#input", "text", delay=80)   # 80ms/keystroke
+# Two-Enter for autocomplete fields:
+await page.type(".chat", "text"); await page.wait_for_timeout(600)
+await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter"); await page.keyboard.press("Enter")
+```
+
+### Correct waits (never fixed sleep for content)
+
+```python
+await page.wait_for_load_state("networkidle")
+await page.wait_for_selector(".result", timeout=5000)
+# page.wait_for_timeout(200) only OK as tiny post-navigation gap in SPAs
+```
+
+### See-act-verify loop
+
+```python
+before = await page.screenshot()
+await page.click("#button"); await page.wait_for_timeout(300)
+after = await page.screenshot()
+Path("~/clawd/data/e2b-proof.png").expanduser().write_bytes(after)
+```
+
+### X11 desktop orientation (non-browser apps)
+
+```python
+sbx.commands.run("DISPLAY=:99 wmctrl -l")                                               # list all windows
+sbx.commands.run("DISPLAY=:99 xdotool getactivewindow getwindowname getwindowgeometry")  # active window info
+sbx.commands.run("DISPLAY=:99 xdotool getmouselocation")                                # cursor coords
+```
+
 ## Failure-mode handling
 
 | Failure | Diagnosis | Resolution |
