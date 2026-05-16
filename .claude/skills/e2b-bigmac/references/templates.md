@@ -15,7 +15,7 @@
 
 ## Templates
 
-### bigmac-desktop-v3-3-3 (current default)
+### bigmac-desktop-v3-3-4 (current default)
 
 - **Type:** Desktop (XFCE + VNC)
 - **E2B ID:** `5otn3nktl3v7bp8hza0x`
@@ -98,4 +98,4 @@ Available via `sbx ls` — look for `managed_by:e2b-unified-pool pool_type:code_
 3. **DISPLAY env var** — set `DISPLAY=:99` or `DISPLAY=:0` when running GUI tools
 4. **Cookie injection timing** — happens on first boot; wait 5s after sandbox creation before testing Google auth
 5. **Pool sandboxes are shared** — don't leave long-running processes; use `--timeout` appropriately
-6. **sbx CLI** — `sbx new bigmac-desktop-v3-3-3` spins a fresh one if pool is empty
+6. **sbx CLI** — `sbx new bigmac-desktop-v3-3-4` spins a fresh one if pool is empty

@@ -1,13 +1,13 @@
 ---
 name: e2b-bigmac
-description: Use BIGMAC E2B cloud sandboxes for code execution, browser automation, Playwright testing, and web scraping. Use when you need to run code in isolation, test a web page with Playwright, do browser automation, scrape with Chrome, or need a full desktop environment. Covers both desktop sandboxes (bigmac-desktop-v3-3-3 — has Playwright/Chrome/VNC/Google auth cookies) and code interpreter sandboxes (bigmac-code-v2-9-3 — fast, no browser). Do NOT attempt Playwright or Chrome in a code interpreter sandbox.
+description: Use BIGMAC E2B cloud sandboxes for code execution, browser automation, Playwright testing, and web scraping. Use when you need to run code in isolation, test a web page with Playwright, do browser automation, scrape with Chrome, or need a full desktop environment. Covers both desktop sandboxes (bigmac-desktop-v3-3-4 — has Playwright/Chrome/VNC/Google auth cookies) and code interpreter sandboxes (bigmac-code-v2-9-3 — fast, no browser). Do NOT attempt Playwright or Chrome in a code interpreter sandbox.
 ---
 
 # E2B BIGMAC Sandboxes
 
 ## Sandbox Type Decision
 
-**Desktop** (`bigmac-desktop-v3-3-3`): Playwright, Chrome, web scraping, VNC, Google auth
+**Desktop** (`bigmac-desktop-v3-3-4`): Playwright, Chrome, web scraping, VNC, Google auth
 **Code** (`bigmac-code-v2-9-3`): Pure Python/data work, fast spin-up, no browser needed
 
 See [references/templates.md](references/templates.md) for full capability matrix and gotchas.
@@ -50,7 +50,7 @@ sandbox_id = pool["sandboxes"][0]["sandbox_id"]
 ```bash
 python3 ~/.claude/skills/e2b-bigmac/acquire.py --type desktop --fresh
 # or via sbx CLI:
-sbx new bigmac-desktop-v3-3-3
+sbx new bigmac-desktop-v3-3-4
 ```
 
 ## Run Code in a Sandbox
@@ -89,7 +89,7 @@ args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--
 
 ## ⛔ DO NOT INSTALL — Everything Is Pre-Installed
 
-Inside `bigmac-desktop-v3-3-3`, **stop** if you find yourself typing any of these:
+Inside `bigmac-desktop-v3-3-4`, **stop** if you find yourself typing any of these:
 
 ```bash
 # ❌ Never run inside a desktop sandbox:
@@ -115,7 +115,7 @@ pip install e2b-desktop
 ```bash
 # ✅ Run on your local Mac:
 sbx ls                        # list running sandboxes
-sbx new bigmac-desktop-v3-3-3 # force-create fresh (when pool empty)
+sbx new bigmac-desktop-v3-3-4 # force-create fresh (when pool empty)
 sbx kill <id>                 # kill a sandbox
 
 # ❌ Do NOT run sbx inside the sandbox — it talks to the E2B API from outside

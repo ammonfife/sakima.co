@@ -20,7 +20,7 @@ apt-get install google-chrome
 npm install puppeteer
 ```
 
-**What's already in `bigmac-desktop-v3-3-3`:**
+**What's already in `bigmac-desktop-v3-3-4`:**
 
 | Tool | Pre-installed path |
 |---|---|
@@ -376,7 +376,7 @@ See `references/templates.md` for template details and pool architecture.
 **Quick reference:**
 
 - Code: `bigmac-code-v3-3-1` (Playwright + Selenium + browsers)
-- Desktop: `bigmac-desktop-v3-3-3` (Chrome + VNC + Google cookies)
+- Desktop: `bigmac-desktop-v3-3-4` (Chrome + VNC + Google cookies)
 - Pool API: `https://e2b-pool-lb.sakima-api.workers.dev/health`
 
 ## ♻️ KEEP THE SANDBOX ALIVE — Do Not Release Between Actions
