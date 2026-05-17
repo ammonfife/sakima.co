@@ -325,7 +325,7 @@ Must run in E2B desktop. Bump manifest version before every test run.
 | 11.3 | `whatnot-comp-scraper` | GET ?query=<coin> | Sold comps array |
 | 11.4 | `coin-vision` | POST image | AI identification result |
 | 11.5 | `e2b-pool-lb` /health | GET | `{"status":"ok"}` with live pool count |
-| 11.6 | `e2b-pool-lb` /pool/desktop | GET | Sandbox JSON (not empty array) |
+| 11.6 | `e2b-pool-lb` /pool/claim/desktop | POST (body: empty) | `{"status":"claimed","sandbox_id":"..."}` — NOT `GET /pool/desktop` (that returns 403) |
 
 ### Group 12 — OBS Overlay
 
@@ -574,23 +574,105 @@ SUPABASE_SVC_KEY=$(security find-generic-password -s supabase_lkup_service_role_
 node run-icp-test.js all
 ```
 
-### Single group in E2B sandbox (keep sandbox alive across groups)
-```bash
-# Claim once — keep for ALL groups
-SANDBOX_ID=$(curl -s https://e2b-pool-lb.sakima-api.workers.dev/pool/desktop | \
-  python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('sandboxId') or d.get('sandbox_id'))")
-echo "VNC: https://8080-${SANDBOX_ID}.e2b.app/vnc.html?autoconnect=true&resize=scale"
+### E2B Desktop — Correct Setup (READ THIS BEFORE ANYTHING ELSE)
 
-# Connect via CDP (Chrome already running — don't launch new)
+Agents have previously failed here on three mistakes. Know them before you start:
+
+| Mistake | What happens | Fix |
+|---|---|---|
+| `GET /pool/desktop` | HTTP 403 | Must be `POST /pool/claim/desktop` |
+| `connect_over_cdp("localhost:9222")` from local Mac | ECONNREFUSED | CDP is internal to sandbox — run Playwright script inside via `sbx.commands.run()` |
+| `DISPLAY=:99` in xdotool/scrot | "Can't open X display" | Display is `:0` — always `DISPLAY=:0` |
+| `sbx.screenshot()` crashes | `scrot: Can't open X display` | Use `DISPLAY=:0 scrot /tmp/s.png` + base64 until v3.3.5 template is built |
+| `sbx.files.read("/tmp/s.png")` returns str | Can't write_bytes | Use `base64 /tmp/s.png` → decode in Python (never print base64 to stdout — 20K tokens/image) |
+
+```python
+import base64, time
+from pathlib import Path
+from e2b_desktop import Sandbox
+from e2b.sandbox.commands.command_handle import CommandExitException
+import subprocess
+
+POOL_LB = "https://e2b-pool-lb.sakima-api.workers.dev"
+E2B_KEY = subprocess.run(["bigmac-secrets", "get", "e2b_api_key"], capture_output=True, text=True).stdout.strip()
+OUT = Path("~/clawd/data/test-lkup").expanduser()
+OUT.mkdir(parents=True, exist_ok=True)
+
+import urllib.request, json
+
+# ── 1. CLAIM ──────────────────────────────────────────────────────
+# POST /pool/claim/desktop — NOT GET /pool/desktop
+req = urllib.request.Request(f"{POOL_LB}/pool/claim/desktop", method="POST", data=b"")
+sandbox_meta = json.loads(urllib.request.urlopen(req, timeout=15).read())
+SBX_ID = sandbox_meta["sandbox_id"]
+VNC_URL = f"https://8080-{SBX_ID}.e2b.app/vnc.html?autoconnect=true&resize=scale"
+print(f"VNC (open this in browser): {VNC_URL}")
+
+# ── 2. CONNECT SDK ────────────────────────────────────────────────
+sbx = Sandbox.connect(SBX_ID, api_key=E2B_KEY)
+
+def run(cmd, timeout=20):
+    try:
+        r = sbx.commands.run(cmd, timeout=timeout)
+        return r.stdout.strip(), r.stderr.strip(), 0
+    except CommandExitException as e:
+        return "", str(e)[:200], 1
+
+def see(label):
+    """Screenshot → save locally → use Read tool to inspect (not base64 to context)."""
+    run(f"DISPLAY=:0 scrot /tmp/{label}.png")
+    b64, _, rc = run(f"base64 /tmp/{label}.png", timeout=15)
+    if b64 and rc == 0:
+        png = base64.b64decode(b64)  # never print b64 — 20K tokens/image
+        path = OUT / f"{label}.png"
+        path.write_bytes(png)
+        # Use Read tool on path to see it: Read(str(path))
+        return path
+
+# ── 3. WAIT FOR DESKTOP ───────────────────────────────────────────
+for _ in range(15):
+    out, _, _ = run("DISPLAY=:0 pgrep -x xfce4-panel && echo READY || echo LOADING")
+    if "READY" in out:
+        break
+    time.sleep(3)
+
+# ── 4. PLAYWRIGHT — runs INSIDE sandbox (not from local Mac) ──────
+# localhost:9222 is only accessible from inside. Upload script → execute → download results.
+def browser_test(playwright_code, timeout=60):
+    """Run Playwright inside sandbox. Returns stdout lines."""
+    sbx.files.write("/tmp/_pw.py", playwright_code)
+    out, err, rc = run("python3 /tmp/_pw.py", timeout=timeout)
+    return out, err, rc
+
+# ── 5. RELEASE (try/finally — ALWAYS release) ────────────────────
+# Wrap everything in try/finally:
+# try:
+#     ... all test groups ...
+# finally:
+#     urllib.request.urlopen(
+#         urllib.request.Request(f"{POOL_LB}/pool/release/{SBX_ID}", method="POST", data=b""),
+#         timeout=10
+#     )
+```
+
+### Sample: run a Playwright web test inside the sandbox
+
+```python
+result, err, rc = browser_test(f"""
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     browser = p.chromium.connect_over_cdp("http://localhost:9222")
-    page = browser.contexts[0].pages[0]
-    # ... all test groups ...
+    ctx = browser.contexts[0] if browser.contexts else browser.new_context()
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
+    page.goto("https://lkup.info", wait_until="domcontentloaded", timeout=25000)
+    page.wait_for_timeout(1500)
+    print("TITLE:" + page.title())
+    page.screenshot(path="/tmp/lkup_home.png")
     browser.close()
-
-# Release only when done with ALL groups
-curl -X POST https://e2b-pool-lb.sakima-api.workers.dev/pool/release/$SANDBOX_ID
+print("DONE")
+""")
+print(result)   # "TITLE:lkup.info — Real-time coin pricing & cert lookup"
+see("lkup_home")  # downloads screenshot, use Read tool to verify
 ```
 
 ### Edge Functions only (no browser)
