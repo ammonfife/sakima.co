@@ -57,6 +57,14 @@ v[2]=str(int(v[2])+1)
 print('.'.join(v[:3]))
 ")
 
+    # Remove _metadata dir (generated_indexed_rulesets) — Chrome rejects unpacked extensions
+    # that contain this directory. Confirmed: E2B sandbox iisboe107vh93uyj6spop 2026-05-17.
+    EXT_DIR=$(dirname "$PATH_JSON")
+    if [ -d "$EXT_DIR/_metadata" ]; then
+        rm -rf "$EXT_DIR/_metadata"
+        echo "# removed _metadata from $EXT_DIR (required for unpacked load)" >&2
+    fi
+
     # Atomic write (temp + rename)
     python3 -c "
 import json
