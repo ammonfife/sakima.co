@@ -7,6 +7,26 @@ description: Spin up and use BIGMAC E2B sandboxes for isolated code execution, P
 
 Two sandbox types. Pick the right one, grab from pool, execute, done.
 
+## ⚠️ Cloud vs Local — Read First
+
+**`~/bin/sbx` is local Mac only.** It wraps the `e2b` CLI and pulls the API key from macOS keychain (`security find-generic-password`). It will not work in:
+- E2B sandboxes themselves
+- Codex / Devin VMs
+- Cloud Claude sessions
+- Any non-Mac environment
+
+**In all cloud/agent environments, use `sbx-pool` instead.** It lives in the repo (`~/bigmac-state/scripts/sbx-pool`, symlinked to `~/bin/sbx-pool`) and works on any machine where bigmac-state is cloned. No keychain, no NVM, no macOS required.
+
+```bash
+# Works on Mac, Codex, Devin, cloud Claude, inside E2B sandbox
+SBX_ID=$(sbx-pool claim | python3 -c "import sys,json; print(json.load(sys.stdin)['sandbox_id'])")
+sbx-pool vnc $SBX_ID          # print VNC URL
+sbx-pool release $SBX_ID      # release when done
+sbx-pool health                # pool status + warm count
+```
+
+The pool worker is public — no API key needed for claim/release/health. If `sbx-pool` isn't in PATH, call it directly: `~/bigmac-state/scripts/sbx-pool claim`.
+
 ## ⛔ DO NOT INSTALL — Everything Is Pre-Installed
 
 If you find yourself running any of these, **stop and use the pre-installed versions below instead:**
@@ -282,6 +302,11 @@ This is the primary pattern for "I am an agent operating a desktop like a human.
 
 - **Desktop layer** (any app, any window): `xdotool` for mouse/keyboard + `scrot` for screenshots
 - **Browser layer** (Chrome specifically): upload a Playwright script → execute inside sandbox → download results
+
+**⚠️ First thing after connecting: inject DISPLAY.** Until template v3.3.5, run this once per session or xdotool/scrot/SDK screenshot all fail:
+```python
+sbx.commands.run("grep -q 'DISPLAY=:0' /etc/environment 2>/dev/null || echo 'DISPLAY=:0' >> /etc/environment")
+```
 
 **⚠️ Pool claim/release: use `curl`, not Python `urllib` or `requests`.** Cloudflare bot-detection blocks Python's default User-Agent with HTTP 403. `curl` works. Always:
 ```python

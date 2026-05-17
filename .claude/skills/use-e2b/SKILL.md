@@ -93,7 +93,10 @@ subprocess.run(["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/release/{sb_id}"],
 
 ## Critical: DISPLAY, Ports, and Playwright Connection
 
-**DISPLAY is `:0`, NOT `:99`.** Every xdotool/scrot/xrandr command needs `DISPLAY=:0`.
+**DISPLAY is `:0`, NOT `:99`.** Every xdotool/scrot/xrandr command needs `DISPLAY=:0`. Until template v3.3.5, inject it at session start so SDK native methods also work:
+```python
+sbx.commands.run("grep -q 'DISPLAY=:0' /etc/environment 2>/dev/null || echo 'DISPLAY=:0' >> /etc/environment")
+```
 
 **Screenshots: never let base64 hit the agent conversation.** A 60KB PNG = ~20K tokens as base64 text. Capture as a Python variable, decode silently, write to disk. Agent then uses `Read` tool on the PNG — Claude vision reads it at ~0 token cost.
 ```python

@@ -486,18 +486,19 @@ echo "=== [4] barcode_cert_xref ===" && \
 # Verify pricing_consensus.cert_id matches certs.id
 curl -s "$SUPA/rest/v1/certs?raw_barcode=eq.$B&select=id,service,cert_number" \
   -H "apikey: $SVC" -H "Authorization: Bearer $SVC" | python3 -c "
-import json, sys
+import json, sys, subprocess
 rows = json.load(sys.stdin)
 if not rows: print('FAIL: no cert row'); exit(1)
 r = rows[0]
 print(f'cert_id={r[\"id\"]} service={r[\"service\"]} cert_number={r[\"cert_number\"]}')
-# Now check grader_data source matches service
-import urllib.request
-req = urllib.request.Request(
+# Use curl (not urllib.request — Python UA gets 403 from Cloudflare on Supabase PostgREST)
+result = subprocess.run([
+    'curl', '-sf',
     f'$SUPA/rest/v1/grader_data?cert_id=eq.{r[\"id\"]}',
-    headers={'apikey': '$SVC', 'Authorization': 'Bearer \$SVC'}
-)
-gd = json.loads(urllib.request.urlopen(req).read())
+    '-H', 'apikey: $SVC',
+    '-H', 'Authorization: Bearer $SVC'
+], capture_output=True, text=True)
+gd = json.loads(result.stdout or '[]')
 for g in gd:
     src = g.get('source','')
     svc = r['service']
@@ -584,7 +585,7 @@ Agents have previously failed here on three mistakes. Know them before you start
 | `GET /pool/desktop` | HTTP 403 | Must be `POST /pool/claim/desktop` |
 | `connect_over_cdp("localhost:9222")` from local Mac | ECONNREFUSED | CDP is internal to sandbox — run Playwright script inside via `sbx.commands.run()` |
 | `DISPLAY=:99` in xdotool/scrot | "Can't open X display" | Display is `:0` — always `DISPLAY=:0` |
-| `sbx.screenshot()` crashes | `scrot: Can't open X display` | Use `DISPLAY=:0 scrot /tmp/s.png` + base64 until v3.3.5 template is built |
+| `sbx.screenshot()` crashes | `scrot: Can't open X display` | Run `sbx.commands.run("echo DISPLAY=:0 >> /etc/environment")` once at session start — then SDK native methods work. Until v3.3.5 template is built, also use `DISPLAY=:0 scrot /tmp/s.png` + base64 as the manual fallback. |
 | `sbx.files.read("/tmp/s.png")` returns str | Can't write_bytes | Use `base64 /tmp/s.png` → decode in Python (never print base64 to stdout — 20K tokens/image) |
 
 ```python
@@ -601,9 +602,13 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 import subprocess, json
 
+POOL_LB = "https://e2b-pool-lb.sakima-api.workers.dev"
+
 # ── 1. CLAIM ──────────────────────────────────────────────────────
 # POST /pool/claim/desktop — NOT GET /pool/desktop
 # Must use curl — Python urllib gets 403 from Cloudflare (bot UA blocked). curl works.
+# Shortcut (script is in lkup.info/scripts/ and bigmac-state/scripts/):
+#   subprocess.run(["scripts/sbx-pool", "claim"], capture_output=True, text=True, timeout=15)
 result = subprocess.run(
     ["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/claim/desktop"],
     capture_output=True, text=True, timeout=15
@@ -615,6 +620,11 @@ print(f"VNC (open this in browser): {VNC_URL}")
 
 # ── 2. CONNECT SDK ────────────────────────────────────────────────
 sbx = Sandbox.connect(SBX_ID, api_key=E2B_KEY)
+
+# ── 2b. FIX DISPLAY (do this once per session, before any screenshot/xdotool) ─
+# Injects DISPLAY=:0 into /etc/environment so SDK native methods work.
+# Until template v3.3.5 is built, this is required every session.
+sbx.commands.run("grep -q 'DISPLAY=:0' /etc/environment 2>/dev/null || echo 'DISPLAY=:0' >> /etc/environment")
 
 def run(cmd, timeout=20):
     try:
@@ -654,8 +664,11 @@ def browser_test(playwright_code, timeout=60):
 # try:
 #     ... all test groups ...
 # finally:
-#     subprocess.run(["curl", "-sf", "-X", "POST",
-#         f"{POOL_LB}/pool/release/{SBX_ID}"], timeout=10)
+#     subprocess.run(
+#         ["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/release/{SBX_ID}"],
+#         timeout=10
+#     )
+#     # Shortcut: subprocess.run(["scripts/sbx-pool", "release", SBX_ID], timeout=10)
 ```
 
 ### Sample: run a Playwright web test inside the sandbox
