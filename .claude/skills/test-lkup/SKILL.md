@@ -461,7 +461,7 @@ echo "=== [1] certs ===" && echo "$C" | python3 -m json.tool
 # [2] grader_data rows (enrichment)
 CID=$(echo "$C" | python3 -c "import json,sys; r=json.load(sys.stdin); print(r[0]['id'] if r else '')")
 echo "=== [2] grader_data ===" && \
-  curl -s "$SUPA/rest/v1/grader_data?cert_id=eq.$CID&select=source,fetched_at,price_guide" \
+  curl -s "$SUPA/rest/v1/grader_data?cert_id=eq.$CID&select=source,enriched_at,price_guide" \
   -H "apikey: $SVC" -H "Authorization: Bearer $SVC" | python3 -m json.tool
 
 # [3] pricing_consensus
