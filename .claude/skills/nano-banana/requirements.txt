@@ -1,6 +1,0 @@
-google-generativeai>=0.3.0
-pillow>=10.0.0
-
-# Code quality / linting (used by lint-on-edit PostToolUse hook)
-ruff>=0.4.0          # Python linter — very fast (~30ms/file)
-shellcheck-py>=0.9.0 # Shell linter wrapper (installs real shellcheck binary)
