@@ -24,7 +24,7 @@ npm install puppeteer
 
 | Tool | Pre-installed path |
 |---|---|
-| `google-chrome-for-testing` | `/usr/bin/google-chrome-for-testing` |
+| `google-chrome` | `/opt/google/chrome/google-chrome` (NOT `google-chrome-for-testing` — that binary is NOT in PATH) |
 | `chromium-browser` | `/usr/bin/chromium-browser` |
 | Playwright + Chromium | `python3 -c "from playwright.sync_api import sync_playwright"` |
 | All Playwright system deps | 70+ libs (libnspr4, libgbm1, libgbm-dev, etc.) |
@@ -229,6 +229,8 @@ python3 scripts/sbx_run.py --playwright "https://example.com" --screenshot /tmp/
 
 **CDP on port 9222 is ready as soon as the sandbox boots.** Connect via CDP immediately — no launch step needed from your script.
 
+**Display is `:0`, not `:99`.** E2B base template starts Xvfb on `:0`. All DISPLAY-dependent commands must use `DISPLAY=:0`.
+
 **VNC "Connect" button:** On first visit to a new sandbox's VNC URL, you may see a noVNC splash with a "Connect" button. Click it once. `?autoconnect=true` usually bypasses it but not always on a brand-new sandbox.
 
 ```python
@@ -239,66 +241,214 @@ vnc_url = f"https://8080-{sandbox_id}.e2b.app/vnc.html?autoconnect=true&resize=s
 **If Chrome crashed or was closed**, re-launch it visible:
 ```python
 sbx.commands.run(
-    "DISPLAY=:99 google-chrome-for-testing --no-first-run --no-default-browser-check "
+    # DISPLAY=:0 (not :99). Binary is /opt/google/chrome/google-chrome (not google-chrome-for-testing)
+    "DISPLAY=:0 /opt/google/chrome/google-chrome --no-first-run --no-default-browser-check "
     "--disable-sync --no-sandbox --remote-debugging-port=9222 about:blank &",
     timeout=5
 )
-time.sleep(4)
+time.sleep(6)
 ```
 
-## Getting Bearings Fast — Once Inside a Desktop
+## Accessing Sandbox Ports from Outside (E2B URL Pattern)
 
-**CRITICAL: Don't launch a new browser. Chrome is already running on port 9222. Connect via CDP — no launch latency.**
-
-**Don't pip install anything. Every browser tool is pre-installed: Playwright, Selenium, ChromeDriver, undetected-chromedriver, xdotool, wmctrl, ImageMagick.**
-
-### Fastest: CDP connect (skip browser launch entirely)
+Every sandbox port is exposed via E2B's URL pattern: `{port}-{sandbox_id}.e2b.app`.
 
 ```python
-from playwright.sync_api import sync_playwright
+# Get the public URL for any port
+cdp_host = sbx.get_host(9222)   # → "9222-<sandbox_id>.e2b.app"
+vnc_host = sbx.get_host(8080)   # → "8080-<sandbox_id>.e2b.app"
 
+# HTTP services (REST APIs, noVNC) work fine via the E2B tunnel
+import urllib.request
+with urllib.request.urlopen(f"https://{vnc_host}/vnc.html") as r:
+    print(r.status)  # 200
+
+# ⚠️ CDP WebSocket does NOT reliably work over the E2B HTTP tunnel
+# Playwright connect_over_cdp("http://9222-<id>.e2b.app") → HTTP 500 or socket hang up
+# CORRECT PATTERN for Playwright: upload script → run inside sandbox → download results
+```
+
+**Port access pattern (works for HTTP services):**
+- noVNC: `https://8080-{sandbox_id}.e2b.app/vnc.html?autoconnect=true`
+- Any REST API you start inside: `https://{port}-{sandbox_id}.e2b.app`
+
+**Port access pattern (does NOT work for CDP WebSocket):**
+- Chrome CDP: E2B HTTP proxy returns 500 for WebSocket upgrades
+- Use the script-upload-and-execute pattern instead (see Human-at-Screen section below)
+
+## Human at the Wheel — Full Desktop Control (SEE → ACT → VERIFY)
+
+This is the primary pattern for "I am an agent operating a desktop like a human." Two layers:
+
+- **Desktop layer** (any app, any window): `xdotool` for mouse/keyboard + `scrot` for screenshots
+- **Browser layer** (Chrome specifically): upload a Playwright script → execute inside sandbox → download results
+
+**⚠️ DISPLAY is `:0`, not `:99`.** Template uses DISPLAY=:0. All commands require `DISPLAY=:0`.
+
+**⚠️ Screenshots: never let base64 hit the agent conversation — each image is ~20K tokens as base64 text.** The base64 must be captured as a Python variable and decoded silently, never printed/echoed. Agent then uses the `Read` tool on the saved `.png` file — Claude sees it via vision at ~0 token cost. See `see()` primitive below.
+
+After template v3.3.5 rebuild, `sbx.screenshot()` returns bytes directly — no base64 needed.
+
+**⚠️ `sbx.files.read()` returns a string, not bytes.** Use base64 for binary files.
+
+**⚠️ `CommandExitException` is raised on ANY non-zero exit.** Wrap every `sbx.commands.run()` call in try/except.
+
+### The canonical primitives (copy these verbatim)
+
+```python
+import base64, time
+from e2b_desktop import Sandbox
+from e2b.sandbox.commands.command_handle import CommandExitException
+
+def run(sbx, cmd, timeout=15):
+    """Run command inside sandbox, never raise on non-zero exit."""
+    try:
+        r = sbx.commands.run(cmd, timeout=timeout)
+        return r.stdout.strip(), r.stderr.strip(), 0
+    except CommandExitException as e:
+        return "", str(e)[:200], 1
+
+def see(sbx, label, out_dir):
+    """SEE: Take desktop screenshot → download as PNG bytes."""
+    run(sbx, f"DISPLAY=:0 scrot /tmp/{label}.png")
+    b64, _, rc = run(sbx, f"base64 /tmp/{label}.png", timeout=15)
+    if b64 and rc == 0:
+        png = base64.b64decode(b64)
+        (out_dir / f"{label}.png").write_bytes(png)
+        return png
+    return None
+
+def click(sbx, x, y, button=1):
+    """ACT: Move mouse to (x,y) and click."""
+    run(sbx, f"DISPLAY=:0 xdotool mousemove {x} {y} click {button}")
+
+def move(sbx, x, y):
+    run(sbx, f"DISPLAY=:0 xdotool mousemove {x} {y}")
+
+def type_text(sbx, text, delay=80):
+    """ACT: Type text with human-like keystroke delay."""
+    escaped = text.replace("'", "'\\''")
+    run(sbx, f"DISPLAY=:0 xdotool type --delay {delay} '{escaped}'")
+
+def key(sbx, k):
+    """ACT: Press a keyboard key (e.g. 'Return', 'ctrl+a', 'alt+F2')."""
+    run(sbx, f"DISPLAY=:0 xdotool key {k}")
+
+def windows(sbx):
+    """ORIENT: List all open windows with IDs."""
+    out, _, _ = run(sbx, "DISPLAY=:0 wmctrl -l")
+    return out
+
+def where(sbx):
+    """ORIENT: Get current mouse cursor position."""
+    out, _, _ = run(sbx, "DISPLAY=:0 xdotool getmouselocation")
+    return out
+
+def run_playwright_inside(sbx, script_code, timeout=60):
+    """BROWSER: Run a Playwright script inside the sandbox, return results dict."""
+    sbx.files.write("/tmp/_pw_task.py", script_code)
+    out, err, rc = run(sbx, "python3 /tmp/_pw_task.py", timeout=timeout)
+    return {"stdout": out, "stderr": err, "rc": rc}
+
+def get_page_screenshot(sbx, url, out_path):
+    """BROWSER: Navigate to URL, return Playwright screenshot bytes."""
+    script = f"""
+from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     browser = p.chromium.connect_over_cdp("http://localhost:9222")
-    ctx = browser.contexts[0]
+    ctx = browser.contexts[0] if browser.contexts else browser.new_context()
     page = ctx.pages[0] if ctx.pages else ctx.new_page()
-    # connected in ~50ms — no 5-10s launch overhead
+    page.goto("{url}", wait_until="domcontentloaded", timeout=25000)
+    page.wait_for_timeout(1500)
+    page.screenshot(path="/tmp/_pw_shot.png")
+    browser.close()
+"""
+    run_playwright_inside(sbx, script)
+    b64, _, _ = run(sbx, "base64 /tmp/_pw_shot.png", timeout=10)
+    if b64:
+        png = base64.b64decode(b64)
+        out_path.write_bytes(png)
+        return png
+```
+
+### The SEE → ACT → VERIFY loop
+
+```python
+from pathlib import Path
+OUT = Path.home() / "clawd/data/e2b-work"
+OUT.mkdir(parents=True, exist_ok=True)
+
+# 1. SEE what's on screen
+see(sbx, "before_action", OUT)
+
+# 2. ACT — desktop level (any app)
+click(sbx, 640, 45)           # click address bar
+key(sbx, "ctrl+a")            # select all
+type_text(sbx, "https://lkup.info")
+key(sbx, "Return")
+time.sleep(2)
+
+# 3. VERIFY
+see(sbx, "after_nav", OUT)    # visual proof
+
+# 4. BROWSER ACT — for Chrome specifically
+get_page_screenshot(sbx, "https://lkup.info/inventory", OUT / "inventory.png")
 ```
 
 ### Orient on a web page: accessibility tree + coord dump
 
+This runs as a Playwright script inside the sandbox:
+
 ```python
+orient_script = """
+from playwright.sync_api import sync_playwright
 import json
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0]
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
 
-# Full semantic tree — every role/name/clickable in ~5ms
-snapshot = page.accessibility.snapshot()
-print(json.dumps(snapshot, indent=2))
+    # Semantic tree — every role/name/clickable
+    snap = page.accessibility.snapshot()
+    print("SNAP:" + json.dumps(snap)[:2000])
 
-# All visible clickables with pixel coords
-elements = page.evaluate("""
-    [...document.querySelectorAll('button,[role=button],a,input,select')]
-    .filter(el => { const r = el.getBoundingClientRect(); return r.width > 0; })
-    .map(el => ({ text: el.innerText?.trim().slice(0, 40), rect: el.getBoundingClientRect() }))
-""")
-for el in elements:
-    r = el['rect']
-    print(f"{el['text']:40} x={r['x']:.0f} y={r['y']:.0f}")
+    # All clickables with coords
+    elems = page.evaluate('''
+        [...document.querySelectorAll("button,[role=button],a,input,select")]
+        .filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; })
+        .slice(0, 15)
+        .map(el => ({
+            text: (el.innerText || el.value || el.placeholder || "").trim().slice(0, 35),
+            tag: el.tagName,
+            x: el.getBoundingClientRect().x,
+            y: el.getBoundingClientRect().y
+        }))
+    ''')
+    for el in elems:
+        print(f"ELEM:{el['tag']}|{el['text']}|x={el['x']:.0f}|y={el['y']:.0f}")
+    browser.close()
+"""
+result = run_playwright_inside(sbx, orient_script)
+for line in result["stdout"].split("\\n"):
+    print(line)
 ```
 
-### Orient on the X11 desktop (non-browser windows)
+### Orient on X11 desktop (non-browser windows)
 
 ```python
-# What windows are open
-result = sbx.commands.run("DISPLAY=:99 wmctrl -l")
+# List all open windows
+out, _, _ = run(sbx, "DISPLAY=:0 wmctrl -l")
 
 # Active window name + geometry
-result = sbx.commands.run("DISPLAY=:99 xdotool getactivewindow getwindowname getwindowgeometry")
+out, _, _ = run(sbx, "DISPLAY=:0 xdotool getactivewindow getwindowname getwindowgeometry")
 
-# Mouse cursor position
-result = sbx.commands.run("DISPLAY=:99 xdotool getmouselocation")
+# Mouse position
+out, _, _ = run(sbx, "DISPLAY=:0 xdotool getmouselocation")
 
-# Find window by name → click inside it
-sbx.commands.run("""
-DISPLAY=:99 WID=$(xdotool search --name 'Files' | head -1)
+# Find a window by name and click inside it
+run(sbx, """
+DISPLAY=:0
+WID=$(xdotool search --name 'Files' | head -1)
 xdotool windowactivate --sync $WID
 xdotool mousemove --window $WID 200 150 click 1
 """)

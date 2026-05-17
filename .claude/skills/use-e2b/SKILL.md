@@ -87,80 +87,160 @@ turso.execute(
 requests.post(f"{POOL_LB}/pool/release/{sb_id}")
 ```
 
+## Critical: DISPLAY, Ports, and Playwright Connection
+
+**DISPLAY is `:0`, NOT `:99`.** Every xdotool/scrot/xrandr command needs `DISPLAY=:0`.
+
+**Screenshots: never let base64 hit the agent conversation.** A 60KB PNG = ~20K tokens as base64 text. Capture as a Python variable, decode silently, write to disk. Agent then uses `Read` tool on the PNG — Claude vision reads it at ~0 token cost.
+```python
+# CORRECT — base64 captured as Python variable, never echoed to stdout
+sbx.commands.run("DISPLAY=:0 scrot /tmp/shot.png")
+b64 = sbx.commands.run("base64 /tmp/shot.png", timeout=15).stdout.strip()
+Path("~/clawd/data/shot.png").expanduser().write_bytes(base64.b64decode(b64))
+# Then: Read("~/clawd/data/shot.png") — costs ~0 tokens, full vision
+
+# ❌ NEVER — this floods the conversation with 20K+ tokens:
+# sbx.commands.run("base64 /tmp/shot.png")  # as a bare Bash tool call
+```
+
+After template v3.3.5: `sbx.screenshot()` returns bytes directly — no base64 needed.
+
+**`sbx.files.read()` returns a string, not bytes.** Use base64 for binary files.
+
+**`CommandExitException` is raised on any non-zero exit.** Always wrap:
+```python
+from e2b.sandbox.commands.command_handle import CommandExitException
+try:
+    r = sbx.commands.run(cmd, timeout=15)
+except CommandExitException:
+    pass  # handle gracefully
+```
+
+**Port access from outside:** `sbx.get_host(port)` → `{port}-{sandbox_id}.e2b.app`
+- HTTP services: work fine via E2B tunnel
+- CDP WebSocket (port 9222): **E2B tunnel returns HTTP 500 for WebSocket upgrades** — does NOT work for `p.chromium.connect_over_cdp()` from outside
+- **Workaround**: upload Playwright script to sandbox → run inside → download screenshots
+
 ## Getting Bearings Fast — Once Inside a Desktop
 
-**Don't launch a new browser. Connect via CDP to Chrome already running on port 9222.**
+**Don't launch a new browser. Connect via CDP to Chrome already running on port 9222 INSIDE the sandbox.**
 **Don't pip install — Playwright, xdotool, wmctrl are pre-installed in every desktop template.**
 
-### CDP connect — no launch latency
+### Playwright from INSIDE the sandbox (correct pattern)
+
+Upload a `.py` script to `/tmp/`, execute it inside, download the results:
 
 ```python
-async with async_playwright() as p:
-    browser = await p.chromium.connect_over_cdp("http://localhost:9222")
-    ctx = browser.contexts[0]
-    page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+import base64
+
+script = """
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    ctx = browser.contexts[0] if browser.contexts else browser.new_context()
+    page = ctx.pages[0] if ctx.pages else ctx.new_page()
+    page.goto("https://example.com", wait_until="domcontentloaded", timeout=25000)
+    page.wait_for_timeout(1500)
+    print(f"TITLE:{page.title()}")
+    page.screenshot(path="/tmp/result.png")
+    browser.close()
+"""
+sbx.files.write("/tmp/pw_task.py", script)
+out = sbx.commands.run("python3 /tmp/pw_task.py", timeout=60).stdout
+print(out)
+
+# Download screenshot (binary via base64)
+b64 = sbx.commands.run("base64 /tmp/result.png", timeout=10).stdout.strip()
+png = base64.b64decode(b64)
+Path("~/clawd/data/result.png").expanduser().write_bytes(png)
+```
+
+### Human-at-the-Wheel: SEE → ACT → VERIFY loop
+
+Full desktop control — operates any app visible in VNC, not just Chrome:
+
+```python
+import base64, time
+from pathlib import Path
+from e2b.sandbox.commands.command_handle import CommandExitException
+
+def run(cmd, timeout=15):
+    try:
+        r = sbx.commands.run(cmd, timeout=timeout)
+        return r.stdout.strip(), 0
+    except CommandExitException:
+        return "", 1
+
+def see(label):
+    """Take full desktop screenshot → return PNG bytes."""
+    run(f"DISPLAY=:0 scrot /tmp/{label}.png")
+    b64, rc = run(f"base64 /tmp/{label}.png", timeout=15)
+    if b64:
+        png = base64.b64decode(b64)
+        Path(f"~/clawd/data/{label}.png").expanduser().write_bytes(png)
+        return png
+
+def click(x, y, button=1):
+    run(f"DISPLAY=:0 xdotool mousemove {x} {y} click {button}")
+
+def type_text(text, delay=80):
+    escaped = text.replace("'", "'\\''")
+    run(f"DISPLAY=:0 xdotool type --delay {delay} '{escaped}'")
+
+def key(k):
+    run(f"DISPLAY=:0 xdotool key {k}")
+
+# Example: open a terminal, run a command, screenshot the result
+see("before")
+key("alt+F2")             # XFCE run dialog
+time.sleep(0.5)
+type_text("xterm")
+key("Return")
+time.sleep(2)
+see("xterm_open")
 ```
 
 ### Orient immediately — accessibility snapshot + coord dump
 
+Run this as a Playwright script inside the sandbox (not from local Mac):
+
 ```python
+orient_script = """
+from playwright.sync_api import sync_playwright
 import json
-# Full semantic tree of every clickable element — ~5ms
-snapshot = await page.accessibility.snapshot()
-print(json.dumps(snapshot, indent=2))
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp("http://localhost:9222")
+    page = browser.contexts[0].pages[0]
 
-# Pixel coords for every visible button/link/input
-elements = await page.evaluate("""
-    [...document.querySelectorAll('button,[role=button],a,input,select')]
-    .filter(el => el.getBoundingClientRect().width > 0)
-    .map(el => ({ text: el.innerText?.trim().slice(0, 40), rect: el.getBoundingClientRect() }))
-""")
-for el in elements:
-    r = el['rect']
-    print(f"{el['text']:40} x={r['x']:.0f} y={r['y']:.0f}")
-```
+    snap = page.accessibility.snapshot()
+    for n in (snap.get('children') or [])[:12]:
+        if n.get('name'): print(f"  [{n['role']}] {n['name'][:50]}")
 
-### Click by text — no pixel math
-
-```python
-await page.get_by_text("Sign In").click()
-await page.get_by_role("button", name="Publish").click()
-await page.get_by_placeholder("Search...").fill("1881-S Morgan")
-```
-
-### Human-like interaction
-
-```python
-await page.hover(selector); await page.wait_for_timeout(100); await page.click(selector)
-await page.type("#input", "text", delay=80)   # 80ms/keystroke
-# Two-Enter for autocomplete fields:
-await page.type(".chat", "text"); await page.wait_for_timeout(600)
-await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter"); await page.keyboard.press("Enter")
-```
-
-### Correct waits (never fixed sleep for content)
-
-```python
-await page.wait_for_load_state("networkidle")
-await page.wait_for_selector(".result", timeout=5000)
-# page.wait_for_timeout(200) only OK as tiny post-navigation gap in SPAs
-```
-
-### See-act-verify loop
-
-```python
-before = await page.screenshot()
-await page.click("#button"); await page.wait_for_timeout(300)
-after = await page.screenshot()
-Path("~/clawd/data/e2b-proof.png").expanduser().write_bytes(after)
+    elems = page.evaluate('''
+        [...document.querySelectorAll("button,a,input")]
+        .filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; })
+        .slice(0, 15)
+        .map(el => ({
+            text: (el.innerText || el.placeholder || "").trim().slice(0, 35),
+            tag: el.tagName,
+            x: el.getBoundingClientRect().x,
+            y: el.getBoundingClientRect().y
+        }))
+    ''')
+    for el in elems:
+        print(f"ELEM:{el['tag']}|{el['text']}|x={el['x']:.0f}|y={el['y']:.0f}")
+    browser.close()
+"""
+sbx.files.write("/tmp/orient.py", orient_script)
+print(sbx.commands.run("python3 /tmp/orient.py", timeout=20).stdout)
 ```
 
 ### X11 desktop orientation (non-browser apps)
 
 ```python
-sbx.commands.run("DISPLAY=:99 wmctrl -l")                                               # list all windows
-sbx.commands.run("DISPLAY=:99 xdotool getactivewindow getwindowname getwindowgeometry")  # active window info
-sbx.commands.run("DISPLAY=:99 xdotool getmouselocation")                                # cursor coords
+run("DISPLAY=:0 wmctrl -l")                                               # list all windows
+run("DISPLAY=:0 xdotool getactivewindow getwindowname getwindowgeometry")  # active window info
+run("DISPLAY=:0 xdotool getmouselocation")                                 # cursor coords
 ```
 
 ## Failure-mode handling
