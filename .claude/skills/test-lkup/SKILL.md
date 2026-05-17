@@ -580,6 +580,7 @@ Agents have previously failed here on three mistakes. Know them before you start
 
 | Mistake | What happens | Fix |
 |---|---|---|
+| `urllib.request.urlopen(pool_url)` | HTTP 403 from Cloudflare | Use `subprocess.run(["curl", "-sf", "-X", "POST", url])` — curl bypasses bot-UA block |
 | `GET /pool/desktop` | HTTP 403 | Must be `POST /pool/claim/desktop` |
 | `connect_over_cdp("localhost:9222")` from local Mac | ECONNREFUSED | CDP is internal to sandbox — run Playwright script inside via `sbx.commands.run()` |
 | `DISPLAY=:99` in xdotool/scrot | "Can't open X display" | Display is `:0` — always `DISPLAY=:0` |
@@ -598,12 +599,16 @@ E2B_KEY = subprocess.run(["bigmac-secrets", "get", "e2b_api_key"], capture_outpu
 OUT = Path("~/clawd/data/test-lkup").expanduser()
 OUT.mkdir(parents=True, exist_ok=True)
 
-import urllib.request, json
+import subprocess, json
 
 # ── 1. CLAIM ──────────────────────────────────────────────────────
 # POST /pool/claim/desktop — NOT GET /pool/desktop
-req = urllib.request.Request(f"{POOL_LB}/pool/claim/desktop", method="POST", data=b"")
-sandbox_meta = json.loads(urllib.request.urlopen(req, timeout=15).read())
+# Must use curl — Python urllib gets 403 from Cloudflare (bot UA blocked). curl works.
+result = subprocess.run(
+    ["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/claim/desktop"],
+    capture_output=True, text=True, timeout=15
+)
+sandbox_meta = json.loads(result.stdout)
 SBX_ID = sandbox_meta["sandbox_id"]
 VNC_URL = f"https://8080-{SBX_ID}.e2b.app/vnc.html?autoconnect=true&resize=scale"
 print(f"VNC (open this in browser): {VNC_URL}")
@@ -649,10 +654,8 @@ def browser_test(playwright_code, timeout=60):
 # try:
 #     ... all test groups ...
 # finally:
-#     urllib.request.urlopen(
-#         urllib.request.Request(f"{POOL_LB}/pool/release/{SBX_ID}", method="POST", data=b""),
-#         timeout=10
-#     )
+#     subprocess.run(["curl", "-sf", "-X", "POST",
+#         f"{POOL_LB}/pool/release/{SBX_ID}"], timeout=10)
 ```
 
 ### Sample: run a Playwright web test inside the sandbox

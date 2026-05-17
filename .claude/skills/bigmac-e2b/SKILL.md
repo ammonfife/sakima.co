@@ -283,6 +283,16 @@ This is the primary pattern for "I am an agent operating a desktop like a human.
 - **Desktop layer** (any app, any window): `xdotool` for mouse/keyboard + `scrot` for screenshots
 - **Browser layer** (Chrome specifically): upload a Playwright script → execute inside sandbox → download results
 
+**⚠️ Pool claim/release: use `curl`, not Python `urllib` or `requests`.** Cloudflare bot-detection blocks Python's default User-Agent with HTTP 403. `curl` works. Always:
+```python
+import subprocess, json
+meta = json.loads(subprocess.run(
+    ["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/claim/desktop"],
+    capture_output=True, text=True, timeout=15
+).stdout)
+SBX_ID = meta["sandbox_id"]
+```
+
 **⚠️ DISPLAY is `:0`, not `:99`.** Template uses DISPLAY=:0. All commands require `DISPLAY=:0`.
 
 **⚠️ Screenshots: never let base64 hit the agent conversation — each image is ~20K tokens as base64 text.** The base64 must be captured as a Python variable and decoded silently, never printed/echoed. Agent then uses the `Read` tool on the saved `.png` file — Claude sees it via vision at ~0 token cost. See `see()` primitive below.

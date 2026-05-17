@@ -46,9 +46,13 @@ import requests
 POOL_LB = "https://e2b-pool-lb.sakima-api.workers.dev"
 
 # 1. Claim sandbox
-sandbox = requests.post(f"{POOL_LB}/pool/claim/desktop").json()
+# Use curl — Python urllib/requests may get 403 from Cloudflare bot detection
+import subprocess, json as _json
+_r = subprocess.run(["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/claim/desktop"],
+                    capture_output=True, text=True, timeout=15)
+sandbox = _json.loads(_r.stdout)
 sb_id = sandbox["sandbox_id"]
-vnc = sandbox["vnc_url"]
+vnc = sandbox.get("vnc_url", f"https://8080-{sb_id}.e2b.app/vnc.html?autoconnect=true")
 
 # 2. Pull cookies from Turso (PREFER)
 turso = libsql_client.create_client(
@@ -84,7 +88,7 @@ turso.execute(
 )
 
 # 5. ALWAYS release the sandbox
-requests.post(f"{POOL_LB}/pool/release/{sb_id}")
+subprocess.run(["curl", "-sf", "-X", "POST", f"{POOL_LB}/pool/release/{sb_id}"], timeout=10)
 ```
 
 ## Critical: DISPLAY, Ports, and Playwright Connection
