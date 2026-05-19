@@ -38,7 +38,7 @@ Get customer and expert feedback on any feature, design decision, pricing change
 ### Team Member
 | Agent | Role |
 |-------|------|
-| `bob` | Bob — Lovable agent / coin business operator. Knows the codebase, the scanner, the extension, and the customers. |
+| `bob` | Bob — GM of lkup.info and coin business. Owns the product, the pipeline, the scanner, the extension, and the P&L. Responds as the insider who has to ship whatever gets decided. |
 
 ## How It Works
 
