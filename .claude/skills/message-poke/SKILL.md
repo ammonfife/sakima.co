@@ -20,7 +20,7 @@ Reads POKE_API_KEY from Turso secrets automatically.
 ### Path 2: BIGMAC MCP tool (any surface with MCP access)
 Call the `send_poke_message` tool on the BIGMAC MCP server:
 ```
-POST https://bigmac-mcp-server.onrender.com/mcp
+POST https://ammonfife-bigmac-mcp-server.hf.space/mcp
 Authorization: Bearer <your-scoped-token>
 {
   "jsonrpc": "2.0", "id": 1, "method": "tools/call",

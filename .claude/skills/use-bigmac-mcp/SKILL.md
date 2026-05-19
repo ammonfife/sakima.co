@@ -7,7 +7,7 @@ description: Use the BigMac MCP server for shared knowledge, todos, coordination
 
 **What this is:** Access to the BIGMAC MCP server via `mcp__bigmac__*` tools — the central nervous system for all BIGMAC agents. 22 tools for reading/writing shared knowledge (facts, policies, assumptions, opinions), managing todos, messaging other agents or Ben, searching the knowledge base, and autonomous task execution.
 
-**Server:** `https://bigmac-mcp-server.onrender.com/mcp`
+**Server:** `https://ammonfife-bigmac-mcp-server.hf.space/mcp`
 **Auth:** Claude Code token (retrieved from `bigmac-secrets` vault)
 **Database:** `libsql://bigmac-ammonfife.aws-us-west-2.turso.io`
 **Bridge:** HTTP-to-stdio via `~/bin/bigmac-mcp-wrapper.sh` + `~/clawd/scripts/mcp-http-bridge.mjs`
