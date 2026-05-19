@@ -12,8 +12,18 @@ Three agents each have a distinct iMessage/SMS number. Route messages to the rig
 | Target | Number | Role | When to use |
 |--------|--------|------|-------------|
 | **poke** | +16504336288 | Primary BIGMAC iMessage bridge — GM of lkup.info + coin business | Task completion, urgent alerts to Ben, coin business ops, most general BIGMAC updates |
-| **mog** | +16502488932 | lkup.info + BIGMAC field executor (cloud agent, gptagency.ai) | lkup.info work handoffs, enrichment pipeline updates, cloud task results |
-| **M** | +16502835397 | Main orchestrator (same persona as BIGMAC M / the "big mac") | High-level coordination, cross-project orchestration, BIGMAC-wide status |
+| **mog** | +16502488932 | lkup.info + BIGMAC field executor (cloud, gptagency.ai) | lkup.info work handoffs, enrichment pipeline updates, cloud task results |
+| **M** | +16502835397 | Main orchestrator — same persona as BigMac M | High-level coordination, cross-project orchestration, BIGMAC-wide status |
+
+**Email addresses:**
+- poke: `poke@gptagency.ai`
+- mog: `mog@gptagency.ai` / `mog.poke@gptagency.ai`
+- M: `m@gptagency.ai` / `m.poke@gptagency.ai`
+
+**MCP tokens (Turso secrets):**
+- poke: `mcp_token_poke_main` (admin)
+- mog: `mcp_token_poke_mog` (limited)
+- M: `mcp_token_poke_m` (admin)
 
 ---
 
