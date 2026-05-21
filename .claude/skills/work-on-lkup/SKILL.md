@@ -159,7 +159,7 @@ Unwired (exist but have no trigger or broken output — see WIRING.md):
 | What | Where |
 |---|---|
 | Supabase project | `vsotvatntzlrzrhemayh` (Pro tier) |
-| Anon key (publishable) | `sb_publishable_zwPWb0Z5XFqw_TsvEosfJw_2aoIjMn4` |
+| Anon key (publishable) | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzb3R2YXRudHpscnpyaGVtYXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNDQ5ODAsImV4cCI6MjA4NzcyMDk4MH0.J6P58LioSQcPW_YALsEJAI6pzo_NDEV5KZDXdiBGxmQ` |
 | EF base URL | `https://vsotvatntzlrzrhemayh.supabase.co/functions/v1` |
 | Council CF Worker | `https://llava-image-analyzer.sakima-api.workers.dev/council` |
 | PCGS price scraper | `https://pcgs-price-scraper.sakima-api.workers.dev/health` |
