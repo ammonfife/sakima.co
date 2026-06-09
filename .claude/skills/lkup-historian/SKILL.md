@@ -82,6 +82,22 @@ The `$ARGUMENTS` (if numeric) is `windowHours`. Compute `cutoff = now - windowHo
 >   disabled to silence an error; **an agent-written "Ben said/Ben directive" that does not match
 >   Ben's actual words in history.jsonl** (Ben-intent-preempts — verify against the distill/history);
 >   a "root cause" asserted without a real row shown.
+> - **Autonomy violations (Ben 2026-06-09):** `false-gate` — work called "gated / blocked / needs Ben
+>   / Hard Stop / can't" when it is actually reversible (or makeable-reversible via an archive-first
+>   backup) and therefore executable. **Genuine gates are ~1/10,000 todos** — the default is NOT
+>   gated; a destructive DROP/migration with an archive-first backup is reversible → not a gate. The
+>   only true hard-stops are the narrow AGENTS.md list (real-money, SENDING external comms,
+>   public-publish, permanent destruction WITHOUT recovery, gateway/global-config consensus, own-memory
+>   mass-delete). "blocked" is OK only when quoting an external system's literal response. Also flag
+>   `deferred-action-no-plan` — a "we should / next we'd / this needs" identified in-session but left
+>   as prose with NO filed, self-assigned, next-action-bearing todo behind it (the work evaporates).
+>   And flag any todo whose text uses gated/blocked/needs-Ben as a terminal status instead of a
+>   self-assigned next action + reversibility note. Also flag `needs-ben-copout` — any "Ben must /
+>   only Ben can / human required / manual step" where the agent HAD a path (E2B, CF Worker, vault
+>   cookies, web/browser automation, **direct mouse+keyboard control of the Mac incl granting itself
+>   FDA/Accessibility via System Settings**, or writing new code). "needs Ben" is almost always false;
+>   the only true Ben-stops are the narrow AGENTS.md list (real-money, SENDING external comms,
+>   public-publish, permanent destruction w/o recovery, gateway consensus, own-memory delete).
 > - **Over-correction** (the inverse): a CORRECT pattern wrongly flagged/neutralized (e.g. killing a
 >   grader:id or breadcrumb as if it were a banned slug; deactivating a live fact like #841/#925
 >   synthetic-bucket model).

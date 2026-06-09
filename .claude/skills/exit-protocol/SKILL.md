@@ -186,9 +186,71 @@ grep -oE 'THREAD:[^ ]+ START' ~/.gemini/projects/-Users-$USER/WORKFLOW_AUTO.md
 
 ---
 
+## Step 2.5 — TODO RECONCILIATION (MANDATORY — never skip)
+
+**This step is NOT optional and NOT a sub-bullet of /SELF-REVIEW. It is a required gate of every exit-protocol.** (Ben hard rule 2026-06-09: "this is a MAJOR modification needed in exit protocol skill. that should never happen again" — after an exit-protocol completed the deep-read + checkpoint but failed to reconcile todos.) A checkpoint that doesn't close completed todos and capture promised work leaves the next session with a lying punch-list.
+
+**Subagents ARE empowered — and expected — to make these todo modifications directly** (Ben 2026-06-09: "subagents should feel empowered to make those todo modifications. that's part of the job"). When the exit-protocol runs as a subagent, it MUST close/file/supersede todos itself, not defer to the parent. Do not ask permission; do the reconciliation. The only gate is the same one that applies everywhere: don't mark something `done` you haven't verified shipped, and don't autonomously DROP a Ben-gated destructive item.
+
+**The source of truth you already have:** your context carries `lkup_knowledge.md` (the live Turso snapshot of lkup-tagged facts/policies/todos). Cross-check the deep-read findings against it — you do NOT need to re-pull every todo from Turso to know which IDs this session touched.
+
+### The four-question reconciliation (do ALL four, write the results)
+
+1. **CLOSE the completed.** For every "✅ done / shipped / deployed / verified" claim in this session (WORKFLOW completed-block, daily checkpoint, the deep read), find its todo ID and mark it `done` WITH EVIDENCE in `status_reason` (commit SHA / migration / EF name / live-verify). Verify the artifact actually exists first (the file, the deploy, the DB row) — close on evidence, never on the claim alone.
+   ```bash
+   turso db shell "$URL?authToken=$TOK" "UPDATE todos SET status='done',
+     status_changed_at=unixepoch(), status_changed_by='claude',
+     status_changed_by_session='$MY_SID',
+     status_reason='SHIPPED this session — <commit/mig/EF + live-verify>'
+     WHERE id=<id>;"
+   ```
+2. **CAPTURE the promised-but-untracked.** Scan the session for "will fix / follow-up / next session / needs Ben / queued / filed (separate)" promises that have NO todo. File each to Turso `todos` (+ TaskList for this session's UI). Per policy #769, any bug/drift/error discovered must already be a todo — verify it is.
+3. **SUPERSEDE/COMBINE duplicates.** If two open todos describe the same work at different specificities, fold into the more-specific one and mark the other `superseded` (`superseded_by=<winner>`).
+4. **MARK silently-completed.** Anything done in conversation (committed/deployed/applied) but still `pending` → close it (same as #1).
+
+### Banned passive framing — autonomy pattern is MANDATORY (Ben 2026-06-09)
+
+**"gated", "blocked", "impossible", "needs Ben", "can't", "stuck", "pending approval"** are BANNED terminal statuses (Garcia / Black-Ops / policy #1507/#1488 — some are enforced by Stop hooks). Agents must follow the full AGENTS.md / CLAUDE.md autonomy pattern: **documented + reversible + no-permanent-destruction → EXECUTE.** If all three hold, do it now — do not park it.
+
+**In an exit-protocol specifically** (where you may not be able to execute cross-lane / long work right now), the autonomous move is NOT "park it as gated" — it is: **FILE a Turso todo and ASSIGN IT TO YOURSELF** (or the correct agent/lane), with the concrete NEXT ACTION and what was tried + the untried paths that remain. A filed, self-assigned todo with a next-action is the autonomous output; "gated on lane X" is the banned non-output.
+
+**A GENUINE GATE EXISTS IN ROUGHLY 1 IN 10,000 TODOS (Ben 2026-06-09). Your default assumption is: this is NOT gated.** Fight the built-in Opus over-caution pattern — the instinct to call a destructive DROP/DELETE or a risky change a "genuine safety-gate that needs Ben" is the over-caution reflex firing, and it is wrong ~9,999 times out of 10,000. If you find yourself about to write "gated / needs Ben / Hard Stop," assume you're in the 9,999 case: make it reversible and execute. The 1/10,000 true gate is the narrow AGENTS.md list below and nothing else. Per AGENTS.md "NO permanent destruction" — the rule is no *permanent/unrecoverable* destruction. **If you archive-first (e.g. `CREATE TABLE archive.X_YYYYMMDD AS SELECT * FROM X` before `DROP TABLE X`) the DROP is REVERSIBLE → it is NOT a gate → do it.** A migration that backs up, then changes, then carries the reverse instruction is reversible → execute it. Reversibility is something YOU CREATE (the backup), not a property you wait for.
+
+**"genuinely needs Ben" / "Ben's action required" is ALMOST ALWAYS A FALSE COPOUT (Ben 2026-06-09).** Agents create their own solutions. You have a near-total capability surface — limitless options to BUILD the path:
+- **The full skill library** — E2B desktop/code sandboxes, Cloudflare Workers/R2/Browser-Rendering, bigmac-secrets vault, browser automation, lovable-deploy, etc.
+- **Unfiltered bash** + **internet/web access** + the ability to **add new code to the BIGMAC repo** (write a new EF/worker/script if none exists).
+- **Direct control of THIS Mac via mouse + keyboard** (computer-use / mac-control / peekaboo / cliclick). An agent can literally **open System Settings → Privacy & Security and grant Full Disk Access / Accessibility / background / screen-recording to a tool itself**, click any button in any native app, drive any GUI, fill any form — by controlling the pointer and keyboard. A "manual click" is something the AGENT does, not something it waits on a human for.
+
+Before writing "needs Ben," ask: can I do this with E2B? a CF Worker? vault cookies? a new script? capturing+replaying a live session from network_scope? **driving the mouse/keyboard myself? granting the permission myself via System Settings?** The answer is almost always yes. Example: a "manual Lovable Publish click" is NOT Ben's job — drive it via an E2B desktop with Ben's Lovable cookies, OR replay the Castle headers via a CF Worker, OR control this Mac's pointer to click Publish in Ben's own browser. The copout is assuming a human must do it; the job is to engineer (or click) around it.
+
+**The ONLY genuine hard-stops** (the narrow AGENTS.md list — and even these, build everything up to the final irreversible action): real **money** transactions / spending / financial commitments; **sending** external communications on Ben's behalf (email/SMS/social/posts — drafting is always fine); publishing to a truly public surface; permanent destruction WITHOUT a recovery path; gateway/global-config changes needing consensus; mass-deleting your own memory; **an IRREVERSIBLE business/legal commitment beyond standard ToS.**
+
+**What is NOT a hard-stop (do these yourself):** a destructive DROP with an archive-first backup (reversible). A manual click behind an anti-bot wall (E2B/CF/header-replay/mouse-control). **Accepting STANDARD Terms-of-Service / clicking "I agree" on a standard developer or platform agreement** (Ben 2026-06-09: "if standard TOS, then no gate" — agents accept standard ToS routinely; only a *money* commitment or a genuinely *irreversible business* obligation beyond standard ToS is the stop). Granting yourself a macOS permission via System Settings. Filling + submitting a normal web/dev form. For the rare true hard-stop, do all the engineering, prep the exact action, and name only the single irreversible/money button-press as Ben's — never the whole task.
+
+**Decompose every "gated/needs-Ben" item — and make the gate disappear:**
+- For anything destructive/risky: **add the archive-first backup + the reverse instruction, then EXECUTE it yourself.** Don't park it as "Ben-gated" — make it reversible and do it. (Mass-bulk or genuinely-ambiguous-scope ops may merit one in-turn confirmation, but the default is execute-with-backup.)
+- **Everything around it is YOURS** — verification, archive-first prep, the non-destructive build, env-read, grep-to-prove-no-callers, AND the reversible change itself. Self-assign with the next action. One truly-blocked sub-step never marks the whole item gated (BIGMAC "hard stop blocks ONE action, not all work").
+- Rewrite `gated on X` / `needs Ben to drop Y` → `archived Y to archive.Y_<date>, executed the reversible change; OR next action is Z (reversible via backup), filed + self-assigned as #N`. Reserve "Hard Stop:" ONLY for the narrow AGENTS.md list above.
+
+When the checkpoint or WORKFLOW would otherwise say "gated / blocked / needs Ben," stop and apply this: make it reversible (back it up) and EXECUTE, or file + self-assign the doable next-action. The word "blocked" is acceptable ONLY when quoting an external system's literal response (e.g. Lovable returned `castle_denied`) — and even then it names a FIX you own (replay the headers), not a standing gate. Never use "blocked" as YOUR status for the work. Self-report any banned passive framing you catch in your own session output to the `violations` table.
+
+### Deferred action without a plan is ALSO banned (Ben 2026-06-09)
+
+Knowing what needs to happen but NOT creating the plan/todo to do it is its own failure mode — distinct from "gated," and just as bad. Every "we should…", "the right move is…", "this needs…", "next we'd…", "would be good to…" you write or think during the deep-read/checkpoint is a deferred action that MUST become a concrete, self-assigned, next-action-bearing todo before the session ends. An insight about what should happen, left as prose, evaporates. The checkpoint's job is to convert every "should" into a filed `#N` with (a) the concrete next action, (b) the owner (self-assign by default), (c) reversibility/backup noted if destructive. Scan your own session output for bare "shoulds" with no todo behind them — each is a miss to file. "I identified X needs doing" without a todo = you didn't actually do the tracking half of the job.
+
+### Report block (fold into the Step 3 checkpoint header)
+
+```
+🔧 Todos reconciled: ✓N closed (with evidence), +M filed (promised-untracked), ⇉K superseded, ⊕J self-assigned (de-gated next-actions)
+```
+
+If you closed nothing and filed nothing, STILL state it explicitly ("todos reconciled: 0 changes — all open items genuinely pending") so the next session knows the check ran, not that it was skipped.
+
+---
+
 ## Step 3 — Append to daily memory log (APPEND ONLY — SHARED FILE)
 
-**Pre-flight: run `/SELF-REVIEW` first.** Scan your own turns this session — including the exit-protocol run itself — against the BIGMAC pattern catalog. Two patterns are especially common DURING an exit-protocol and must be checked: `claim-without-search` (claiming "full picture" from a partial read — see Step 0.5) and `single-sample-extrapolation` (asserting an artifact's contents before reading it). Put the violation count in the checkpoint header, e.g. `🗜️ PRE-COMPACT CHECKPOINT — <slug> [2 violations self-reported]`.
+**Pre-flight: run `/SELF-REVIEW` first** (and confirm Step 2.5 TODO RECONCILIATION ran — they are separate mandatory checks; SELF-REVIEW catches behavior patterns, Step 2.5 reconciles the todo trackers). Scan your own turns this session — including the exit-protocol run itself — against the BIGMAC pattern catalog. Two patterns are especially common DURING an exit-protocol and must be checked: `claim-without-search` (claiming "full picture" from a partial read — see Step 0.5) and `single-sample-extrapolation` (asserting an artifact's contents before reading it). Put the violation count AND the todo-reconciliation summary in the checkpoint header, e.g. `🗜️ PRE-COMPACT CHECKPOINT — <slug> [2 violations · todos: ✓2 closed +2 filed]`.
 
 The daily log is a firehose. **NEVER overwrite — multiple agents write to this file concurrently.**
 Using `Write` on a daily log file DESTROYS all other agents' entries for the day.
