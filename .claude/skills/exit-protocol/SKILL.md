@@ -47,6 +47,45 @@ THREAD_SLUG="lkup.info"   # or whatever fits
 
 ---
 
+## Step 0.5 — DEEP-READ CONTRACT (mandatory — do NOT skip, do NOT shortcut)
+
+**This is the single most important step. A checkpoint built on a partial read is worse than no checkpoint — it gives false confidence and lets work fall through the cracks.** (Ben hard rule 2026-06-09, after an exit-protocol run that filtered/tailed instead of reading deep, used "likely" about unread content, and had to be pushed 3× to go deep.)
+
+**The whole point of an exit-protocol is to capture the FULL ARC and catch the MISSES.** A "done/shipped/verified" claim in the punch-list is exactly the kind of thing that's silently wrong; the deep read is how you catch it. Going deep is the job — not an optional nicety, not "if time."
+
+### Read these IN FULL — never a "random tail number"
+
+1. **The current session jsonl, in full** (`~/.claude/projects/<slug>/<session-id>.jsonl`). Extract **both** the user (Ben) messages **and** the assistant text blocks. A `tail -N` is a guess; read the whole window. If the file is huge, page through it (offset windows), but cover **every** turn — do not sample.
+2. **Prior exit-protocols / compacts — go BACK through MULTIPLE.** A single session has usually compacted 2–5×; each compaction summary is lossy. Read backward through the chain (this session's earlier compaction summaries, the prior session jsonls, the last several daily-memory checkpoints, the WORKFLOW thread block's prior `[claude@…]` entries) until you have the **continuous arc**, not just the last fragment. The misses live in the seams between compactions.
+3. **Subagent transcripts** (`/private/tmp/claude-501/<slug>/<session-id>/tasks/*.output`, and any sidechain `*.jsonl` modified in the window). The subagent *results* also surface as `<task-notification>` blocks in the main jsonl — read those — but when a finding is load-bearing, open the subagent's own transcript. Different subagents produce different artifact shapes (conversation jsonl vs. raw command-output dumps); **read the raw bytes to know which** before describing it.
+4. **`~/.claude/history.jsonl` — read a LONG-TERM 2-weeks+ window, not just this session** (user-typed prompts only: `display`/`project`/`sessionId`/`timestamp`; assistant + subagent replies are NOT here, they're in the session jsonls). Filter by `project` to the slug and read **at least the last 2 weeks** of Ben's verbatim prompts across ALL sessions on this thread — this is how you get cross-session context, the evolution of his intent, and the *clearer* (later, more-considered) version of a decision. A single session's prompts are a slice; the 2-week arc is the real intent.
+
+### Intent over time — conflicts are NOT automatic pivots (Ben hard rule 2026-06-09)
+
+A later statement that contradicts an earlier one does **not** automatically mean "the earlier was wrong, pivot." **Ben may have changed his mind** — or he may be mid-thought, testing, or speaking loosely. Before you treat a contradiction as a settled correction:
+- **Look for OTHER supporting context.** Is the new statement repeated, emphatic, verbatim, acted-upon? Or is it a one-off aside? Does the 2-week history show a *trend* toward the new position, or is it an outlier?
+- **Weight by recency AND conviction AND repetition** — not recency alone. A casual recent remark does not override a deliberate, multiply-restated standing rule. A deliberate, multiply-restated recent rule DOES update an old one (that's a real mind-change — honor it).
+- **When the evidence is mixed, capture BOTH positions as the open question** in the checkpoint ("Ben said X on date1, then Y on date2 — unresolved; look for a third data point") rather than silently picking one and acting on it.
+- This is the inverse of "heavy credence to whimsical remarks": don't ignore a real mind-change, but don't manufacture a pivot from a stray line either. The 2-week history + the conviction/repetition signal is how you tell them apart.
+
+### Hard rules for the read
+
+- **NEVER assert what an artifact contains before reading it.** If a parser/filter returns empty, `head -c`/`tail -c` the **raw bytes** first, then describe — never infer from a failed parse.
+- **The word "likely" (and "probably", "presumably", "should be") is a BS hook** — if you're about to write it about session content, you haven't read enough. Go read the actual thing.
+- **Don't filter to snippets when the job is the full picture.** A final-text-only or tail-only extraction is a shortcut that drops the arc. Capture every user prompt verbatim and every substantive assistant/subagent finding in the window.
+- **Catch the misses actively.** As you read, hold each "✅ done / shipped / verified" claim against the live state (git log, DB, the actual file). Flag any that don't hold — those corrections are the highest-value output of the checkpoint. Cascade corrected ground-truth back into the docs the next session reads first (see `/cascade-verified-state`).
+- **Heavy credence to whimsical remarks is a trap.** An off-hand "let's just…" or a one-line aside is NOT a directive to redesign or drop a workstream. Weight a remark by how load-bearing + repeated + verbatim it is. When in doubt, capture it as a noted hint, don't act as if it's a settled decision.
+
+### Enumerate-then-read (do this before writing anything)
+
+State your read-surface up front, then read each item fully before drafting the checkpoint. Only after you've read the full main jsonl (both roles), walked back through the prior compactions/checkpoints for the continuous arc, read the 2-week history.jsonl arc, and opened every load-bearing subagent transcript — proceed to Step 1.
+
+### Optional but recommended on lkup.info: deploy `/lkup-historian`
+
+When the thread slug is `lkup.info` (or any lkup work), the exit-protocol MAY (and usually should) **dispatch `/lkup-historian`** as a background agent (Ben 2026-06-09). It audits recent session activity against the canonical ground-truth (distilled history, memory, `lkup_knowledge.md`, policy #858, the regression-landmine classes) and **flags regressions, landmine attempts, canonical-model violations, agent-asserted false confidence, and drift from Ben's verbatim intent** — exactly the misses the deep read is meant to catch, but cross-checked by an independent agent. It writes findings to Turso (facts/todos/violations), durable + cross-agent. Run it in the background early so its findings land before you finalize the checkpoint; fold any flags into the WORKFLOW thread block + daily checkpoint. It flags + files, it does NOT auto-mutate prod — safe to fire-and-incorporate. Dispatch: `/lkup-historian 12` (default 6h; widen for a long session).
+
+---
+
 ## Step 1 — Durability sweep (move /tmp to durable locations)
 
 Anything the session created in `/tmp/` or `/private/tmp/` that matters must move. `/tmp` is cleared by macOS at boot and by cron hygiene.
@@ -148,6 +187,8 @@ grep -oE 'THREAD:[^ ]+ START' ~/.gemini/projects/-Users-$USER/WORKFLOW_AUTO.md
 ---
 
 ## Step 3 — Append to daily memory log (APPEND ONLY — SHARED FILE)
+
+**Pre-flight: run `/SELF-REVIEW` first.** Scan your own turns this session — including the exit-protocol run itself — against the BIGMAC pattern catalog. Two patterns are especially common DURING an exit-protocol and must be checked: `claim-without-search` (claiming "full picture" from a partial read — see Step 0.5) and `single-sample-extrapolation` (asserting an artifact's contents before reading it). Put the violation count in the checkpoint header, e.g. `🗜️ PRE-COMPACT CHECKPOINT — <slug> [2 violations self-reported]`.
 
 The daily log is a firehose. **NEVER overwrite — multiple agents write to this file concurrently.**
 Using `Write` on a daily log file DESTROYS all other agents' entries for the day.
