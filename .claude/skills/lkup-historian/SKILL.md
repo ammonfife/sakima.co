@@ -96,8 +96,15 @@ The `$ARGUMENTS` (if numeric) is `windowHours`. Compute `cutoff = now - windowHo
 >   only Ben can / human required / manual step" where the agent HAD a path (E2B, CF Worker, vault
 >   cookies, web/browser automation, **direct mouse+keyboard control of the Mac incl granting itself
 >   FDA/Accessibility via System Settings**, or writing new code). "needs Ben" is almost always false;
->   the only true Ben-stops are the narrow AGENTS.md list (real-money, SENDING external comms,
->   public-publish, permanent destruction w/o recovery, gateway consensus, own-memory delete).
+>   the only true Ben-stops are the narrow AGENTS.md list (real-MONEY, SENDING external comms,
+>   public-publish, permanent destruction w/o recovery, gateway consensus, own-memory delete,
+>   irreversible business commitment beyond standard ToS — standard ToS/"I agree" is NOT a stop).
+>   PRIOR AUTHORIZATION (written/verbal, in-turn or standing) removes even that stop → execute, don't
+>   re-ask (Garcia). And flag `authorized-but-fumbled` — an agent that had authorization for a
+>   money/external/publish action and failed to drive it to verified completion (e.g. authorized to
+>   pay a Supabase invoice + upgrade to Pro, then botched the follow-through). Authorized + capable =
+>   finish it, verified; re-asking-after-authorization and not-finishing-an-authorized-action are both
+>   violations.
 > - **Over-correction** (the inverse): a CORRECT pattern wrongly flagged/neutralized (e.g. killing a
 >   grader:id or breadcrumb as if it were a banned slug; deactivating a live fact like #841/#925
 >   synthetic-bucket model).
