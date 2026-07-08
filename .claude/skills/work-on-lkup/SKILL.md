@@ -1,6 +1,6 @@
 ---
 name: work-on-lkup
-description: "Meta-skill for working on lkup.info. Updated 2026-05-16. Extension v1.34.82 + 25+ EFs + 18+ CF Workers. Read NEXT_SESSION.md + docs/integrity/CURRENT_PLAN.md + docs/integrity/WIRING.md before touching anything."
+description: "Meta-skill for working on lkup.info. Refreshed 2026-07-08 against LIVE Supabase + repo (not doc counts). UX-first + live-state-first. 53 ACTIVE Edge Functions, extension v1.34.234, public.cert_pricing is the live pricing relation. Do not trust NEXT_SESSION.md or any embedded count as authority; verify live code/Supabase first, then update stale docs."
 ---
 
 # /work-on-lkup
@@ -17,88 +17,65 @@ bash scripts/verify-wiring.sh        # actual pipeline state in 30 seconds
 ```
 
 Then read in this order:
-1. **`NEXT_SESSION.md`** — operating rules + current punch list + what was shipped last session
-2. **`docs/integrity/CURRENT_PLAN.md` Section 7** — commit drift audit, migration tracker divergence, drift claims
-3. **`docs/integrity/WIRING.md`** — full wiring manifest: WIRED / UNWIRED / BROKEN / DEPRECATED for every EF, CF Worker, and table
 
-**Do NOT run `supabase db push`** until the migration tracker divergence in CURRENT_PLAN.md Section 7 is resolved — 30 migration files are untracked and re-applying them would break the DB.
+1. **Live code + live Supabase first** — inspect the actual page/function path you are touching and run representative `SELECT *` probes. Do not use doc counts as proof.
+2. **`README.md` current-state anchor** — use only when it agrees with live code/schema from this session.
+3. **`docs/integrity/CURRENT_PLAN.md` Section 7** — migration tracker divergence and drift claims; verify before acting.
+4. **`docs/integrity/WIRING.md`** — wiring manifest; verify exact functions/views/triggers before trusting it.
+5. **`docs/integrity/UX_SURFACE_AUDIT_2026-07-07.md`** — useful audit shape, stale where code has changed since.
+6. **`NEXT_SESSION.md`** — historical scratchpad only. Must not drive implementation decisions unless revalidated against live code and live Supabase.
 
-**lkup-plan.json is outdated.** The current authoritative documents are NEXT_SESSION.md and docs/integrity/CURRENT_PLAN.md. The plan JSON exists but has not been maintained since the recovery work began 2026-05-09.
+**Do NOT run `supabase db push`.** Verified 2026-07-08: `supabase/migrations/` has **771 files on disk vs 687 tracked** in `supabase_migrations.schema_migrations` — an 84-migration divergence (the old "30 untracked" figure is stale). Re-applying would break the DB.
+
+**lkup-plan.json and NEXT_SESSION.md are outdated.** The current authority is: visible UX contract → exact current code path → live Supabase schema/data → then docs. Patch docs only after implementation reality has been verified.
 
 ---
 
-## The current working system (updated 2026-05-16)
+## The current working system (verified 2026-07-08 against live Supabase management API + repo)
 
 **Frontend:**
-- React 18 + TypeScript + Vite SPA — deployed via **Lovable.dev**. Git push → Lovable auto-fetches → **Publish button required** → `lkup.info` live. Git push alone does NOT deploy.
-- iOS app: Capacitor wrapper. Same React codebase.
+- React 18 + TypeScript + Vite SPA — deployed via **Lovable.dev**. Git push → Lovable auto-fetches → **Publish required** → `lkup.info` live. Git push alone does NOT deploy. `/lovable-deploy` now uses the programmatic API (JWT auto-renew), E2B Playwright only as fallback.
+- iOS app: Capacitor wrapper, same React codebase.
 
-**Backend — canonical data spine:**
-- **Supabase** Pro tier (`vsotvatntzlrzrhemayh`). Three schemas: `reference.*` (third-party data, service_role only), `raw.*` (append-only firehose), `public.*` (canonical, React-readable).
-- **Branch: `prod` only.** Never `main`. Never feature branches except for CI-required PRs (merge immediately when green).
+**Backend — canonical data spine and read-path rule:**
+- **Supabase** Pro tier (`vsotvatntzlrzrhemayh`). Schemas: `reference.*` (third-party, service_role only), `raw.*` (append-only firehose), `public.*` (canonical, React-readable), plus `quarantine.*` and `stg_prod.*` (staging/quarantine surfaces — e.g. `quarantine.certs`, `stg_prod.auction_comps`, `stg_prod.grader_data` — NOT product reads).
+- **Canonical backbone:** `public.spine` (exploded backbone authority), `public.coins` (canonical coin layer), `public.certs` (canonical cert layer). All three are BASE TABLES (verified).
+- **Verified live relation facts (2026-07-08):** `public.cert_pricing` = BASE TABLE, the live pricing relation. `public.pricing_consensus` does **not exist** as a relation. `public.flat_certs` = VIEW (derived cert-facing read). `public.coin_current` = compatibility VIEW only, not the product contract.
+- **No fallback-as-design:** if production writes a field to `spine`/`coins`/`certs`/`cert_pricing`, the user-facing read must come from that source. Derived views are temporary projections only.
+- **Current read-path reality (measured):** `src/pages/Coin.tsx` still carries ~46 `flat_certs` references vs 1 `spine` read — the flat_certs fast-path is a migration gap, not success. `Coins.tsx` reads `spine` (4 refs); keep family/breadcrumb UX spine-driven, never rebuilt from tier tables or `coins.series`.
+- **Branch: `prod` only.** Never `main`. No feature branches except CI-required PRs (merge immediately when green).
 
-**Edge Functions** — two directories, both canonical:
-- `functions/` — primary, 25+ functions
-- `supabase/functions/` — some duplicated here for Supabase CLI deploy path
+**Edge Functions — verified deployed state (2026-07-08):**
+- **53 ACTIVE deployed** (Supabase management API is the truth, not dir counts).
+- Source split across TWO dirs — `functions/` (47 dirs) + `supabase/functions/` (49 dirs); drift is known. Deploy via CLI: `supabase functions deploy <name> --no-verify-jwt`.
+- Hot paths: `scan` (v490 — canonical `/scan` entry), `enqueue-enrichment` (v178 — fan-out enrichment), `price-guide`, `backfill-comps`.
+- Newer (June–July 2026): `stripe-checkout` + `stripe-webhook` (payments), `grade-tower-read`, `marketplace-obs-ingest`, `coin-catalog-enrich`(-ngc), `greysheet/ngc/pcgs-catalog-discovery`, `barcode-detect`, `comps-enrich-ebay`, `comps-rematch`, `greysheet-advanced-repull`.
+- For anything beyond these anchors, `docs/integrity/WIRING.md` + `bash scripts/verify-wiring.sh` are the authority — never hardcoded bullets here.
 
-Key functions (verified working as of 2026-05-16):
-- `scan` — THE canonical barcode entry. Fires 3 enrichment methods in parallel per grader.
-- `enqueue-enrichment` — fire-and-forget enrichment. Uses `upsert_pricing_consensus()` RPC.
-- `price-guide` — eBay sold comp lookup.
-- `pcgs-grade-tower` — fetches price+pop for all 30 Sheldon grades via PCGS API.
-- `talking-points` — AI auction pitch.
-- `ingest-scope` — writes extension network captures to `raw.network_scope`.
-- `backfill-comps` — writes to `reference.market_comps` (2,821 pre-aggregated comp rows).
-- `coin-id-hygiene` — runs every 10 min via pg_cron → `coin_id_review_queue`.
-- `mirror-image` / `generate-video` / `coin-action` / `learn-selectors` / `listing-draft` / `ebay-publish`
-
-Unwired (exist but have no trigger or broken output — see WIRING.md):
-- `parse-page-captures` (no pg_cron trigger), `ebay-sold-webhook` (no caller), `legacy-qr-redirect` (not deployed), `lot-scan` (orphan), `whatnot-sale-ingest` (12 callers, 0 output rows)
-
-**Cloudflare Workers** (18+ workers):
-- `e2b-pool-lb` — E2B pool load balancer. **Build failing since 2026-05-09** — fix before next prod push.
-- `gongbo-scraper`, `ngc-scraper`, `icg-scraper`, `cac-scraper`, `anacs-scraper`, `segs-scraper` (explicitly skipped at scan:3762 — bug)
-- `greysheet-scraper`, `google-shopping-scraper`, `whatnot-comp-scraper`
-- `coin-vision` — CF Workers AI vision (writes no DB rows — wiring broken)
-- `llava-image-analyzer` — hosts main.js (LLaVA), multitest.js (7-model), **council.js** (pricing council at `/council` — wired 2026-05-16)
-- `pcgs-api-proxy` — PCGS API token proxy
-- `pcgs-price-scraper` — bulk price scraper via Browser Rendering (`/health` confirmed live, `/fetch-page` not yet fully wired)
-- `dealer-scrape-scheduler` (cron → `scrape-whatnot-dealer` EF)
-- `spot-price-worker` (cron → `spot_price_history`)
+**Execution framing:**
+- Start from the visible user experience, not table theory.
+- Anchor on actual surfaces: homepage promise, `/scan`, `/coin`, `/coins`, `collections`, `inventory`.
+- Never use counts as proof. Use live representative rows, exact page code paths, exact queries, exact trigger/function definitions, exact visible fields.
+- Distinguish current state from desired state. A wired compatibility layer is not success if it underserves the UX contract.
 
 **Deprecated — never use these patterns:**
-- **nightly-enrichment CF Worker** — DEPRECATED. No wrangler.toml, never deployed, cron-based enrichment is the rejected pattern.
-- **Any pg_cron enrichment** — all enrichment must be trigger-based at scan time or button-initiated.
+- **nightly-enrichment CF Worker / any pg_cron enrichment** — rejected pattern. All enrichment is trigger-based at scan time or user-initiated.
 - **`api-python/` (Cloud Run)** — sunset. Never add code here.
-- **Any Google Cloud dependency** — migrating away from GCP entirely.
+- **Any Google Cloud dependency** — migrating off GCP entirely.
 
-**New data tables (2026-05-16):**
-- `public.marketplace_listing_events` — 103,650 events from 3 merged sources (eBay, Whatnot, legacy comps)
-- `public.lkup_attribute_source_map` — 48 designation bridge rows (PL/DMPL/CAM/DCAM/FS/FB/FBL across all graders)
-- `public.marketplace_listing_current` — view over events
-
-**Pricing pipeline:**
-- `reference.pcgs_price_guide` — 294 rows only (all desig=NULL, pre-migration 30). Fill via lkup_helper "Crawl All PCGS Prices" button in Admin tab. Target ~179K rows from PriceChangesItemsJson.
-- `reference.market_comps` — 2,821 pre-aggregated comp rows (coin_type/grade/source/median/count). **Not yet queried by council.js — add this.**
-- `public.ebay_listing_xref` — 49,009 sold comps. 43.6% have coin_id. 715 rows have slug-format coin_id (preserved in `coin_id_original` — do not use coin_slug to re-resolve).
-- `public.bucket_pricing` — 2,172 rows, 377 with ebay_median (17.4%). `consensus_price` populated on all rows.
-- `public.pricing_consensus` — 4,944 rows. `raw_ebay_comps` column = 0 populated (council queries ebay_listing_xref directly — this column is unused).
-
-**Council endpoint (live 2026-05-16):**
-- `POST https://llava-image-analyzer.sakima-api.workers.dev/council`
-- Queries: ebay_listing_xref, pcgs_top_vams, pcgs_coin_facts, pcgs_price_guide, pcgs_population, feature_multipliers, bucket_pricing, platform_fees
-- **Known issue:** returns hallucinated prices when evidence is empty (Llama 3.1 8B on CF Workers AI). Add data sufficiency gate before calling AI.
+**Current UX-first gaps (verified 2026-07-08; keep rechecking live):**
+- `/coin` reads `public.spine` for family/breadcrumb context but slab body fields remain flat_certs-projection-led (46 refs measured). Migration gap toward canonical source reads.
+- `/coins` reads `public.spine` for IDs/details; any sibling/family graph rebuilt from tier tables, `coins.series`, or `flat_certs` is a regression risk.
+- `collections` / `inventory` must stream repricing from `public.cert_pricing` (verified live); `pricing_consensus` is dead naming — the relation does not exist.
+- Collection-trigger enrichment parses canonical `grader:cert[:grade]` ids (fixed 2026-07-07); do not reintroduce legacy `SERVICE-cert` assumptions.
 
 **Extension:**
-- Current version: **v1.34.82** (lkup_helper). MV3, Chrome. Load unpacked from `extension/lkup_helper/`.
-- Admin tab has "Crawl All PCGS Prices" button — fires PriceChangesItemsJson paginator across all 9 periods × 2 directions × us+world.
-- **grader_data_current view** wired in: scan, price-guide, mirror-image, generate-video. NOT YET wired in: enqueue-enrichment, talking-points, listing-draft, coin-action.
+- `extension/lkup_helper/` — active surface, **v1.34.234** (verified in manifest). Audit as part of end-to-end behavior.
 
-**PCGS data pipeline:**
-- `reference.pcgs_coin_facts` — 17,439 rows. 91% have denomination, 93% have year. parent_pcgs_number: 10,798 filled.
-- `raw.pcgs_extraction_staging` — 15,940 rows. 325 unpromoted (url_param type not handled by promote function).
-- Triggers: `pcgs_extract_on_scope` (fires on raw.network_scope INSERT) + `pcgs_extract_on_capture` (fires on raw.page_captures INSERT).
-- PCGS Coin Numbers CSV imported 2026-05-16 — adds pcgs_base_number, full_designation, pcgs_section to pcgs_coin_facts.
+**Verification discipline:**
+- When a doc says something is wired, verify the exact page/EF/trigger/query against live code and live relations.
+- Prefer `SELECT *` on representative rows and exact function/view definitions over aggregate counts.
+- The main question is always: does the user-visible page get the linked cert/coin/sibling/pricing/ownership/breadcrumb data the product promises?
 
 ---
 
@@ -110,47 +87,48 @@ Unwired (exist but have no trigger or broken output — see WIRING.md):
 | Port Python → TypeScript | `/lift-module` |
 | Verify ported module | `/audit-parity` |
 | Fix broken TODO stubs | `/fix-stubs` |
-| Push frontend deploy | `/lovable-deploy` |
+| Push frontend deploy | `/lovable-deploy` (API-based; E2B fallback) |
 | Build knowledge graph | `/graphify` |
 
 ---
 
-## HARD DO-NOTs (updated 2026-05-16)
+## HARD DO-NOTs
 
-1. **NEVER run `supabase db push`** until migration tracker divergence is resolved (see CURRENT_PLAN.md Section 7 — 30 files untracked).
+1. **NEVER run `supabase db push`** — 771 on-disk vs 687 tracked migrations (84 divergence, verified 2026-07-08).
 2. **NEVER disable features to silence errors.** Fix root cause. No --no-verify, no stubs, no disconnecting CI.
 3. **NEVER delete without explicit permission.** Migrate, deprecate, rename only. Append-only for raw.* tables.
 4. **NEVER write synthetic data to production** to satisfy a screenshot.
-5. **NEVER use slug-format values as coin_id** (e.g. `american-silver-eagle`, `morgan-dollar`). coin_id must be pcgs:N, ngc:N, or a proper UUID. Violates Rule 2 in CURRENT_PLAN.md.
-6. **NEVER NULL existing data** without first preserving it in a new column (add column, copy, then update). Data is never deleted or zeroed without preservation.
-7. **`desktop/unified/interfaces/gui/desktop_scanner.py` is REQUIRED PRODUCTION (~19.8K lines).** It is the Mac dealer-station with USB/BT scanner, multi-camera OpenCV, CTP800BD printer, offline SQLite, cert-scraper bridge `:5556` — none replaceable by the web app. It is NOT fully functional today (PR #82: 411 hidden ruff findings — unimplemented AI calls, missing state-machine transitions, 11 silent-except blocks). Editing is required to reach functional. Mark deprecated methods `# DEPRECATED <date>: <reason>` and comment them out; flag unimplemented stubs `# TODO(unimplemented): <what's missing>`. Test live hardware paths after changes. `src/pages/Desktop.tsx` is an online-only thin web client (remote-access UI), NOT a replacement — the two coexist.
-8. **NEVER add new code to `api-python/`** (Cloud Run, being sunset).
+5. **NEVER use slug-format values as coin_id** (e.g. `american-silver-eagle`). coin_id must be pcgs:N, ngc:N, or a proper UUID.
+6. **NEVER NULL existing data** without preserving it first (add column, copy, then update).
+7. **`desktop/unified/interfaces/gui/desktop_scanner.py` is REQUIRED PRODUCTION (~19.8K lines).** Mac dealer-station: USB/BT scanner, multi-cam OpenCV, CTP800BD printer, offline SQLite, cert-scraper bridge `:5556`. NOT fully functional (PR #82: 411 hidden ruff findings). Editing is required: mark `# DEPRECATED <date>: <reason>`, flag `# TODO(unimplemented): ...`, test live hardware after changes. `src/pages/Desktop.tsx` is a thin online-only web client, NOT a replacement.
+8. **NEVER add new code to `api-python/`.**
 9. **NEVER add Google Cloud dependencies.**
 10. **NEVER modify `src/components/ui/*`** (shadcn primitives).
 11. **NEVER UPDATE or DELETE rows in `raw.*` tables** (append-only).
-12. **NEVER use nightly-enrichment or any cron-based enrichment pattern.** All enrichment = trigger-based or user-initiated.
-13. **NEVER call `Sandbox.create()` directly.** Always claim from `e2b-pool-lb.sakima-api.workers.dev/pool/`.
-14. **NEVER mark anything completed without verifying actual DB row count or live endpoint response.** HTTP 200 ≠ working. Screenshots only prove UI; always also verify the underlying data.
-15. **NEVER use `coin_slug` column as a proxy for `coin_id`** — they are different fields with different meanings.
+12. **NEVER use cron-based enrichment.** Trigger-based or user-initiated only.
+13. **NEVER call `Sandbox.create()` directly.** Claim from `e2b-pool-lb.sakima-api.workers.dev/pool/`.
+14. **NEVER mark anything completed without verifying actual DB rows or live endpoint response.** HTTP 200 ≠ working. Screenshots prove UI only; also verify underlying data.
+15. **NEVER use `coin_slug` as a proxy for `coin_id`** — different fields, different meanings.
 
 ---
 
-## Critical pitfalls (still valid from prior sessions)
+## Critical pitfalls (renumbered, all re-checked or durable)
 
-26. **Edge Functions writing to `raw.*` MUST use `SUPABASE_SERVICE_ROLE_KEY`** — NOT anon key. RLS + GRANT INSERT on raw schemas still returns `permission denied`. Service role bypasses PostgREST's permission stack on non-public schemas.
-27. **PCGS public API has 10K/day quota** — falls back to CFBR + `browser_auth:pcgs.com` cookies (cf_clearance valid ~257 days from 2026-05-14).
-28. **NGC direct fetch needs hyphenated cert + `www.` subdomain** — `ngccoin.uk/certlookup/{XXXXXXX-NNN}/63/` (www + hyphen at position 7 for 10-digit certs). Apex + no hyphen returns 0 bytes.
-29. **`reference.*` schema NOT exposed via PostgREST** — only public/raw/graphql_public. Reference tables only via service_role inside EFs.
-30. **Lovable deploys are manual** — git push ≠ deploy. Must click Publish OR run `/lovable-deploy`.
-31. **Supabase gateway requires auth header even for `no-verify-jwt` functions** — `apikey: <anon>` + `Authorization: Bearer <anon>` required. Without it → 401.
-32. **Talking-points cache has no version column** — every prompt change requires manual DELETE from `talking_points_cache`.
-33. **Direct `Sandbox.create()` = E2B cost leak** — 2026-04-06 incident cost $1,949. Pool-lb only.
-34. **Supabase EF deploys use CLI, not git** — `supabase functions deploy <name> --no-verify-jwt`.
-35. **`grader_data_current` view still not wired in enqueue-enrichment, talking-points, listing-draft, coin-action** — those 4 EFs still query raw `grader_data` table directly.
-36. **Council.js returns hallucinated prices when evidence is empty** — Llama 3.1 8B makes up numbers. Add data sufficiency gate: if cert_comps=0 AND bucket_comps=0 AND pcgs_guide=0, return `{"error":"insufficient_data"}` instead of calling AI.
-37. **`reference.market_comps` (2,821 rows) not queried by council** — pre-aggregated comp data exists but unused. Add it.
-38. **PriceChangesItemsJson is paginated** — 500 rows/page, recordsTotal can be 179K+. The crawl button handles this; the CF Worker `/fetch-page` endpoint is not yet wired to an orchestrator.
-39. **Python urllib gets 403 from R2 and PCGS API** — Cloudflare bot detection blocks Python user agents. Set `User-Agent: Mozilla/5.0` explicitly.
+26. **EFs writing to `raw.*` MUST use `SUPABASE_SERVICE_ROLE_KEY`** — anon + RLS/GRANT still returns `permission denied` on non-public schemas.
+27. **PCGS public API: 10K/day quota** — falls back to CFBR + `browser_auth:pcgs.com` cookies.
+28. **NGC direct fetch needs hyphenated cert + `www.` subdomain** — apex + no hyphen returns 0 bytes.
+29. **`reference.*` NOT exposed via PostgREST** — service_role inside EFs only.
+30. **Lovable deploys are manual** — git push ≠ deploy. `/lovable-deploy` uses the programmatic API (JWT auto-renews); verify via `/build-info` SHA.
+31. **Supabase gateway requires auth header even for `no-verify-jwt` functions** — `apikey` + `Authorization: Bearer <anon>` or 401.
+32. **Talking-points cache has no version column** — prompt changes require manual DELETE from `talking_points_cache`.
+33. **Direct `Sandbox.create()` = E2B cost leak** ($1,949 incident 2026-04-06). Pool-lb only.
+34. **EF deploys use CLI, not git** — `supabase functions deploy <name> --no-verify-jwt`.
+35. **`/coin` and `/coins` are not fully spine-native** — Coin.tsx still ~46 flat_certs refs (measured 2026-07-08). Audit visible sections against `public.spine`.
+36. **`pricing_consensus` is dead naming — the relation does not exist** (verified 2026-07-08). Use `public.cert_pricing`.
+37. **`public.coin_current` is a compatibility VIEW only** — not the product contract.
+38. **PriceChangesItemsJson is paginated** — 500 rows/page, recordsTotal 179K+; CF Worker `/fetch-page` not yet orchestrated.
+39. **Python urllib gets 403 from R2/PCGS** — Cloudflare bot detection; set `User-Agent: Mozilla/5.0`.
+40. **This skill exists in TWO places** — `~/.claude/skills/work-on-lkup/` AND `~/.openclaw/skills/work-on-lkup/`. Update BOTH or they drift (they did: disk held the 2026-05-16 version while a 2026-07-08 draft circulated unwritten).
 
 ---
 
@@ -159,14 +137,14 @@ Unwired (exist but have no trigger or broken output — see WIRING.md):
 | What | Where |
 |---|---|
 | Supabase project | `vsotvatntzlrzrhemayh` (Pro tier) |
-| Anon key (publishable) | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzb3R2YXRudHpscnpyaGVtYXloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNDQ5ODAsImV4cCI6MjA4NzcyMDk4MH0.J6P58LioSQcPW_YALsEJAI6pzo_NDEV5KZDXdiBGxmQ` |
 | EF base URL | `https://vsotvatntzlrzrhemayh.supabase.co/functions/v1` |
+| Deployed EF truth | `supabase functions list` / management API (53 ACTIVE as of 2026-07-08) |
 | Council CF Worker | `https://llava-image-analyzer.sakima-api.workers.dev/council` |
 | PCGS price scraper | `https://pcgs-price-scraper.sakima-api.workers.dev/health` |
 | Integration gate | `bash scripts/verify-wiring.sh` (Stop hook) |
 | Wiring manifest | `docs/integrity/WIRING.md` |
 | Drift audit | `docs/integrity/CURRENT_PLAN.md` Section 7 |
-| Session handoff | `NEXT_SESSION.md` |
+| Owner handoff | `PM_PROJECT_OWNER_STATE_2026-07-07.md` |
 | Turso | `libsql://bigmac-ammonfife.aws-us-west-2.turso.io` |
 
 ---
@@ -183,7 +161,7 @@ cd cloudflare/<worker>
 
 # Frontend (via Lovable)
 git push origin prod
-# Then Publish in Lovable UI OR /lovable-deploy
+# Then /lovable-deploy (programmatic API) OR Publish in Lovable UI
 
-# Never: supabase db push (migration tracker divergence — see CURRENT_PLAN.md Section 7)
+# Never: supabase db push (771 on-disk vs 687 tracked migrations)
 ```
