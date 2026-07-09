@@ -39,7 +39,9 @@ print(','.join(\"'\"+c+\"'\" for c in set(recent)) or \"''\")
 
 # Query Supabase for fresh known-good certs per grader
 export PGPASSWORD="$SUPA_PW"
-PGURL="postgresql://postgres.vsotvatntzlrzrhemayh@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require"
+# Transaction pooler (:6543) — short CRUD/SELECT queries, no session features needed.
+# Session mode (:5432) pins a backend per connection and exhausts the pool.
+PGURL="postgresql://postgres.vsotvatntzlrzrhemayh@aws-0-us-west-2.pooler.supabase.com:6543/postgres?sslmode=require"
 
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
