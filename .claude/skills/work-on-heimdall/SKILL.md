@@ -194,3 +194,7 @@ Sub-agents append here as they learn. Use dated sections. Don't delete prior ent
 If you notice a section of this skill is out of date (paths moved, decisions changed, workstreams added), **update it in place and note the change in §8 with a dated entry**. This skill is the durable source of truth; let it evolve.
 
 Last verified: 2026-04-16 (main Claude session).
+
+
+## LOOP-OPS HARD RULE (Ben 2026-07-23) — exit-protocol + Turso-first
+Every scheduled Heimdall loop run MUST end by actually running `/exit-protocol` (the real skill/CLI, not a manual approximation) — it is the only step that flushes the run's knowledge durably; skipping/faking it abandons knowledge and the next run starts blind. Durable findings/decisions/rules go to Turso FIRST (facts + fact tags via `facts add`, todos via `todo add`), then local docs.
