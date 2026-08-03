@@ -553,7 +553,7 @@ async function loadShows() {
         }
       });
       card.innerHTML = `
-        ${show.image ? `<img src="${show.image}" alt="${show.title}" loading="lazy">` : ''}
+        ${show.image ? `<img src="${show.image}" alt="${show.title}" loading="eager" decoding="async">` : ''}
         <div class="show-body">
           <div class="show-date">${isToday ? 'LIVE TODAY &mdash; ' : ''}${dateStr}</div>
           <div class="show-title">${show.title}</div>
@@ -613,7 +613,7 @@ async function loadListings() {
       else if (isBIN) priceLabel += ' (Buy It Now)';
 
       card.innerHTML = `
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" loading="lazy">` : ''}
+        ${item.image ? `<img src="${item.image}" alt="${item.title}" loading="eager" decoding="async">` : ''}
         <div class="listing-info">
           <div class="listing-title">${item.title}</div>
           <div class="listing-price">${priceLabel}</div>
