@@ -6,15 +6,19 @@
   <title>Sakima — Coins, Slabs & Collectibles</title>
   <meta name="description" content="Slingin' treasures since dial-up. Live coin auctions on Whatnot, slabs and collectibles on eBay. Shop, watch, or sell to us.">
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RLRSJJ1LW"></script>
+  <!-- Analytics/ads: injected at runtime by assets/lkup-tags.js AFTER the
+       consent + EEA check. Do NOT hardcode gtag/fbq here — the published
+       Privacy Policy (Part B1) promises EEA/UK visitors that no analytics
+       or advertising tag LOADS for them, and a static tag breaks that. -->
+  <script src="/assets/lkup-tags.js" defer></script>
   <script>
+    // dataLayer + gtag shim only. The page's own gtag('event', ...) calls
+    // (select_content / select_item below) queue here harmlessly and only
+    // reach Google once lkup-tags.js has loaded the tags AND consent is
+    // granted. Do NOT re-add gtag('config', ...) — that is done post-consent
+    // in lkup-tags.js, and doing it here would fire before the gate.
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-0RLRSJJ1LW');
-    gtag('config', 'G-Z5C47SKHDD');
   </script>
 
   <style>
