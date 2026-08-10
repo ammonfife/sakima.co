@@ -1,3 +1,34 @@
+
+
+## ⛔ THE HEIMDALL MATRIX — HARD RULES (Ben 2026-08-09, Turso policies #919-#923)
+
+Full text: `06_scheme_L_2026/phase1/HEIMDALL_MATRIX_RULES.md`. No agent, session, skill,
+loop or subagent may deviate without explicit understanding and signoff from Ben.
+
+**The Heimdall Matrix = `[ TOKENS | POLES ]`** — two physically separate but CONGRUENT
+halves, horizontally unioned at read time (same rows, same order, same dtype, always).
+TOKENS = pure token-based anchors. POLES = synthetic/combined/aggregated anchors; EVERY
+created audience, sub-audience and trait lives there, with the exact same shape contract
+as a pure anchor. Both grow in both directions. Live: N=1,325,049 x Dt=11,000 float32.
+
+1. **ALL API endpoints and ALL demos use the Heimdall Matrix h value.** One score, one
+   read path. No legacy score for any view.
+2. **Steering MAY toggle semantic-only tokens in/out.** That changes WHICH COLUMNS
+   steering consults — never how h is computed. It is the ONLY sanctioned toggle.
+3. **No demo uses any old table; nothing hits DuckDB directly on a read path.** DuckDB is
+   build-time only. Banned on read paths: geo_correlations, -dual, avg4_bytes,
+   blockz908_bytes, vectors.f32 as a score source, ad-hoc duckdb.connect, db.ro/rw/writer
+   for scoring, per-request correlation recompute.
+4. **The matrix is ALWAYS hot-swapped and NEVER down.** Staging dir -> atomic rename ->
+   pointer swap. It incrementally recomputes after EVERY resolution group completes
+   (state 51, DMA, district, country), so it can run as often as we want and is never
+   stale while any one resolution has completed data. Missing data not yet gathered NEVER
+   penalizes a term — one resolution and four resolutions are both at FULL SCALE.
+
+Absence is **NaN, never 0**, at every level. Pearson is **never truncated** to [-1,+1].
+Normalization constants are frozen per cycle, so appending a pole or onboarding a row
+never moves an existing score (verified: max abs delta 0.000e+00).
+
 ---
 name: work-on-heimdall
 description: Onboarding skill for any agent or Claude session picking up work on Ben's Heimdall monetization/productization effort. Run this skill first. Covers the 15-year methodology arc (Cerebro → Heimdall → Scheme L), the private archive monorepo, the proprietary-only IP stance, the center-to-left-of-center targeting constraint, and where each workstream (biz dev, technical archaeology, scheme L development) lives. Sub-agents append their findings to this skill as they learn.
@@ -198,3 +229,22 @@ Last verified: 2026-04-16 (main Claude session).
 
 ## LOOP-OPS HARD RULE (Ben 2026-07-23) — exit-protocol + Turso-first
 Every scheduled Heimdall loop run MUST end by actually running `/exit-protocol` (the real skill/CLI, not a manual approximation) — it is the only step that flushes the run's knowledge durably; skipping/faking it abandons knowledge and the next run starts blind. Durable findings/decisions/rules go to Turso FIRST (facts + fact tags via `facts add`, todos via `todo add`), then local docs.
+
+### HARD RULE 5 — RELEASE GATE (Ben 2026-08-09, Turso policy)
+
+Every major code change MUST run `phase1/_gate_release.py` and pass. It tests, with a
+hard assertion each and a non-zero exit on failure:
+
+1. **speed** across every demo surface (pages, boot APIs, map at every resolution,
+   USA-only vs all countries, audience swap, hexbin vs state/metro/district/county)
+2. **onboarding a full page of text/copy** — a ~100-word page must decompose into far
+   more units than it has words
+3. **adding anchors/poles** — an appended pole must read back indistinguishably from a
+   real anchor, with the TOKENS half untouched
+4. **creating an audience FROM COPY** — prose in, seeds out, map renders
+5. **creating an audience DELIBERATELY FROM SEEDS**
+
+Latency alone is not a gate. A map drawing population, 8.6% of a correlation matrix
+silently stale, and four named-geography modes 502-ing for 6-19 s all shipped past
+timing-only checks. Budgets gate the WARM number; cold measures the page cache, not the
+code. Wider latency sweep lives in `phase1/_bench_demo.py`.
