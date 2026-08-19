@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Verifies against LIVE introspection rather than accepting the doc's claim",
+      "passed": true,
+      "evidence": "Live trigger states (`tgenabled='O'`), live EF version (\"ACTIVE, version 74, deployed 2026-08-15\"), and an actual execution: \"select * from public.drain_comps_fanin(5, 8000); -- processed=5, deferred=0, failed=0 ... Run just now against prod.\""
+    },
+    {
+      "text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)",
+      "passed": true,
+      "evidence": "Names three live paths: trigger `trg_marketplace_obs_to_comps` \u2192 `marketplace_obs_to_comps_trg()`, statement trigger `comps_fanin_drain_trg` \u2192 `fire_comps_fanin_drain()`, and EF `comps-rematch` running `select processed, deferred, failed from public.drain_comps_fanin($batch, $deadline_ms)`, plus `src/pages/Coin.tsx` calling `efPost('comps-rematch', {fanin:true,...})`."
+    },
+    {
+      "text": "Reports the current backlog/queue state with actual numbers and an as-of time",
+      "passed": true,
+      "evidence": "\"as of 2026-08-16 00:27 UTC\" with a full table: total 173,220 / done 67,016 / parked 28,162 / pending 78,042 / attempts>=5 = 0 / oldest enqueue 2026-08-03 20:58 / last drain 2026-08-15 09:25."
+    },
+    {
+      "text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker",
+      "passed": true,
+      "evidence": "\"**Automatic dispatch is intentionally OFF via a kill-switch, not missing.**\" \u2014 quotes the `public.enrichment_flags` row `comps_fanin_drain_enabled = false` with its notes, and \"Both trigger functions read that flag and `return` early when it is false.\""
+    },
+    {
+      "text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics",
+      "passed": true,
+      "evidence": "\"the top-of-report table row (line 249) was never updated. The document contradicts itself\" and identifies `audit/deployed-state-sections.html:320` as \"the grow-only fragment the report regenerates from \u2014 fixing only the HTML will be overwritten\", against its own live counts."
+    },
+    {
+      "text": "Does not overstate: separates what was verified from what remains unverified",
+      "passed": false,
+      "evidence": "It does flag one item as \"Unverified\", but it overstates the verdict: \"**No. Both halves of that claim are false**\" and \"'Queue is filling, not draining' \u2014 false\" is asserted from cumulative completions (67k done) and a 12-hour idle window, while its own table shows 106,204 rows not done against 67,016 done since 2026-08-03. It never measured intake rate, so declaring the filling half FALSE is a conclusion beyond what it verified."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

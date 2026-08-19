@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Censuses by file/lines changed rather than only reading commit subjects",
+      "passed": true,
+      "evidence": "Goes beyond subjects with file-level measures: \"`src/pages/Cert.tsx` is new \u2014 5,173 lines\", \"Roughly 90 migrations across Aug 11\u201313\", \"`audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows\", per-function lag from `audit/artifacts/ef-deploy-status-20260814.tsv`, and named new content scripts. The headline framing is still commit-count based, but real file/line aggregation is present."
+    },
+    {
+      "text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out",
+      "passed": false,
+      "evidence": "Explicitly filters them out in the opening line: \"813 commits on `prod` since Aug 9. 530 of those are `auto: sync` / knowledge-snapshot noise from the hooks \u2014 **the real number is 283**\". The automated commits are labelled noise and excluded from the census."
+    },
+    {
+      "text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)",
+      "passed": true,
+      "evidence": "\"**The asset nobody is reading.** `audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows, exactly 1:1 with `public.spine` ... Companions: `ground_truth_comps.tsv` (1,207 barcode-verified labelled comps) and `facet-match-scorecard.tsv` ... **Built by agents Aug 10\u201314 and auto-committed.**\""
+    },
+    {
+      "text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message",
+      "passed": true,
+      "evidence": "\"I checked the served bundle by content, not by commit. `Dealer-D_rSwTht.js` on lkup.info right now does not contain \\\"Limits are not enforced during alpha\\\" ... and the served `CameraInput-C4oWmWjM.js` contains no `prewarm` marker\" \u2192 concludes live is ~24\u201330h behind."
+    },
+    {
+      "text": "Reports a doc-vs-reality contradiction it found",
+      "passed": true,
+      "evidence": "\"**`audit/LOOP_LEDGER.md` is stale.** CLAUDE.md names it the sole live source of truth for architecture and priorities. It was last modified **Jul 26** \u2014 three weeks ago, and it missed the entire spine-convergence effort.\""
+    },
+    {
+      "text": "Retracts or corrects at least one of its own intermediate conclusions",
+      "passed": false,
+      "evidence": "The corrections are all of external artifacts, not of its own in-session reasoning: \"the note that EF auto-deploy was 'restored 2026-08-05 by killing the symlink farm' was wrong\" (a stored fact), \"todo #12783 blamed...\", and \"This was initially reported as a 69% identity-conflict crisis and **you** disproved it with CoinFacts\". No statement of a conclusion it itself reached mid-audit and then withdrew."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.6667
+  }
+}

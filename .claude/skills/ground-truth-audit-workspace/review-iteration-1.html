@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "ground-truth-audit", "runs": [{"id": "eval-0-with_skill", "prompt": "Our audit page audit/deployed-state.html says: 'public.comps_fanin_queue | work queue | trg_marketplace_obs_to_comps | drain_comps_fanin has no invoker \u2014 queue is filling, not draining'. Is that still true?", "eval_id": 0, "outputs": [{"name": "answer.md", "type": "text", "content": "# Is `drain_comps_fanin has no invoker \u2014 queue is filling, not draining` still true?\n\n**Short answer: half of it. The queue really is filling far faster than it drains, but \"has no invoker\" is wrong \u2014 and it was wrong when it was written. An invoker fired 48 seconds before I took my snapshot.**\n\nAll numbers below are live from `vsotvatntzlrzrhemayh`, **as of 2026-08-16 00:30:55 UTC** unless stated.\n\n---\n\n## Verdict on the two halves of the claim\n\n| Half of the claim | Verdict | Measurement |\n|---|---|---|\n| `drain_comps_fanin` has **no invoker** | **FALSE** | Real call site in `supabase/functions/comps-rematch/index.ts:99`; last successful drain `done_at = 2026-08-16 00:30:07` \u2014 48s before I measured |\n| Queue is **filling, not draining** | **TRUE in effect** | 7 days: **127,026 enqueued vs 33,116 drained** (3.8:1). Last 6h: **40 in / 5 out** |\n\nThe honest restatement: *the fan-in drain has exactly one live invoker, and it is a human pressing a button. Every automatic invoker is disabled \u2014 on purpose.*\n\n---\n\n## Verified findings\n\n### 1. Queue state (full table, not a sample)\n\n| metric | value |\n|---|---|\n| total rows | 173,260 |\n| done | 67,021 |\n| not done | 106,239 |\n| \u2014 of which **parked** (invisible to the drain) | 28,162 |\n| \u2014 of which **drainable** | 78,077 |\n| oldest drainable | 2026-08-11 04:30:36Z (**4.8 days, frozen**) |\n| oldest not-done incl. parked | 2026-08-05 05:22:14Z |\n| last drain | 2026-08-16 00:30:07Z |\n| rows carrying `last_error` | 1,068 |\n\nDaily in/out, last 10 days (`enqueued_at` vs `done_at`):\n\n```\n08-06  in 12,029  out 18,348\n08-07  in 10,145  out 11,170\n08-08  in 12,989  out  4,062\n08-09  in 30,820  out 20,197\n08-10  in  2,886  out  2,056\n08-11  in 26,351  out  4,352\n08-12  in  1,868  out      0\n08-13  in 22,243  out  5,093\n08-14  in 36,531  out  1,061\n08-15  in  6,287  out    352\n```\n\n### 2. Invoker inventory \u2014 they exist, they're just switched off\n\n| Invoker | State | Evidence |\n|---|---|---|\n| EF `comps-rematch` `{fanin:true}` \u2192 `drain_comps_fanin(batch, deadline_ms)` | **LIVE, not flag-gated** | `supabase/functions/comps-rematch/index.ts:99` \u2014 a real call site, `select processed, deferred, failed from public.drain_comps_fanin(...)`. Invoked by the /coin refresh button (`src/pages/Coin.tsx`) |\n| Statement trigger `comps_fanin_drain_trg` on `raw.marketplace_observations` \u2192 `fire_comps_fanin_drain` | **present + enabled, but inert** | `pg_trigger.tgenabled='O'`; body returns early because `enrichment_flags.comps_fanin_drain_enabled = FALSE` |\n| Row trigger `trg_marketplace_obs_to_comps` \u2192 `marketplace_obs_to_comps_trg` | **enqueues always; kick is inert** | Same flag check. This is the *filler*, still fully live |\n| pg_cron 42 `drain-comps-fanin` (`* * * * *`, `SELECT public.drain_comps_fanin(200)`) | **inactive** | `cron.job.active = false`; **0 runs in 7 days** |\n| pg_cron 41 `comps-rematch-drain` | **inactive** | `cron.job.active = false` |\n| `lkup_maintenance_tick` | **deliberately yielded** | Migration `20260806190947` removed the drain block; only a comment remains \u2014 not a call site |\n\n**`enrichment_flags.comps_fanin_drain_enabled = FALSE`, `updated_at = 2026-08-09 02:21:13Z`** \u2014 set ~6 minutes after the migration that wired the drain trigger, and unchanged for 7 days. It gates **only the two trigger paths** (the only two `pg_proc` bodies that read it). The EF path ignores it, which is why rows still complete daily.\n\n### 3. Why it's off \u2014 this is containment, not neglect\n\n- **Flag false since 2026-08-09** to stop a repeat of the pg_net trigger-storm outage (`lkup_knowledge.md`: \"set deliberately 2026-08-09 to prevent a repeat of the 2026-08-11 pg_net trigger-storm outage\").\n- **28,162 rows parked in a 17-minute window, 2026-08-11 04:13:53\u201304:30:02Z** by migration `20260811040000_park_fanin_backlog_human_lane.sql`. Ben, quoted in that migration: *\"we do NOT want those 27k draining right now\"* and *\"i need ALL human lane, and refreshes \u2026 ALL working in human lane.\"* The backlog was parked rather than the lane disabled, so live-scan comps kept working during a show.\n\n**Do not flip the flag as a \"fix.\"** `agents/scheduled/update-state-diagrams/SKILL.md:252` lists four defects to fix first (LIFO starvation, throughput ceiling below intake, no parking path, latent ILIKE identity write), and policy #880 makes the inactive crons deliberate.\n\n### 4. The real defect is starvation, not absence of a drain\n\n`drain_comps_fanin` orders `priority desc, attempts asc, enqueued_at **DESC**` \u2014 newest first. Under sustained backlog the tail is unreachable:\n\n- **72,244 of 78,077 drainable rows (92.5%) are more than 24h old.**\n- `oldest_drainable` has been pinned at **2026-08-11 04:30:36Z** \u2014 the instant the mass-park ended \u2014 for five days. A frozen oldest-unprocessed timestamp is the LIFO-starvation signature.\n\nPer-row cost is ~762ms through the `public.comps` BEFORE-trigger chain (recorded in the `drain_comps_fanin` function comment), and the per-call wall-clock budget was cut 120s \u2192 15s on 2026-08-11, so a call clears roughly 19 rows regardless of `batch=150`.\n\nClassification: **running but starved**, with automatic dispatch disabled. Not \"not dispatched,\" and not \"failing when it runs\" \u2014 the 500/503 statement-timeout failures described in the older audit block are no longer what's happening.\n\n### 5. The audit page already corrects itself \u2014 and the correction is now stale too\n\n`audit/deployed-state.html:545-548` flags this exact line **STALE** as of 2026-08-09, citing \"undone 12,265 \u2192 5,962 while total grew 45,870 \u2192 56,287\" as proof of draining. That proof no longer holds: drainable is now **78,077**.\n\nThe line keeps coming back because it lives in `audit/deployed-state-sections.html:589` \u2014 the grow-only curated file that survives regeneration by design. It is a **frozen artifact rendered inside a page that reads as live**. Fixing the sentence in the generated HTML alone will not stop it reappearing.\n\n### 6. Two numbers that look contradictory but aren't\n\n`agents/scheduled/update-state-diagrams/SKILL.md:252` reports \"101,780 undone \u2026 oldest_undone 2026-08-05.\" I report 78,077 drainable, oldest 2026-08-11. Both are right: **that count includes the 28,162 parked rows; mine excludes them.** Parked rows are filtered out by `drain_comps_fanin` (`and q.parked_at is null`), so they cannot be reached and their age is not a drain-latency signal. Quote both or the reading is wrong.\n\n---\n\n## Unverified\n\n- **Which client fired the 00:30:07Z drain.** The fanin lane runs over `backend_direct`, so it leaves no `net._http_response` row (`net._http_response` is empty for the last 30 minutes). Settled by the `comps-rematch` Edge Function invocation logs for that minute.\n- **`enrichment_chain_state.comps_fanin_drain` shows `last_fired_at = 2026-08-11 07:47:22Z`**, which the current `fire_comps_fanin_drain` body cannot produce with the flag false since 08-09 (the flag check precedes the chain-state update). Either a prior function definition or a manual update wrote it. Settled by reading migrations `20260811033000` / `20260811043000` bodies against the git history of that function.\n- **`parked_at` has no writer.** No `pg_proc` body sets it \u2014 only `drain_comps_fanin` reads it. The 28,162 parks came from ad-hoc SQL. That means the \"park after N attempts\" behaviour the docs assume does not exist in code; 1,068 error rows retry forever.\n\n## Retracted (this session)\n\n- I concluded mid-audit that **\"no live invoker is firing \u2014 last drain was 15h ago\"** based on `max(done_at) = 2026-08-15 09:25:31Z`. Three minutes later the same query returned `2026-08-16 00:30:07Z`. The drain is demand-driven and bursty (hourly buckets: 5, then nothing for 15h, then 103, 249, 236, 35\u2026), so **a single `max(done_at)` reading understates it.** Rate over a window is the right measure; a last-seen timestamp is not.\n\n---\n\n## What I'd change on the page\n\nReplace the flag text at `audit/deployed-state-sections.html:589` (the grow-only source, not the generated HTML) with something that survives:\n\n> `public.comps_fanin_queue` \u2014 drain is **live but manual-only**. `drain_comps_fanin` is invoked solely by `comps-rematch {fanin:true}` (the /coin refresh button); cron 42/41 are inactive per policy #880 and both trigger paths are gated off by `enrichment_flags.comps_fanin_drain_enabled = false` (since 2026-08-09, deliberate containment). Net 7d: 127,026 in / 33,116 out. 78,077 drainable + 28,162 parked; `oldest_drainable` frozen at 2026-08-11 due to LIFO ordering. **Do not re-enable the flag as a fix** \u2014 see the four defects in `agents/scheduled/update-state-diagrams/SKILL.md:252`. *(as-of 2026-08-16)*\n\nAnd give that object-map block an explicit as-of stamp, since it does not regenerate.\n"}], "grading": {"expectations": [{"text": "Verifies against LIVE introspection rather than accepting the doc's claim", "passed": true, "evidence": "\"All numbers below are live from `vsotvatntzlrzrhemayh`, **as of 2026-08-16 00:30:55 UTC**\" \u2014 plus live pg_trigger state (`pg_trigger.tgenabled='O'`), `cron.job.active = false`, `enrichment_flags` row read, and full-table queue counts."}, {"text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)", "passed": true, "evidence": "\"Real call site in `supabase/functions/comps-rematch/index.ts:99`; last successful drain `done_at = 2026-08-16 00:30:07` \u2014 48s before I measured\", and it explicitly rejects the comment-only path: \"`lkup_maintenance_tick` ... only a comment remains \u2014 not a call site\"."}, {"text": "Reports the current backlog/queue state with actual numbers and an as-of time", "passed": true, "evidence": "Full-table table: total 173,260 / done 67,021 / not done 106,239 / parked 28,162 / drainable 78,077 / oldest drainable 2026-08-11 04:30:36Z, plus a 10-day in/out ledger, all stamped \"as of 2026-08-16 00:30:55 UTC\"."}, {"text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker", "passed": true, "evidence": "\"**`enrichment_flags.comps_fanin_drain_enabled = FALSE`, `updated_at = 2026-08-09 02:21:13Z`** ... It gates **only the two trigger paths** (the only two `pg_proc` bodies that read it). The EF path ignores it, which is why rows still complete daily.\""}, {"text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics", "passed": true, "evidence": "Section 5: the line \"lives in `audit/deployed-state-sections.html:589` \u2014 the grow-only curated file that survives regeneration by design. It is a **frozen artifact rendered inside a page that reads as live**\" \u2014 and it shows the page's own 2026-08-09 correction is itself now stale against live drainable=78,077."}, {"text": "Does not overstate: separates what was verified from what remains unverified", "passed": true, "evidence": "Dedicated \"## Unverified\" section listing three open items each with a settle-method (e.g. \"Which client fired the 00:30:07Z drain ... Settled by the `comps-rematch` Edge Function invocation logs\"), and it splits the doc claim into two halves with separate verdicts rather than a blanket true/false."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-0-without_skill", "prompt": "Our audit page audit/deployed-state.html says: 'public.comps_fanin_queue | work queue | trg_marketplace_obs_to_comps | drain_comps_fanin has no invoker \u2014 queue is filling, not draining'. Is that still true?", "eval_id": 0, "outputs": [{"name": "answer.md", "type": "text", "content": "# Is \"drain_comps_fanin has no invoker \u2014 queue is filling, not draining\" still true?\n\n**No. Both halves of that claim are false as of 2026-08-16 00:27 UTC.** It has invokers (three live wiring paths), and the queue is neither filling nor draining right now \u2014 it is *static*, because the drain dispatch is deliberately switched OFF by a kill-switch flag and there has been no marketplace traffic for ~12 hours.\n\nThe report file already knows this, partly: `audit/deployed-state.html` carries a **2026-08-09 addendum that explicitly marks this exact line \"STALE\"** (line ~545), but the top-of-report table row (line 249) was never updated. The document contradicts itself.\n\n---\n\n## 1. \"No invoker\" \u2014 false. There are three live invocation paths.\n\n| # | Path | Live state |\n|---|------|-----------|\n| 1 | `trg_marketplace_obs_to_comps` (AFTER INSERT FOR EACH ROW on `raw.marketplace_observations`) \u2192 `marketplace_obs_to_comps_trg()` \u2014 enqueues the row, then fires a **debounced kick** (3s window for human lane `priority=10`, 15s for bulk) via `net.http_post` \u2192 EF `comps-rematch` `{fanin:true, batch:50}` | trigger enabled (`tgenabled='O'`) |\n| 2 | `comps_fanin_drain_trg` (AFTER INSERT FOR EACH STATEMENT, same table) \u2192 `fire_comps_fanin_drain()` \u2014 90s-debounced backstop via `net.http_post` \u2192 `comps-rematch` `{fanin:true, batch:150}` | trigger enabled; added 2026-08-09 (`20260809021500` / `20260809022113_w1_fanin_drain_trigger.sql`) |\n| 3 | EF **`comps-rematch`** (slug `comps-rematch`, **ACTIVE, version 74**, deployed 2026-08-15) \u2014 its fanin mode runs `select processed, deferred, failed from public.drain_comps_fanin($batch, $deadline_ms)` over `backend_direct`, in a self-limiting multi-pass loop | deployed and current |\n\nAdditional callers: `public.drain_comps_fanin_batch(int)` self-chains through `net.http_post` \u2192 `/rest/v1/rpc/drain_comps_fanin_batch`; `src/pages/Coin.tsx` refresh calls `efPost('comps-rematch', {fanin:true,...})`; `supabase/functions/comp-acquire/index.ts` documents the same chain.\n\nThe old pg_cron job **42 `SELECT public.drain_comps_fanin(200);`** still exists but is `active=false` \u2014 retired on purpose (policy #880, \"no crons, trigger-driven\"). Its absence is *not* the absence of an invoker.\n\n## 2. \"Queue is filling, not draining\" \u2014 false. It has drained ~67k rows.\n\n`public.comps_fanin_queue` right now:\n\n| metric | value |\n|---|---|\n| total rows | 173,220 |\n| **done** (`done_at not null`) | **67,016** |\n| parked (`parked_at not null`) | 28,162 |\n| pending (neither) | 78,042 |\n| pending with attempts \u2265 5 (exhausted) | **0** |\n| pending with attempts = 0 (never tried) | 78,026 |\n| pending on the human lane (`priority \u2265 10`) | 67,735 |\n| oldest enqueue / newest enqueue | 2026-08-03 20:58 / 2026-08-15 12:02 |\n| last successful drain | 2026-08-15 09:25 |\n\nCompletions by day \u2014 this is a lane that has demonstrably drained at scale:\n\n```\n2026-08-06  18,348      2026-08-11   4,352\n2026-08-07  11,170      2026-08-13   5,093\n2026-08-08   4,062      2026-08-14   1,061\n2026-08-09  20,197      2026-08-15     352\n2026-08-10   2,056\n```\n\nThe 28,162 parked rows were parked in a 17-minute window on 2026-08-11 04:13\u201304:30 \u2014 that is the deliberate backlog park (`20260811040000_park_fanin_backlog_human_lane.sql`), not failure.\n\n## 3. Live proof the drain function works today\n\n```sql\nselect * from public.drain_comps_fanin(5, 8000);\n-- processed=5, deferred=0, failed=0\n```\n\nRun just now against prod. The function executes, resolves comps, and marks rows done. Nothing about it is broken or unwired.\n\n## 4. What IS true today (the real current state)\n\n**Automatic dispatch is intentionally OFF via a kill-switch, not missing.**\n\n```\npublic.enrichment_flags\n  flag_key = 'comps_fanin_drain_enabled'\n  enabled  = false\n  notes    = \"W1 comp-overhaul kill-switch: fan-in drain dispatch to comps-rematch\n              (both the immediate per-row kick in marketplace_obs_to_comps_trg and the\n              statement-level backstop comps_fanin_drain_trg). Set enabled=false to halt\n              DISPATCH without touching the queue -- rows keep enqueuing, they just stop\n              being kicked until re-enabled.\"\n```\n\nBoth trigger functions read that flag and `return` early when it is false. So today: rows would still *enqueue* on new observations, but nothing auto-kicks the drain. Last kick recorded: `comps_fanin_kick.last_kick_at = 2026-08-11 07:48`; `enrichment_chain_state['comps_fanin_drain'].last_fired_at = 2026-08-11 07:47`.\n\n**And it is not filling either.** Newest enqueue is 2026-08-15 12:02; `net._http_response` shows zero pg_net traffic since 2026-08-15 12:03; `is_scanning_session_active()` = false. The whole system has been idle ~12 hours. The queue is frozen, not growing.\n\nOne inconsistency worth flagging rather than resolving by guess: the flag row's `updated_at` is 2026-08-09 02:21, yet kicks demonstrably fired on 2026-08-11 07:48 \u2014 which requires the flag to have been true at that moment. Either `updated_at` is not maintained on that table or the flag was toggled without touching it. Unverified; the governing fact is the current value, `false`.\n\n## 5. Corrected wording for the audit row\n\nReplace the line at `audit/deployed-state.html:249` (and the same row in `audit/deployed-state-sections.html:320`, which is the grow-only fragment the report regenerates from \u2014 fixing only the HTML will be overwritten) with:\n\n> `public.comps_fanin_queue` | work queue | `trg_marketplace_obs_to_comps` + `comps_fanin_drain_trg` \u2192 `comps-rematch` EF \u2192 `drain_comps_fanin()` | **Wired and functional** (live-verified: `drain_comps_fanin(5,8000)` \u2192 processed 5 / failed 0). Auto-dispatch is currently **halted by kill-switch** `enrichment_flags.comps_fanin_drain_enabled=false`; 67,016 done / 28,162 parked (deliberate 2026-08-11 park) / 78,042 pending, 0 attempt-exhausted. Queue is static, not filling \u2014 no observations since 2026-08-15 12:02.\n\n## Files / objects touched in this verification\n\n- `/Users/benfife/github/ammonfife/lkup.info/audit/deployed-state.html` (lines 249, 518, 545 \u2014 stale row + its own contradicting addendum)\n- `/Users/benfife/github/ammonfife/lkup.info/audit/deployed-state-sections.html` (line 320 \u2014 the regeneration source of the stale row)\n- `/Users/benfife/github/ammonfife/lkup.info/supabase/functions/comps-rematch/index.ts`\n- `/Users/benfife/github/ammonfife/lkup.info/supabase/migrations/20260809022113_w1_fanin_drain_trigger.sql`\n- `/Users/benfife/github/ammonfife/lkup.info/supabase/migrations/20260811040000_park_fanin_backlog_human_lane.sql`\n- `/Users/benfife/github/ammonfife/lkup.info/docs/integrity/COMP_OVERHAUL_SPEC_2026-08-08.md` (already calls the line understated)\n- DB: `public.comps_fanin_queue`, `public.drain_comps_fanin(int,int)`, `public.drain_comps_fanin_batch(int)`, `public.fire_comps_fanin_drain()`, `public.marketplace_obs_to_comps_trg()`, `public.enrichment_flags`, `public.enrichment_chain_state`, `public.comps_fanin_kick`, `cron.job` (42 inactive)\n"}], "grading": {"expectations": [{"text": "Verifies against LIVE introspection rather than accepting the doc's claim", "passed": true, "evidence": "Live trigger states (`tgenabled='O'`), live EF version (\"ACTIVE, version 74, deployed 2026-08-15\"), and an actual execution: \"select * from public.drain_comps_fanin(5, 8000); -- processed=5, deferred=0, failed=0 ... Run just now against prod.\""}, {"text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)", "passed": true, "evidence": "Names three live paths: trigger `trg_marketplace_obs_to_comps` \u2192 `marketplace_obs_to_comps_trg()`, statement trigger `comps_fanin_drain_trg` \u2192 `fire_comps_fanin_drain()`, and EF `comps-rematch` running `select processed, deferred, failed from public.drain_comps_fanin($batch, $deadline_ms)`, plus `src/pages/Coin.tsx` calling `efPost('comps-rematch', {fanin:true,...})`."}, {"text": "Reports the current backlog/queue state with actual numbers and an as-of time", "passed": true, "evidence": "\"as of 2026-08-16 00:27 UTC\" with a full table: total 173,220 / done 67,016 / parked 28,162 / pending 78,042 / attempts>=5 = 0 / oldest enqueue 2026-08-03 20:58 / last drain 2026-08-15 09:25."}, {"text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker", "passed": true, "evidence": "\"**Automatic dispatch is intentionally OFF via a kill-switch, not missing.**\" \u2014 quotes the `public.enrichment_flags` row `comps_fanin_drain_enabled = false` with its notes, and \"Both trigger functions read that flag and `return` early when it is false.\""}, {"text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics", "passed": true, "evidence": "\"the top-of-report table row (line 249) was never updated. The document contradicts itself\" and identifies `audit/deployed-state-sections.html:320` as \"the grow-only fragment the report regenerates from \u2014 fixing only the HTML will be overwritten\", against its own live counts."}, {"text": "Does not overstate: separates what was verified from what remains unverified", "passed": false, "evidence": "It does flag one item as \"Unverified\", but it overstates the verdict: \"**No. Both halves of that claim are false**\" and \"'Queue is filling, not draining' \u2014 false\" is asserted from cumulative completions (67k done) and a 12-hour idle window, while its own table shows 106,204 rows not done against 67,016 done since 2026-08-03. It never measured intake rate, so declaring the filling half FALSE is a conclusion beyond what it verified."}], "summary": {"passed": 5, "failed": 1, "total": 6, "pass_rate": 0.8333}}}, {"id": "eval-1-with_skill", "prompt": "I've been away 6 days. Check the lkup.info repo and tell me what actually got built since Aug 9 \u2014 not a commit list, the real work.", "eval_id": 1, "outputs": [{"name": "answer.md", "type": "text", "content": "# What actually got built in lkup.info, Aug 9 \u2192 Aug 15\n\nAll measurements as-of **2026-08-15 ~18:35 MDT**. Where I quote a number I measured it \u2014 live DB, live API, or the repo \u2014 not a commit message. Retractions are at the bottom, including one of my own from this session.\n\n**Scale first, because it changes how you read everything else:** 932 commits, of which **653 are automated** (auto-sync, pre-push hook, Lovable bot). A subject-line skim would have shown you 279 commits and missed most of the week \u2014 the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration. Census was by lines-per-file, not by message.\n\nAuthors: Ben Fife 359 \u00b7 auto-sync 312 \u00b7 pre-push hook 222 \u00b7 gpt-engineer-app (Lovable) 37 \u00b7 Claude 2.\n\n---\n\n## The five things that actually happened\n\n### 1. The comp matcher got fast, then got proven pointless-until-the-data-lands\n\nThis is the most important intellectual result of the week and it's a *negative* one, which is why it's worth reading carefully.\n\nAug 9\u201311 was a matcher performance campaign. Measured start: `lkup_match_comp` was **2.5\u20139.2s per comp** on real titles (worst case 9.20s on \"2022 1c Lincoln Shield Cent PCGS MS65RD\", 2,657 candidates). At ~700 observation rows per scan that's 30\u2013107 minutes of matcher work per scan against a 15s drain budget. Fixes shipped: covering index on the spine year gate (145x), first-ever `VACUUM` on `spine` and the two matcher tables, and a boolean-facet-matrix / n-gram / BitmapAnd shape that got it to **<100ms per comp** and made it scale with comp length instead of candidate count.\n\nThen it was tested against 24 real titles and **failed 21 of them** with zero survivors. The root cause chase ended somewhere different from where it started:\n\n- `reference.lkup_attribute_value_alias` covers **93 of 7,306** distinct normalised values in spine's low-cardinality columns \u2014 **1.3% coverage**.\n- The `*_canonical` columns are not canonical: `mint_canonical` holds **9,220 distinct values** where the real vocabulary is ~34 mints; `series_canonical` holds **341,297** where it should be ~331; `variation_canonical` is populated on **0 rows**; `strike_canonical` on 743 of 814,006 (0.09%).\n\nConclusion recorded in `audit/artifacts/matcher-perf-findings-20260811.md`: the architecture is correct and fast, but \"it has almost nothing correct to intersect ON. This is a data/build problem, not an algorithm problem.\" Wiring the matcher against 1.3% alias coverage would measure nothing.\n\n**Where that leaves you:** comps sit at **39,975 matched of 97,420 (41%)**. The named highest-value build item is a live refresh of the alias table off live spine (~7,300 values, not 1,041 rows), then rebuilding the canonical arrays through it. That has not been done.\n\n### 2. Spine identity surgery \u2014 real merges, real repairs, and one lane now gated shut\n\nAug 12\u201313 was hands-on identity work, and it's genuine: 1881-S Morgan exact siblings merged; 1986 / 2010 silver-vs-gold Eagles split; a 2020 emergency Eagle split off a 1943 cent; 24 NGC certs merged onto verified PCGS siblings via `pcgs_number`; 8 PCGS onto NGC via `ngc_id`; 8 CACG onto verified siblings; 160 ICG identity-empty stubs quarantined; **5,184 comps re-pointed** after the merges. Spine is now 814,707 rows.\n\nThe headline commit was \"fix silent zero-identity onboarding for every new NGC/PCGS scan.\" I checked it, and the check is the reason this section reads the way it does.\n\nCerts created since that commit (Aug 13 22:01Z): **116, of which 53 have NULL `coin_lkup_uuid`**. Before it: 199, of which 2. That looks like a catastrophic regression until you cut it by service:\n\n| service | new certs | null identity | of those, has a description |\n|---|---|---|---|\n| PCGS | 20 | 2 | 1 |\n| NGC | 59 | 17 | 1 (16 are un-enriched stubs, no description) |\n| **ICG** | **28** | **28** | **27** |\n| ANACS | 3 | 3 | 3 |\n| CAC / SEGS / WPT | 6 | 3 | 3 |\n\nThe primary lane is healthy \u2014 PCGS 90% identified, NGC 71%. The nulls are **minor graders, and they are scraping fine**: ICG certs come back with a full description and then get no identity at all. That is the deliberate gating from \"quarantine ANACS parser risk and gate member IDs.\" It is NULL-over-bad behaving correctly, and it is also a lane that is currently 0% productive. See finding #1 in the open-items list below \u2014 the replacement for it was built and never applied.\n\n### 3. Scan got measurably faster, and the proof was taken against live production\n\nThe best-evidenced work of the week. Someone benchmarked against **live lkup.info/scan** rather than a local build, and found that with `BarcodeDetector` unavailable \u2014 i.e. Safari and iOS, i.e. every dealer on a phone \u2014 the **first decode took 3,435ms while every subsequent decode took ~21ms**. That's not decode time, it's the worker booting and pulling a 238KB zbar wasm at the exact moment someone is holding a slab to the lens. Chrome hid it entirely because its native detector answers first.\n\nFix: build the worker and push a 1x1 frame through it the moment the camera goes live. Live-prod re-measurement: **first decode 3,435ms \u2192 416ms**. Alongside it: `getUserMedia` calls 6 \u2192 2, scan-loop fork ratio 3.72 \u2192 1.17, cadence capped, camera restart storm killed.\n\n**I verified this is deployed right now**, not just committed \u2014 pulled the live index bundle, followed it to the lazy `CameraInput` chunk, and found the `lkupScanStats` marker present. Evidence lives in `audit/perf/live/zbar.log` and `zbar-after-prewarm.log`.\n\n### 4. Cert readiness \u2192 auto-print, built by brute-force iteration\n\nAug 13\u201314 produced a cert-readiness state machine wired into the realtime lifecycle, driving auto-print gating, comp-invalidation epochs, and print dedup. Manual and automatic print semantics were separated; auto-print now queues until readiness rather than firing on a startup race.\n\nIt was built by iteration rather than design: **29 distinct migration files named `wire_cert_readiness_realtime.sql`** and **26 named `grader_evidence_gate_and_truthful_onboard.sql`**, all with different timestamps. I checksummed the 29 \u2014 all 29 contents are different, so this is genuine successive refinement, not a stuck loop. But it means the repo now has 220 distinct migration versions in a 6-day window covering maybe 40 logical changes, and several of the intermediate filenames are dead weight (there are matching \"Remove duplicate readiness migration filename\" commits, so this was noticed).\n\nRelated and genuinely good: a **grader evidence admission gate**. Certs no longer get minted before positive page evidence exists; `enqueue-enrichment` stopped first-minting certs; all-zero cert numbers are now forbidden at the DB and rejected in the shared parser; grader pages stay retryable until verified.\n\n### 5. Legal, licensing and marketing exposure got closed \u2014 and I verified it against the live anon key\n\nTwo passes (Aug 9 and Aug 15) stripped every named competitor and the replacement claims behind them from public marketing, corrected \"Order Management is CSV import, not live Whatnot sync,\" and removed voluntary promises from ToS/Privacy while fixing consent persistence.\n\nThe substantive one is the licensed-pricing lockdown. Before it, with the *published* anon key, anyone could read Greysheet `cpg_val`/`grey_val` \u2014 and `POST rpc/insert_greysheet_prices` returned **204, an anonymous write into a licensed table**.\n\nI re-ran those probes live just now:\n\n| surface (anon key) | before | now |\n|---|---|---|\n| `reference.greysheet_prices?select=cpg_val` | 200 | **401** |\n| `rpc/insert_greysheet_prices` | 204 (write!) | **401** |\n| `rpc/project_guide_tower` | 200 | **404** |\n| `mv_cert_pricing_evidence` | 200 | **401** |\n| `reference.grade_shape` WRITE | 200 | **401** |\n| `greysheet_prices?select=gsid,coin_name` (must keep working) | 200 | **200** |\n| `flat_certs` (must keep working) | 200 | **200** |\n\nClosed correctly, with the product left intact. The instrument chosen was a column-scoped `GRANT` rather than dropping the RLS policy \u2014 dropping it would have denied every row to anon and broken `/coins`.\n\n---\n\n## What's built but not live \u2014 the actionable list\n\n### 1. The minor-grader identity fix is in the repo and not on production\n\n`supabase/migrations/20260812194500_source_qualified_minor_grader_synthetics.sql` replaces the bare `synth:<hash>` member key with a source-qualified `<service>:synth_<hash>`. It has **no applied version on prod**, and I confirmed by live introspection rather than by the migration ledger: `pg_get_functiondef('public.onboard_minor_grader')` on production still contains the **bare `synth:` shape**, and contains no `synth_` form.\n\nLive consequence: `public.coins` holds **101 bare-synth coins and 0 source-qualified ones**, and the **last bare-synth coin was created 2026-08-13 09:23Z**. No synthetic minor-grader member has been minted since. That is the same 28-of-28 ICG / 3-of-3 ANACS zero-identity population from section 2 \u2014 the old path was gated off, and its replacement never shipped. This is the single highest-value thing to land.\n\n### 2. 36 window migrations exist in the repo with no applied version on prod\n\nLocal versions dated \u2265 20260809: **220**. Applied on prod in that range: **185**. Overall the repo holds **1,363 migration versions against 1,145 recorded remotely \u2014 218 local-only.**\n\nSome of the 36 are duplicate filenames of changes applied under a different timestamp, so don't read it as 36 unapplied changes. But these five are worth an individual decision:\n\n- `20260812194500_source_qualified_minor_grader_synthetics.sql` (finding #1)\n- `20260815034500_lock_down_licensed_pricing_anon_p0_p3.sql` \u2014 *this one is fine*: applied directly, verified live above; it just has no ledger row\n- `20260815012000_certs_fill_raw_barcode_reject_placeholders.sql`\n- `20260814053000_disable_marketplace_observations_rls.sql`\n- `20260813120000_deprecate_register_coin_from_grader.sql`\n\nThe working pattern here is apply-direct-then-backfill-the-file (there's an explicit \"recover 22 direct-to-Supabase migrations missing from repo\" commit on Aug 13), so absence from `schema_migrations` proves nothing on its own \u2014 each one needs the live-object check I did for #1.\n\n### 3. Licensed Greysheet values are still readable by anonymous users on `/coin`\n\nLive, right now, with the published anon key:\n\n```\nGET flat_certs?select=cert_id,cdn_bid,cdn_ask\n\u2192 [{\"cert_id\":\"anacs:00018797\",\"cdn_bid\":8800.00,\"cdn_ask\":11000.00}]\n```\n\nThis is documented as a **deliberate exclusion** \u2014 a column-level REVOKE makes PostgREST 403 the *entire* request, which would blank `/coin` for every anonymous visitor, because `cdn_bid`/`cdn_ask` are named in `FLAT_CERTS_FAST_COLUMNS` (`src/pages/Cert.tsx:165`) and in `cert-display-source.ts:206`. It needs a frontend column-list split first, plus a decision: admins authenticate as PostgREST's `authenticated` role, so there's no way to withhold licensed columns from free signups without an admin-gated SECURITY DEFINER RPC. Given the rest of the licensing pass got closed, this is the remaining hole.\n\n### 4. Page audit leftovers\n\nThe Aug 14 authenticated sweep covered all **72 routes: 63 PASS, 5 EMPTY_BODY, 4 SUSPECT**. Empty: `/camera`, `/obs`, `/obs/:obsKey`, `/obs_qr`, `/obs_qr/:obsKey`. Suspect: `/oldhome`, `/dealer/:slug`, `/terms`, `/terms-of-service`. Aug 15 commits address the `/obs` keyless case and the terms pages, so that artifact predates its own fixes \u2014 worth re-running rather than reading.\n\n### 5. `BackfillAdmin.tsx:125` selects a column that doesn't exist\n\nFound in passing during the licensing work: it selects `coin_id` on `reference.greysheet_prices`, which has no such column (real one is `coin_ref_id`). That page has been returning HTTP 400 (42703) all along. Pre-existing, unrelated to the lockdown, still broken.\n\n---\n\n## Also shipped, in less depth\n\n- **Browser extension: 1.34.291 \u2192 1.39.0, 27 releases.** Auto-capture gated behind a target allowlist (it was scoping every page); `network_scope` 403 loop fixed (control signals were being written as data); a failed price lookup no longer renders \"ANALYZING\" forever; the badge stopped covering eBay's watchlist heart; `coins.mint` holds *names*, so `mint=eq.S` matched nothing and the bucket lane was dead for every US mintmarked coin. Then the Whatnot show tooling: snap panel with lookback frame buffer, burst mode, pointer-capture drag, copy-for-chat line, and a deliberate launch dock (v1.35.0) for the Whatnot panels and OBS overlay. One clean revert on the way (v1.34.301 backed out a candidate-UUID change that broke every lookup).\n- **NGC price-guide repair (#11883).** The asterisk flag is now persisted instead of baking a \u00d71.25 into the price; an in-place repair migration undoes the existing inflation, with a double-apply guard added after Ben flagged it. Low-end band grades are no longer discarded, and circulated slabs stopped being mislabeled MS.\n- **DB hygiene that had never been done.** `ANALYZE` across the whole database \u2014 **400 of 419 relations had never been analyzed**. `public.comps` reported `n_live_tup` 2,054 against `reltuples` 85,287, a 41x error, while carrying 9 triggers including the matcher \u2014 so the planner was choosing matcher plans off garbage stats. Four matviews were 72\u201381h stale. First-ever vacuum on spine and the matcher tables.\n- **Supabase EF auto-deploy unbroken.** An un-clonable filename had been killing every run. Verified: ~50 Edge Functions share a single `updated_at` of **2026-08-15 01:49:56**, i.e. one mass redeploy the moment the fix landed. New EF `route-event` created Aug 12 (restricted data route event capture).\n- **Desktop scanner.** NDI phone cameras (native receiving, saved-camera restore, explicit start/stop per slot, previews fill their slots), desktop scans unified through the Supabase pipeline, auto-print gated on canonical cert readiness.\n- **Splash / recent-scans.** A personal recent-scan rail on the splash, backed by authenticated history when signed in and localStorage when not, promoted to shared browser session state, surfaced on the dashboard and in OBS control; batch mode honored across all splash scan paths; race-safe collection appends.\n- **Owner-scoping** applied to `/orders`, `/analytics`, `/listings`, `/listings/:id`, `/dashboard`, `/crm`, `/inventory`.\n- **Real `?q=` coin search**, and cert numbers stopped being written into `raw_barcode`.\n- **Council**: sparse coins emit anyway, thin bundles may `web_search`, brace-safe JSON parse, guards hold verdicts instead of discarding them.\n\n---\n\n## Documentation that has gone stale\n\nThree places where what's written down no longer matches the system:\n\n1. **`CLAUDE.md` says `audit/LOOP_LEDGER.md` is \"the SOLE live source of truth.\"** It was last modified **Jul 26** \u2014 untouched through this entire window. The artifact actually being maintained is the `audit/deployed-state*.html` report and its CHANGE LEDGER. Anyone booting on the ledger will be reading a three-week-old picture of a system that moved a lot.\n2. **`CLAUDE.md` says `core.hooksPath` is the default `.git/hooks` and the in-repo `.githooks/*` is NOT active.** It is now set to `.githooks`, and the pre-push hook runs 5 blocking gates including the migration tripwire. That line is inverted.\n3. **The licensed-pricing migration header claims \"all ten of those surfaces now 401.\"** `GET reference.grade_shape` returns **200** \u2014 the DDL only revoked INSERT/UPDATE/DELETE/TRUNCATE on it, never SELECT. Reads may well be intended to stay open, but the header says otherwise, and it's the kind of self-describing claim that gets quoted later.\n\n---\n\n## Retracted this session\n\n- **I said the zero-identity onboarding fix was working cleanly** \u2014 cut at \"since Aug 14 12:00\" I got 0 of 26 certs with null identity. That window was a tail slice. Widened to the actual commit boundary it's **53 of 116**, and cut by service it's a minor-grader story, not a fix story. The narrow cut looked right because PCGS/NGC volume dominates the tail. Corrected in section 2.\n- **I suspected the 29 identically-named readiness migrations were an agent stuck in a loop.** Checksummed all 29: every one is distinct content. Genuine iteration, retracted.\n- **I nearly reported the migration gate as resolved.** `check-migration-gate.sh` prints \"\u2713 migration gate: 1363 local versions (delta 0)\" \u2014 but reading the script, delta is movement *since the last push*, not local-vs-remote drift. The gate is a tripwire on large swings, not a measure of reconciliation. The real drift is the **218 local-only versions** measured directly against `supabase_migrations.schema_migrations`, and the Supabase prod-branch check remains held shut by a failing status. That hazard is unchanged.\n\n## Unverified\n\n- Whether extension v1.39.0 is actually loaded in the browsers that matter \u2014 the manifest says 1.39.0 in-repo; I did not check a running browser.\n- Whether the 36 local-only migrations beyond `onboard_minor_grader` were applied directly under other version stamps. Settled per-migration by checking the live object it defines, same method as finding #1.\n- Whether the un-analyzed-relations / vacuum work produced a measurable end-to-end scan improvement. The individual gate went 145x faster; nobody re-measured a whole scan afterwards.\n"}], "grading": {"expectations": [{"text": "Censuses by file/lines changed rather than only reading commit subjects", "passed": true, "evidence": "\"Census was by lines-per-file, not by message\" \u2014 backed by actual file-level aggregation: \"**29 distinct migration files named `wire_cert_readiness_realtime.sql`** and **26 named `grader_evidence_gate_and_truthful_onboard.sql`**\" (checksummed all 29), \"Local versions dated \u2265 20260809: **220**\", \"1,363 migration versions against 1,145 recorded remotely \u2014 218 local-only\"."}, {"text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out", "passed": true, "evidence": "\"932 commits, of which **653 are automated** (auto-sync, pre-push hook, Lovable bot). A subject-line skim would have shown you 279 commits and missed most of the week \u2014 the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration.\" Author breakdown includes auto-sync 312 and pre-push hook 222."}, {"text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)", "passed": true, "evidence": "\"the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration\" \u2014 identifies the facet corpus by size (814k rows, matching coin_facet_tokens.tsv) and attributes it to the automated commits, though it does not name the .tsv file itself."}, {"text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message", "passed": true, "evidence": "\"**I verified this is deployed right now**, not just committed \u2014 pulled the live index bundle, followed it to the lazy `CameraInput` chunk, and found the `lkupScanStats` marker present.\" Also a live anon-key probe table (before/now: 200\u2192401, 204\u2192401) and live `pg_get_functiondef('public.onboard_minor_grader')` on prod showing the bare `synth:` shape."}, {"text": "Reports a doc-vs-reality contradiction it found", "passed": true, "evidence": "\"## Documentation that has gone stale\" \u2014 three, incl. \"**`CLAUDE.md` says `core.hooksPath` is the default `.git/hooks` and the in-repo `.githooks/*` is NOT active.** It is now set to `.githooks` ... That line is inverted.\""}, {"text": "Retracts or corrects at least one of its own intermediate conclusions", "passed": true, "evidence": "\"## Retracted this session\" with three explicit self-corrections, e.g. \"**I said the zero-identity onboarding fix was working cleanly** \u2014 cut at 'since Aug 14 12:00' I got 0 of 26 certs with null identity. That window was a tail slice. Widened ... it's **53 of 116**.\""}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-1-without_skill", "prompt": "I've been away 6 days. Check the lkup.info repo and tell me what actually got built since Aug 9 \u2014 not a commit list, the real work.", "eval_id": 1, "outputs": [{"name": "answer.md", "type": "text", "content": "# What actually got built in lkup.info, Aug 9 \u2192 Aug 15\n\n813 commits on `prod` since Aug 9. 530 of those are `auto: sync` / knowledge-snapshot noise from the hooks \u2014 the real number is **283**, and they cluster hard: 25 / 32 / 37 / 34 / **131** / 24 across Aug 10\u201315. Aug 14 was a marathon.\n\nSix things actually got built. One of them was an outage that had been silently running for seven weeks.\n\n---\n\n## 1. The EF auto-deploy lane had been dead for 7 weeks \u2014 root cause found and fixed\n\nThis is the biggest single finding of the week and it isn't a feature.\n\nOn 2026-06-24, commit `52166d50c` committed a file whose *filename* was captured terminal output \u2014 it contained a literal newline and a `\u273b` glyph. CLI git tolerates control characters in a path. The Supabase GitHub integration does not; it clones with a strict go-git-style client that validates every path and **refuses the entire repo**:\n\n```\nfailed to clone repo: invalid path \"\u2026-c.txt\\n\\n\u273b\": contains control character\n```\n\nThat was the complete \"Supabase Preview\" check output on *every* prod commit from 2026-06-24 to 2026-08-15. The integration never reached the repo contents, so `supabase/functions/` was never read and nothing auto-deployed for ~7 weeks. Every EF deploy in that window was `scripts/deploy-ef.sh` run by hand \u2014 which is exactly why the tree looked healthy while the lane was dead. One byte in one filename, and the failure lived in a check-run summary nobody read.\n\nFixed Aug 15 (`fix(deploy): unbreak Supabase EF auto-deploy`), plus a blocking pre-push gate: `scripts/check-invalid-paths.sh`.\n\nWorth correcting your mental model: the note that EF auto-deploy was \"restored 2026-08-05 by killing the symlink farm\" was wrong. The symlink farm was *a* problem; the control character was *the* problem, and it survived that fix by ten days.\n\nCurrent EF deploy drift is now measured, not assumed \u2014 `audit/artifacts/ef-deploy-status-20260814.tsv` has per-function version/lag. Most functions are at lag 0; `ebay-sold-webhook` (lag 10), `legacy-qr-redirect` (9), `listing-draft` (8) and `barcode-detect` (4) are the stragglers.\n\n---\n\n## 2. Spine / facet identity convergence \u2014 the largest body of work\n\nRoughly 90 migrations across Aug 11\u201313, and it's the most consequential engineering of the week. Three phases:\n\n**Phase A \u2014 the matcher was 30\u201390\u00d7 slower than anyone believed.** `lkup_match_comp` was measured at **2.5\u20139.2 seconds per comp**, not the 80\u2013100ms in the brief (that number belonged to `lkup_resolve_comp_v2`, a different function). Root cause: the year gate heap-scanned `spine` to evaluate its own WHERE clause, and `public.spine` (813K rows, 1GB) **had never been vacuumed**. Fix was a covering index plus the first-ever VACUUM ANALYZE on spine and five other never-analyzed matcher relations. Measured: gate buffers 9,883 \u2192 139, the gated CTE 3,130ms \u2192 21.6ms per call, the full function 1,913\u20139,554ms \u2192 **64\u2013123ms**. `/coin` keyed read did not regress (0.67\u20132.04s \u2192 0.57\u20130.77s). Full writeup with before/after EXPLAIN in `audit/artifacts/matcher-perf-findings-20260811.md`.\n\n**Phase B \u2014 the \"just backfill spine columns\" plan was killed after a production dry run.** `audit/spine-facet-convergence-plan-20260812.md` is the plan of record. The proposed `build_spine_row` patch could copy identifiers within existing UUID groups but could not *establish* missing cross-grader groups, mapped CAC/CACG to `cac_id` instead of `gsid`, and silently picked a winner when a grader had several IDs. The decisive counterexample: SEGS 500072 has one source row, no shared catalog identifiers, and no `coin_decode_explode` row \u2014 no `MAX()` over the current group can invent it. So it became an acquire-and-decode problem, not a backfill.\n\nAlong the way it surfaced that there are **no correctly source-keyed ICG, GONGBO, CNGC, CSIS or WPT members in `public.coins` at all** \u2014 186 legacy rows all labelled `grader = 'synth'` with no parent identity. Their zero-valued spine columns are an acquisition gap, not a projection gap.\n\n**Phase C \u2014 actual data repair, Aug 13.** Crosswalk merges executed with per-batch migrations and a revert migration when a batch proved false (`revert_anacs_pcgs_false_crosswalk_merges`): 24 NGC certs merged onto verified PCGS spine siblings via `pcgs_number`, 8 PCGS onto NGC via `ngc_id`, 8 CACG onto NGC/PCGS, plus catalog-wide NGC\u2194PCGS and CACG batches. 160 ICG identity-empty stub certs quarantined. **5,184 comps re-pointed** after the merges orphaned them. A dozen individual mis-linked coins split apart by hand (1992 gold Olympics from silver eagle, 2020 emergency eagle from 1943 steel cent, 2013 Maple Leaf from 1998 gold eagle, Franklin halves, and so on). Also: `lkup_canonical_breadcrumb` and `lkup_canonical_uuid` were formally banned in the DB, and `register_coin_from_grader` was documented dead-for-identity.\n\n**The asset nobody is reading.** `audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows, exactly 1:1 with `public.spine`, ~23 facet keys, `\\x01`-delimited. There is **no DB object holding it** \u2014 no table, no view, no function references it. Companions: `ground_truth_comps.tsv` (1,207 barcode-verified labelled comps \u2014 the only sound label source in the system) and `facet-match-scorecard.tsv` (a prototype matcher already scored against that ground truth, +4,454 / \u22123,246). Built by agents Aug 10\u201314 and auto-committed. Your instruction on Aug 15 was that this should be remembered rather than abandoned; as of now it is a file on disk and nothing more.\n\n---\n\n## 3. `/coin` became `/cert`, and the whole dealer console went admin-only\n\n`src/pages/Cert.tsx` is new \u2014 5,173 lines. `/coin` and `/coin/:certId` now route to `LegacyCoinRedirect`. This is the single biggest user-visible change of the week and every label QR, OBS overlay line and external link now points at `/cert`.\n\nSimultaneously, `/orders /analytics /listings /listings/:id /dashboard /crm /inventory /sold /scout /labels /desktop /build-info /vendor/:id/financials` all moved from `ProtectedRoute` (any logged-in user) to `RequireAdmin`. `/search` now redirects to `/`, `/oldhome` redirects to `/home`, `/scan-v2` and `/scan-test` are admin-gated. New `/data/*` route for restricted-data route-event capture.\n\nA full 72-route page audit ran on Aug 14 with chromeless-aware verdicts and a PHASE 8 scorecard.\n\n---\n\n## 4. Legal exposure assessment, then code changes to close the gaps\n\n`audit/legal/LITIGATION_EXPOSURE_2026-08-14.md` (28KB) scored ten risks on severity \u00d7 likelihood. The framing is the useful part: **the exposure is not in the documents, it is in the gap between what the documents promise and what the code does** \u2014 which is the worst shape of risk, because your own 637-line ToS becomes the plaintiff's Exhibit A.\n\nTwo RED findings, both small code changes:\n\n- **R1 (score 20)** \u2014 `src/lib/pricing-access.ts` returned `showGreysheetPricing: true` for *any* authenticated non-admin. So a free account saw `cdn_bid` and `cdn_ask` \u2014 CDN's flagship licensed product \u2014 while ToS \u00a78A.8(a) promises it's shown only to entitled users.\n- **R2 (score 16)** \u2014 NGC + PCGS Price Guides reproduced as a full 36-grade table on public pages.\n\nBoth were fixed Aug 15 (`fix(legal): entitlement-gate Greysheet, cite melt spot source, attest before eBay publish`, plus migration `lock_down_licensed_pricing_anon_p0_p3`). Also shipped: ToS/Privacy stripped of voluntary promises the code doesn't keep, consent persistence fixed, and marketing copy on `/dealer` brought into line with `/home` \u2014 same features, same \"On roadmap\" tags, because a dealer with both tabs open could see the contradiction and a pre-order sold as shipped is plain false advertising.\n\nStill open in that file: R3 (grader photos re-hosted on your R2 CDN), R4 (AI talking points \u2192 one-click eBay publish), R5 (acquisition authorization basis for `source: ngc_ccgops`), R6 (no tech E&O / cyber insurance confirmed).\n\n---\n\n## 5. Whatnot / live-show tooling \u2014 extension went 1.34.292 \u2192 1.39.0\n\nTwenty-plus releases in six days. The substantive ones:\n\n- **v1.35.0 launch dock** \u2014 deliberate on-demand injection for Whatnot panels and the OBS overlay, replacing content-script matches that never fired on the SPA.\n- **Snap panel**, rebuilt across four releases: lookback frame buffer, burst mode, pointer-capture dragging, price refresh, capture history, seen-on-Whatnot marking, deep links, NGC grade segment parsing, and hydration from `flat_certs`.\n- **New content scripts**: `whatnot-launcher.js`, `ebay-price-fastlane.js`, `price-lookup-deadline-guard.js`, `grader-evidence-observer.js`, `grader-admission-guard.js`, `obs-control-my-scans.js`.\n- **v1.34.302 was a real bug find**: `coins.mint` holds mint *names*, so the `mint=eq.S` filter matched nothing \u2014 the bucket price lane had been dead for every US mintmarked coin.\n- **v1.34.301 was a same-day revert** of v1.34.300, which broke every lookup.\n\nOn the OBS side: media preload before hot-swap (fixes overlay flicker), pop font 11px\u219220px, an OCR-targeted `lkup.info/cert/?c=\u2026` line on the card, dealer-scoped broadcast lane `obs:<obs_key>` replacing six unfiltered `postgres_changes` bindings, and `/obs` / `/obs_qr` now redirect to the signed-in dealer's keyed URL instead of bouncing anonymous sessions to `/dashboard`.\n\n**Realtime tenant terminations got a root cause.** The overlay disconnecting mid-show was the visible symptom. 24h of `realtime_logs`: 104\u00d7 tenant queue timeouts, 46\u00d7 pooling replication errors, then **53\u00d7 `Tenant vsotvatntzlrzrhemayh has been terminated: :shutdown`** \u2014 which drops every websocket for the project at once. Cause: at rest with no show running, `realtime.subscription` held 32\u201336 rows and **every single one had `filters = {}`**. Overlay and obs-control are fixed. `AdminObsControl` still has ~5 unfiltered, `AdminLiveFeed` and `AdminOutputLog` 4 each, the extension service worker 3. `Cert.tsx` is fully filtered and is the model to copy.\n\nLabel printing was removed from all unauthenticated surfaces \u2014 gated at the capability, not just the control, so a signed-out browser with a stale localStorage flag can't emit print requests.\n\n---\n\n## 6. Scan performance \u2014 real numbers, and a decoder bake-off\n\nAug 14\u201315. Three fixes: stopped a camera restart storm, killed `autoScan` loop forking, and dropped cadence to 15/sec. Then the decode worker gets prewarmed at camera-ready instead of at first miss. Measured on live prod: **Safari/iOS first decode 3,435ms \u2192 416ms**.\n\nA decoder bake-off ran ZXing vs zbar-wasm (RGBA and greyscale) across a distortion matrix. Result is honest and unflattering: ZXing 52.4% hit rate at 12.5ms average, zbar 57.1% at ~28ms. Neither handles the realistic handheld cases (`noise 0.2 + blur 1.5 + rotate 8\u00b0 + contrast 0.7` misses on all three). The harness also flagged three of its own rows as harness errors rather than decoder misses \u2014 worth keeping, that's the kind of self-correction that makes a bench trustworthy.\n\nArtifacts in `audit/perf/`.\n\n---\n\n## Also shipped, smaller\n\nCouncil/AI pricing changed shape: the emit gate no longer withholds (sparse coins emit anyway \u2014 measured on a 400-coin sample, 190 previously emitted nothing and 184 of those now do), the emit body went from three fields to four (`sparse` added), thin bundles may use `web_search`, and guards now **hold** verdicts with `is_current=false` rather than discarding them. New `reference.grade_shape` (5,964 rows, learned grade\u2192price shape) and `public.project_guide_tower`. The sanity check that made grade_shape credible: `$1 SILVER EAGLE` comes out 1.00\u00d7 at every grade while 50C is 2.40\u00d7/6.01\u00d7 at MS65/MS66 \u2014 the method rediscovers the bullion/numismatic split unprompted.\n\nDesktop scanner: NDI phone cameras restored, explicit per-slot start/stop, auto-print gated on canonical cert readiness, scans unified through the Supabase pipeline, print dedup race fixed.\n\nGuards added: all-zero cert numbers rejected in the parser, the DB and the extension; `enqueue-enrichment` can no longer first-mint a cert; grader scrapes gated on positive page evidence; `coin_current` and `coin_current_with_ownership` promoted to HARD-dead so a new reader can't be reintroduced.\n\n---\n\n## Three things you should know that aren't good news\n\n**The frontend deploy is behind.** I checked the served bundle by content, not by commit. `Dealer-D_rSwTht.js` on lkup.info right now does not contain `\"Limits are not enforced during alpha\"` or the `On roadmap` tags from commit `5eaf6c034` (Aug 15 03:29), and the served `CameraInput-C4oWmWjM.js` contains no `prewarm` marker from the Aug 15 01:15 scan fix. `UserRecentScansRail` (Aug 14 04:15) *is* served. So live is somewhere around Aug 14 midday \u2014 roughly the last 24\u201330 hours of frontend work is committed and pushed but **not deployed**. Git push does not deploy; the Lovable button still needs a click.\n\n**`audit/LOOP_LEDGER.md` is stale.** CLAUDE.md names it the sole live source of truth for architecture and priorities. It was last modified **Jul 26** \u2014 three weeks ago, and it missed the entire spine-convergence effort. The documents that are actually current are `audit/spine-facet-convergence-plan-20260812.md` and the two ADDENDUM blocks in `agents/scheduled/update-state-diagrams/SKILL.md`. Either promote those or refresh the ledger, because right now the doc that claims authority is the one that knows least.\n\n**The migration count is a loaded gun.** Pre-push GATE 5 now blocks pushes because the Supabase integration's `prod` branch *is* the production project (`is_default=true`, `parent_project_ref` = itself \u2014 not a preview), so its Migrate step runs `db push` against prod. It is held shut only by a failing check (`MIGRATIONS_FAILED`, remote versions not found locally). Anyone who \"helpfully\" reconciles that drift to turn the check green releases every local-only migration onto production at once. That is now documented in the hook itself with a `MIGRATION_GATE_ACK` override for deliberate releases. Given roughly 90 new migrations went in this week alone, that gate is the only thing standing between you and a very large silent swing.\n\n---\n\n## Open, high-priority, filed\n\n`mv_coin_pricing_evidence` fabricates grade labels \u2014 `grade_key` concatenates `desig` onto bare-numeric grades, producing `MS12`/`MS40`/`MS4`. **42,821 phantom rows project-wide, 4,191 on 323 coins you hold slabs for.** The *values* are correct and verified against CoinFacts; only the labels are wrong. Paired defect with the same root: `emitForCoin`'s strike-prefix matcher is `^(MS|PR|PF|SP)`, so a circulated grade like `F12` yields an empty prefix and matches any row with the same grade number \u2014 including the fabricated `MS12`. Both filed, neither fixed, and the fix needs your eyes first because that view feeds cert pricing, council evidence and the tower.\n\nAlso open: rebuild `project_guide_tower` to return the sibling-set bucket matrix rather than one row's tower; build the variety-vs-parent inversion detector (**552 of 1,749 buckets price the variety below its own parent date** \u2014 that's evidence the guide is thin, not that the coin is cheap); re-key `grade_shape` off real sibling sets; and an admin-only prose \"how we got this price\" surface you asked for on Aug 14.\n\nOne thing filed as *do not fix*: the 3,369 NGC-id and 66 PCGS-number `coins`-vs-`spine` differences are **hierarchy levels, not conflicts** \u2014 die variety vs major variety. 1810 50C O-104 has `coins.pcgs_number=39409` (die variety) and `spine.pcgs_number=6095` (date); PCGS's own page lists 39409 *under* 6095. This was initially reported as a 69% identity-conflict crisis and you disproved it with CoinFacts. A future run that \"reconciles\" them destroys the variety layer.\n"}], "grading": {"expectations": [{"text": "Censuses by file/lines changed rather than only reading commit subjects", "passed": true, "evidence": "Goes beyond subjects with file-level measures: \"`src/pages/Cert.tsx` is new \u2014 5,173 lines\", \"Roughly 90 migrations across Aug 11\u201313\", \"`audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows\", per-function lag from `audit/artifacts/ef-deploy-status-20260814.tsv`, and named new content scripts. The headline framing is still commit-count based, but real file/line aggregation is present."}, {"text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out", "passed": false, "evidence": "Explicitly filters them out in the opening line: \"813 commits on `prod` since Aug 9. 530 of those are `auto: sync` / knowledge-snapshot noise from the hooks \u2014 **the real number is 283**\". The automated commits are labelled noise and excluded from the census."}, {"text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)", "passed": true, "evidence": "\"**The asset nobody is reading.** `audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows, exactly 1:1 with `public.spine` ... Companions: `ground_truth_comps.tsv` (1,207 barcode-verified labelled comps) and `facet-match-scorecard.tsv` ... **Built by agents Aug 10\u201314 and auto-committed.**\""}, {"text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message", "passed": true, "evidence": "\"I checked the served bundle by content, not by commit. `Dealer-D_rSwTht.js` on lkup.info right now does not contain \\\"Limits are not enforced during alpha\\\" ... and the served `CameraInput-C4oWmWjM.js` contains no `prewarm` marker\" \u2192 concludes live is ~24\u201330h behind."}, {"text": "Reports a doc-vs-reality contradiction it found", "passed": true, "evidence": "\"**`audit/LOOP_LEDGER.md` is stale.** CLAUDE.md names it the sole live source of truth for architecture and priorities. It was last modified **Jul 26** \u2014 three weeks ago, and it missed the entire spine-convergence effort.\""}, {"text": "Retracts or corrects at least one of its own intermediate conclusions", "passed": false, "evidence": "The corrections are all of external artifacts, not of its own in-session reasoning: \"the note that EF auto-deploy was 'restored 2026-08-05 by killing the symlink farm' was wrong\" (a stored fact), \"todo #12783 blamed...\", and \"This was initially reported as a 69% identity-conflict crisis and **you** disproved it with CoinFacts\". No statement of a conclusion it itself reached mid-audit and then withdrew."}], "summary": {"passed": 4, "failed": 2, "total": 6, "pass_rate": 0.6667}}}, {"id": "eval-2-with_skill", "prompt": "comps_fanin_drain_enabled is false and comps_fanin_queue has ~100k undone rows. Should I flip the flag back on?", "eval_id": 2, "outputs": [{"name": "answer.md", "type": "text", "content": "# Should you flip `comps_fanin_drain_enabled` back on?\n\n**No \u2014 not right now, and not as-is.** Two blockers, one live and one structural:\n\n1. **A scanning session is active as I write this.** `public.is_scanning_session_active()` = `true`, newest observation `2026-08-16 00:33:01Z`, 105 rows enqueued in the current hour. Fan-in mode is *deliberately not* gated on that check (`supabase/functions/comps-rematch/index.ts:73`), so flipping the flag dispatches immediately, into live traffic. That is the exact condition that produced the 2026-08-11 outage.\n2. **The first dispatch would not process the 105 fresh rows \u2014 it would start eating a 67,795-row priority-10 backlog.** `drain_comps_fanin` orders `priority DESC, attempts ASC, enqueued_at DESC`, and there are 67,795 unparked, undone, priority-10 rows waiting. At the per-row cost I measured below, that is hours of matcher work contending with a live show, on a pool with `CONNECTION LIMIT 5`.\n\nThe flag is not what is broken. Fix ordering and throughput first, then enable \u2014 order given at the end.\n\n---\n\n## Verified findings (measured, as-of `2026-08-16 00:34Z` unless noted)\n\n### The queue\n\n| Metric | Value |\n|---|---|\n| Total rows | 173,220 |\n| Undone | 106,204 |\n| Undone **and drainable** (not parked) | 78,077 |\n| Parked (invisible to `drain_comps_fanin`) | 28,162 |\n| Done | 67,016 |\n| Rows with `last_error` | 1,068 (913 `lock timeout`, 155 `deadlock detected`) |\n| Oldest undone | 2026-08-05 05:22:14Z \u2014 **parked** |\n| Oldest undone *and drainable* | 2026-08-11 04:30:36Z (4.8 days, not moving) |\n| Newest enqueued | 2026-08-16 00:33:01Z |\n| Last drained | 2026-08-16 00:30:07Z |\n\n### The drain has never actually stopped \u2014 it is starved, not off\n\nRows drained per day, with the flag `false` since ~Aug 11: Aug 12 = 0, Aug 13 = 5,093, Aug 14 = 1,061, Aug 15 = 352, Aug 16 (6h) = 5. Intake over the same window: 22,243 / 36,531 / 6,287.\n\nThe five rows drained in the last six hours were all enqueued `2026-08-15 12:02:58Z` by `comp_acquire_ef` and completed **12.5 hours later**. That is the `/coin` refresh button: `src/pages/Cert.tsx:921` posts `comps-rematch {fanin:true, batch:25}` straight to the Edge Function and never consults the DB flag. It is the only live drain path, and it is user-initiated.\n\nSo this is **\"running but starved,\" not \"not dispatched.\"** Meanwhile the current hour's 105 enqueued rows are 0% drained \u2014 the live scan lane's own comps are not being matched in real time. That is the genuine cost of leaving the flag off, and it is the strongest argument for eventually turning it on.\n\n### Per-row cost (measured directly, this session)\n\n`lkup_resolve_comp_v2` over the 5 head-of-queue rows, `EXPLAIN ANALYZE`:\n\n- cold: 6,101 ms / 5 rows = **1,220 ms/row**\n- warm re-run, same rows: 3,181 ms / 5 rows = **636 ms/row**\n\nCaveat, per measurement hygiene: an unrelated query had been active 2.3 h during both runs, so treat 636 ms as the warm floor. This is the **matcher alone** \u2014 the real drain cost per row is higher, because `populate_comps_from_marketplace` inserts into `public.comps`, which fires six row-level BEFORE triggers plus four statement-level AFTER triggers (`comps_council_emit`, `comps_enrich_ebay_trg`, `comps_refresh_pipeline`, `comps_barcode_decode_drain_trg`), several of which issue their own HTTP posts.\n\nNote this is measured *after* commit `10ab17e4b` (\"spine gate 145x faster\", Aug 11 03:08). The 145x index win did **not** move the per-row cost through this path \u2014 it is still in the same band as the 762 ms/row measured on Aug 9.\n\n### Throughput vs intake \u2014 marginal, not hopeless\n\n- 7-day intake (Aug 9\u201315): 126,986 rows = **18,141/day average**, with peaks of 36,531 (Aug 14) and 30,820 (Aug 9).\n- Best observed drain with the flag on: **20,197/day** (Aug 9); 18,348 on Aug 6, which *exceeded* that day's intake of 12,029.\n\nSo the drain can beat an average day and loses badly on a 30k day. Net drawdown at best \u2248 2k/day \u2192 roughly **39 days** to clear the 78k drainable backlog, assuming intake stays at average. It will not clear it during show weeks.\n\n### Why it is off (the containment measure)\n\n`enrichment_flags.updated_at` reads `2026-08-09 02:21:13Z` \u2014 **do not use that as the flip time.** That timestamp is the row's *insert*, from migration `20260809022113_w1_fanin_drain_trigger.sql`, which inserted the flag with `enabled = true`. There is no trigger on `enrichment_flags` to bump `updated_at` on UPDATE, and `track_commit_timestamp` is off, so the column has been frozen since creation.\n\nThe real off-time comes from the dispatch state: `enrichment_chain_state.comps_fanin_drain.last_fired_at = 2026-08-11 07:47:22Z` and `comps_fanin_kick.last_kick_at = 2026-08-11 07:48:17Z`, both frozen while 85k observations have arrived since. **Dispatch stopped ~2026-08-11 07:48Z.**\n\nThe surrounding context is commit `49f04c553` (Ben, Aug 10 22:23 MDT), *\"fix(show-prep): park 27,965-row comp backlog\u2026\"*, quoting Ben directly: *\"we do NOT want those 27k draining right now\"* and *\"i need ALL human lane\u2026 working.\"* Its migration header records the incident: `lkup_resolve_comp_v2` at 445\u2013634 ms/row from the per-row trigger, one `/scan` enqueuing ~700 rows (705 measured in one minute) \u2248 9 minutes of matcher work per scan; `comps-rematch` holding a `backend_direct` slot (limit 5) up to 100 s \u2192 **`53300 too many connections`, 57\u00d7 during the outage**, with live surfaces 504ing.\n\nThis is a containment measure taken during a live show, for a cause that is still present. That is the answer to \"why is it off.\"\n\n---\n\n## Retractions \u2014 prior findings this audit disproves\n\nThese are in `audit/sessions/20260809/scripts/skill_addendum_20260815.md` and Turso todo **#12787**. Both should be corrected in place.\n\n**1. \"Nothing ever parks \u2014 no code path SETS `parked_at`, so poison rows retry forever.\"** Wrong in its premise. 28,162 rows *are* parked, all within **four distinct minutes** (`2026-08-11 04:13:53Z` \u2192 `04:30:02Z`) \u2014 the one-time bulk `UPDATE` in migration `20260811040000_park_fanin_backlog_human_lane.sql`. The 27,110 parked rows with `NULL last_error` that #12787 calls \"undiagnosable\" are simply that deliberate park. **There is no mystery park path to hunt.** The real defect is the adjacent one: no *automatic* park exists, so chronically failing rows never get demoted.\n\n**2. \"`oldest_undone` frozen at 2026-08-05 is the proof of LIFO starvation.\"** That row is parked \u2014 it is frozen because Ben froze it. The honest proof is the oldest *drainable* row: `2026-08-11 04:30:36Z`, 4.8 days old and not advancing while newer rows drain. LIFO starvation is still real (both `drain_comps_fanin` and `drain_comps_fanin_batch` order `enqueued_at DESC`); the cited evidence was the wrong row.\n\n**3. \"`populate_comps_from_marketplace` uses ILIKE identity matching and writes `coin_lkup_uuid` itself.\"** Not supported by the live function body. `coin_lkup_uuid` appears exactly once, at offset 3604, **read-only inside a `CASE` predicate** that decides `match_version`; it is absent from the `INSERT` column list and from every `ON CONFLICT DO UPDATE SET` assignment. The two `ILIKE`s are on `s.buying_format` (`'%auction%'`, `'%fixed%'`) classifying `sale_state` \u2014 nothing to do with identity. Identity is set downstream by `trg_comps_match \u2192 _comps_match_on_write \u2192 lkup_resolve_comp_v2`. Damage count either way: **5 of 39,975 bound comps carry no `match_kind` (0.01%)**. Latent at most; not a reason to keep the flag off.\n\n**4. \"Ceiling below intake by construction (~18.2k/day).\"** That arithmetic assumes one 15-second drain call per 90-second debounce. It omits the Edge Function's own loop \u2014 `FANIN_WALL_MS = 100_000` with up to **60 passes** per invocation (`comps-rematch/index.ts:91,98`), each pass a fresh `drain_comps_fanin` call. Observed reality beat the estimate on Aug 6 (18,348 drained vs 12,029 intake). The ceiling is *marginal*, not structurally below intake \u2014 which changes the fix from \"redesign\" to \"raise headroom.\"\n\n---\n\n## Unverified\n\n- **Whether the 28,162 parked rows are still worth draining.** Their observations are 5\u201311 days old; whether the resulting comps are still useful comps is a business call I can't measure. Settled by sampling ~50 parked rows and checking whether the listing is still live/priced.\n- **What throughput the drain reaches with the current spine index.** My 636 ms/row is the matcher only. Settled by running `drain_comps_fanin(50, 20000)` once in a quiet window and reading `processed` against elapsed \u2014 that is a mutation, so I did not run it.\n- **Whether `lkup_resolve_comp_v2` is the matcher Ben wants on this path.** `_comps_match_on_write` calls it live on every comps write (contradicting the stored note that it has zero callers), but `docs/integrity/BEN_MATCHING_REQUIREMENTS_2026-08-09.md` governs which matcher is canonical, and W3 owns that decision.\n\n---\n\n## Landmine to fix before anyone touches this again\n\n`public.drain_comps_fanin_batch` filters only `done_at is null and attempts < 5` \u2014 **it does not check `parked_at`.** Anything that calls it walks straight through Ben's 28,162-row containment park. It also self-chains via `net.http_post` to its own PostgREST RPC, so a single kick keeps going on its own. It currently has no caller in the repo (only the generated `database.types.ts`), so it is dormant \u2014 but it is one RPC call away from undoing the park, silently.\n\n---\n\n## What I'd do instead, in this order\n\n1. **Now (flag stays off):** nothing during the live session. If you want the current scan's comps matched, hit the `/coin` refresh button \u2014 that path already works and bypasses the flag.\n2. **Add `parked_at is null` to `drain_comps_fanin_batch`.** One line, removes the containment bypass.\n3. **Fix the ordering** to FIFO or age-weighted within each priority band (keep `priority DESC` first so a live scan still jumps the queue). Without this, enabling the flag leaves the 4.8-day tail permanently unreachable \u2014 you would be adding load without ever finishing.\n4. **Add automatic parking after N attempts,** writing `last_error`, so the 1,068 lock-timeout/deadlock rows stop being retried and every park is diagnosable.\n5. **Then enable \u2014 in a quiet window, watched.** Prove it with the effect, not the flag: `processed` climbing, `oldest drainable enqueued_at` *advancing*, `backend_direct` connections staying under 5, and no `53300` in the logs. Rollback is one UPDATE back to `false`; the queue is untouched either way (the flag gates dispatch only \u2014 rows keep enqueuing regardless).\n6. **Decide the 28,162 parked rows separately,** as an explicit unpark once throughput exceeds intake with headroom \u2014 not as a side effect of flipping a flag.\n\nDurable corrections from this audit belong in the grow-only addendum `audit/sessions/20260809/scripts/skill_addendum_20260815.md` (retractions 1\u20134) and against Turso todo **#12787**, whose premise (a) is now resolved: the mass-park was migration `20260811040000`, not an unknown code path.\n"}], "grading": {"expectations": [{"text": "Does NOT recommend a bare flip", "passed": true, "evidence": "\"**No \u2014 not right now, and not as-is.**\" followed by a 6-step ordered plan (\"Fix ordering and throughput first, then enable\") with enabling only at step 5 \"in a quiet window, watched.\""}, {"text": "Reads drain_comps_fanin's actual source before advising", "passed": true, "evidence": "Quotes the ORDER BY from the body \u2014 \"`drain_comps_fanin` orders `priority DESC, attempts ASC, enqueued_at DESC`\" \u2014 and reads the sibling function's predicate: \"`public.drain_comps_fanin_batch` filters only `done_at is null and attempts < 5` \u2014 **it does not check `parked_at`**\", plus the `and q.parked_at is null` filter in the main drain."}, {"text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)", "passed": true, "evidence": "Multiple: LIFO starvation (\"Oldest undone *and drainable* | 2026-08-11 04:30:36Z (4.8 days, not moving)\"), no automatic parking (\"no *automatic* park exists, so chronically failing rows never get demoted\"), and the `drain_comps_fanin_batch` park bypass landmine."}, {"text": "Investigates WHY the flag is off rather than assuming", "passed": true, "evidence": "\"### Why it is off (the containment measure)\" \u2014 debunks the obvious signal (\"`enrichment_flags.updated_at` reads `2026-08-09 02:21:13Z` \u2014 **do not use that as the flip time**\", it is the migration insert), then derives the real off-time from `enrichment_chain_state`/`comps_fanin_kick` (\"**Dispatch stopped ~2026-08-11 07:48Z**\") and ties it to commit `49f04c553` and the 53300 outage."}, {"text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims", "passed": true, "evidence": "Own EXPLAIN ANALYZE: \"cold: 6,101 ms / 5 rows = **1,220 ms/row**; warm re-run ... **636 ms/row**\", 7-day intake 126,986 rows = 18,141/day vs best drain 20,197/day, \"roughly **39 days** to clear the 78k drainable backlog\", 67,795 priority-10 drainable rows, 1,068 last_error rows (913 lock timeout, 155 deadlock)."}, {"text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone", "passed": true, "evidence": "It retracts the ILIKE-identity-write corruption claim and counts it: \"Damage count either way: **5 of 39,975 bound comps carry no `match_kind` (0.01%)**. Latent at most; not a reason to keep the flag off.\""}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-2-without_skill", "prompt": "comps_fanin_drain_enabled is false and comps_fanin_queue has ~100k undone rows. Should I flip the flag back on?", "eval_id": 2, "outputs": [{"name": "answer.md", "type": "text", "content": "# Should you flip `comps_fanin_drain_enabled` back on?\n\n**Not as a bare flip.** Re-park the stale backlog first (one reversible UPDATE), then flip. Flipping the flag alone today does something materially different from what it did the last time it was on, and the difference is ~78,000 rows.\n\nAll numbers below are measured live in `vsotvatntzlrzrhemayh` on 2026-08-15, full-table counts, no samples.\n\n---\n\n## 1. Correcting the reason on file\n\nThe repo ledger and the last two sessions say the flag was *\"set to false on 2026-08-09 to prevent a repeat of the 2026-08-11 pg_net trigger-storm outage.\"* That is chronologically impossible, and it is wrong.\n\n`enrichment_flags.updated_at` reads `2026-08-09 02:21:13.740414+00` \u2014 but that is exactly the timestamp of migration `20260809022113_w1_fanin_drain_trigger.sql`, which **inserted the row with `enabled = true`**. There is no `updated_at` maintenance on that table, so the column still shows row-creation time and tells you nothing about when the value flipped.\n\nThe real last-dispatch stamps:\n\n| Evidence | Value |\n|---|---|\n| `comps_fanin_kick.last_kick_at` | `2026-08-11 07:48:17Z` |\n| `enrichment_chain_state.last_fired_at` ('comps_fanin_drain') | `2026-08-11 07:47:22Z` |\n\nDispatch ran until **2026-08-11 ~07:48Z**, then stopped dead. The flag was flipped off *that morning, during show prep* \u2014 after the 03:00\u201304:30Z outage work, not before it. Your own knowledge snapshot records the decision verbatim: *\"DELIBERATE TRADEOFF STATED TO BEN: comps_fanin_drain_enabled=FALSE for the show... 928 drainable, 28,162 parked... Flip with: update public.enrichment_flags set enabled=true... The tradeoff disappears once the batch-match build (todo #12774) lands.\"*\n\nSo it was always meant to be flipped back. The question is only whether the preconditions still hold.\n\n## 2. They don't. The \"~100k undone\" splits two ways\n\n```\nundone total        106,204\n  parked            28,162   invisible to drain_comps_fanin\n  LIVE HEAD         78,077   drainable right now\n    of which pri>=10  67,730 human lane\n```\n\nWhen Ben accepted the tradeoff on 08-11, the live head was **928 rows**. It is now **78,077**. That is the whole answer.\n\nThe `parked_at` mechanism (migration `20260811040000_park_fanin_backlog_human_lane.sql`) is what made the flag safe to flip: it froze the 28k backlog so the drain could \"only ever see fresh work.\" But parking was a **one-time manual UPDATE** run between `04:13:53Z` and `04:30:02Z` on 08-11. I verified across all schemas that `drain_comps_fanin` is the *only* database object that references `parked_at`, and it only ever reads it. **Nothing re-parks.** Every row enqueued in the four days since has landed unparked in the live head, and 87% of it carries priority 10.\n\nFlip the flag as-is and the drain doesn't sip fresh work \u2014 it starts a 78k-row grind.\n\n## 3. The matcher got worse, not better\n\nMeasured today via `EXPLAIN ANALYZE` over 25 pending queue rows:\n\n| Path | Cost/row | Context |\n|---|---|---|\n| `lkup_resolve_comp_v2` (live write path via `trg_comps_match` \u2192 `_comps_match_on_write`) | **1,338 ms** | 33,443 ms / 25 rows |\n| `lkup_resolve_or_match_comp` (EF drain / rematch path) | **1,790 ms** | 44,753 ms / 25 rows |\n\nBaselines: **762 ms/row** (W1, 2026-08-09) and **445\u2013634 ms/row** (2026-08-11, the measurement that motivated the shutdown). Current cost is **2.1\u20133.0x worse** than when the lane was switched off.\n\nNote what this rules out: todo #12783 blamed the cost on `public.comps` never having been `ANALYZE`d. That is no longer true \u2014 `comps`, `spine`, `coins`, `marketplace_observations` and `lkup_series_keyword` were all analyzed 2026-08-14 11:18\u201311:20Z. The regression survived the fix that was supposed to explain it. Something else changed and hasn't been found.\n\nArithmetic on the flip:\n- 78,077 live-head rows x 1.338 s = **~29 hours** of continuous matcher work.\n- `drain_comps_fanin` is **single-flight** (global advisory lock, migration `20260811043000`) \u2014 exactly one drain cluster-wide, so there is no parallel speedup. It pins 1 of the 5 `backend_direct` slots essentially continuously for those 29 hours.\n- Inflow is 6k\u201336k rows/day, i.e. **2.2\u201313.6 h/day** of matcher work at current cost. On a heavy day the lane is roughly break-even *after* it catches up.\n\nThe LIFO ordering (`priority DESC, attempts ASC, enqueued_at DESC`) does protect live scans \u2014 a fresh scan still goes to the head of the queue. The risk isn't live-scan latency; it's a drain that never reaches empty and therefore never releases the pooler slot, against a pool with a documented saturation history (policy #757, and the 57 `53300 too many connections for role backend_direct` errors in the 02:52\u201303:02Z window on 08-11).\n\n## 4. The flag is not the gate its name implies \u2014 fix this too\n\nYour knowledge base contains an unresolved contradiction: *\"the flag has been FALSE since 08-09, yet the queue IS draining \u2014 so that flag is not the gate its name implies and is a misleading control surface.\"* Resolved:\n\n`drain_comps_fanin` does **not** check `comps_fanin_drain_enabled` (verified against `prosrc`). Only two objects read it \u2014 `marketplace_obs_to_comps_trg` (the per-row kick) and `fire_comps_fanin_drain` (the statement-level backstop). It gates **dispatch**, not drain. Anything that invokes the `comps-rematch` EF directly \u2014 notably the `/coin` refresh button \u2014 drains the queue regardless. That is why 5,093 rows drained on 08-13 and 352 today with the flag \"off.\"\n\nBoth scheduled invokers (cron jobs 41 `comps-rematch-drain` and 42 `drain-comps-fanin`) are inactive, consistent with the crons-off-permanently policy (#880).\n\nThis ambiguity has now caused two separate sessions to reason wrongly about this lane. Either make `drain_comps_fanin` honor the flag, or rename it `comps_fanin_dispatch_enabled`.\n\n## 5. Recommended sequence\n\n**Do not flip during a live show.** The 08-11 shutdown was show-driven; confirm nothing is streaming first.\n\n1. **Re-park the stale backlog.** Only **105** live-head rows were enqueued in the last 6 hours (65 of them human-lane). Parking everything older restores almost exactly the 08-11 condition that made the flag safe:\n   ```sql\n   update public.comps_fanin_queue\n      set parked_at = now()\n    where done_at is null and parked_at is null\n      and enqueued_at < now() - interval '6 hours';\n   -- reverse: update ... set parked_at = null where parked_at > <timestamp of this run>;\n   ```\n   Rows are retained, not dropped. This is fully reversible.\n2. **Then flip the flag on**, and watch for 30 minutes: live-head depth, `net._http_response` 5xx/timeouts, and `53300 backend_direct` errors. Current pg_net health is fine (332/397 responses 200 in the last 6h), so you have a clean baseline to compare against.\n3. **Investigate the 1,338 ms/row regression before draining the ~106k parked rows.** Post-ANALYZE it is 2\u20133x the number that justified the shutdown, and the previously assumed cause is gone. Draining 106k rows at that cost is 39+ hours of pooler occupancy.\n4. **Land the batch-match build (todo #12774)** \u2014 match the whole eBay batch in one set-based pass, then one insert with `coin_lkup_uuid` already attached. Migration `20260811043000` explicitly calls the single-flight guard \"a stopgap for the show\" and names this as the real fix. The backlog is not drainable at per-row trigger cost; it's drainable at batch cost.\n5. **Add a standing park rule.** A one-time manual UPDATE as the sole thing separating \"fresh work\" from \"78k-row grind\" is the actual defect here, and it silently decayed over four days with nothing reporting it.\n\n## 6. What stays broken while it's off\n\nNew marketplace observations are still **captured** to `raw.marketplace_observations` and **queued** \u2014 nothing is being lost. They just aren't minted into `public.comps`, so new comps don't appear on `/coin`. Identity, pricing, and OBS do not depend on the fan-in (proven live on 08-11: a scan returned full guide + melt with the drain off). Currently 57,445 of 97,420 comps are unmatched.\n\nAlso worth noting: 1,068 undone rows carry a `last_error`, and per the prior session's finding, much of the earlier park came from lock timeouts and deadlocks that recorded no `last_error` at all \u2014 a park path that writes no diagnosis. Worth closing while you're in here.\n"}], "grading": {"expectations": [{"text": "Does NOT recommend a bare flip", "passed": true, "evidence": "\"**Not as a bare flip.** Re-park the stale backlog first (one reversible UPDATE), then flip.\" plus \"**Do not flip during a live show.**\" and a 5-step sequence."}, {"text": "Reads drain_comps_fanin's actual source before advising", "passed": true, "evidence": "\"`drain_comps_fanin` does **not** check `comps_fanin_drain_enabled` (verified against `prosrc`)\", \"I verified across all schemas that `drain_comps_fanin` is the *only* database object that references `parked_at`, and it only ever reads it\", and it quotes the ordering `priority DESC, attempts ASC, enqueued_at DESC` and the single-flight advisory lock from migration `20260811043000`."}, {"text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)", "passed": true, "evidence": "Parking: \"**Nothing re-parks.** Every row enqueued in the four days since has landed unparked in the live head\" \u2014 named as \"the actual defect here\". Single-flight: \"`drain_comps_fanin` is **single-flight** (global advisory lock ...) so there is no parallel speedup.\" Plus throughput vs inflow (2.2\u201313.6 h/day of matcher work)."}, {"text": "Investigates WHY the flag is off rather than assuming", "passed": true, "evidence": "\"## 1. Correcting the reason on file\" \u2014 shows the filed reason is \"chronologically impossible\", proves `updated_at` is the insert stamp from migration `20260809022113`, and derives the true flip window from `comps_fanin_kick.last_kick_at = 2026-08-11 07:48:17Z` plus the verbatim show-prep tradeoff note."}, {"text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims", "passed": true, "evidence": "Own EXPLAIN ANALYZE over 25 rows: \"`lkup_resolve_comp_v2` ... **1,338 ms** | 33,443 ms / 25 rows\" and \"`lkup_resolve_or_match_comp` ... **1,790 ms**\", against 762 ms and 445\u2013634 ms baselines; queue split 106,204 undone = 28,162 parked + 78,077 drainable (67,730 pri>=10); \"78,077 \u00d7 1.338 s = **~29 hours**\"; only 105 live-head rows in the last 6h."}, {"text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone", "passed": true, "evidence": "It raises no data-corruption risk \u2014 the opposite: \"New marketplace observations are still **captured** ... and **queued** \u2014 nothing is being lost.\" The risk items it does raise are quantified (\"1,068 undone rows carry a `last_error`\", \"57,445 of 97,420 comps are unmatched\", 57 `53300` errors in the 02:52\u201303:02Z window)."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "ground-truth-audit", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-08-16T00:46:30Z", "evals_run": [0, 1, 2], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 326.1, "tokens": 162407, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Verifies against LIVE introspection rather than accepting the doc's claim", "passed": true, "evidence": "\"All numbers below are live from `vsotvatntzlrzrhemayh`, **as of 2026-08-16 00:30:55 UTC**\" \u2014 plus live pg_trigger state (`pg_trigger.tgenabled='O'`), `cron.job.active = false`, `enrichment_flags` row read, and full-table queue counts."}, {"text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)", "passed": true, "evidence": "\"Real call site in `supabase/functions/comps-rematch/index.ts:99`; last successful drain `done_at = 2026-08-16 00:30:07` \u2014 48s before I measured\", and it explicitly rejects the comment-only path: \"`lkup_maintenance_tick` ... only a comment remains \u2014 not a call site\"."}, {"text": "Reports the current backlog/queue state with actual numbers and an as-of time", "passed": true, "evidence": "Full-table table: total 173,260 / done 67,021 / not done 106,239 / parked 28,162 / drainable 78,077 / oldest drainable 2026-08-11 04:30:36Z, plus a 10-day in/out ledger, all stamped \"as of 2026-08-16 00:30:55 UTC\"."}, {"text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker", "passed": true, "evidence": "\"**`enrichment_flags.comps_fanin_drain_enabled = FALSE`, `updated_at = 2026-08-09 02:21:13Z`** ... It gates **only the two trigger paths** (the only two `pg_proc` bodies that read it). The EF path ignores it, which is why rows still complete daily.\""}, {"text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics", "passed": true, "evidence": "Section 5: the line \"lives in `audit/deployed-state-sections.html:589` \u2014 the grow-only curated file that survives regeneration by design. It is a **frozen artifact rendered inside a page that reads as live**\" \u2014 and it shows the page's own 2026-08-09 correction is itself now stale against live drainable=78,077."}, {"text": "Does not overstate: separates what was verified from what remains unverified", "passed": true, "evidence": "Dedicated \"## Unverified\" section listing three open items each with a settle-method (e.g. \"Which client fired the 00:30:07Z drain ... Settled by the `comps-rematch` Edge Function invocation logs\"), and it splits the doc claim into two halves with separate verdicts rather than a blanket true/false."}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 764.6, "tokens": 208962, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Censuses by file/lines changed rather than only reading commit subjects", "passed": true, "evidence": "\"Census was by lines-per-file, not by message\" \u2014 backed by actual file-level aggregation: \"**29 distinct migration files named `wire_cert_readiness_realtime.sql`** and **26 named `grader_evidence_gate_and_truthful_onboard.sql`**\" (checksummed all 29), \"Local versions dated \u2265 20260809: **220**\", \"1,363 migration versions against 1,145 recorded remotely \u2014 218 local-only\"."}, {"text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out", "passed": true, "evidence": "\"932 commits, of which **653 are automated** (auto-sync, pre-push hook, Lovable bot). A subject-line skim would have shown you 279 commits and missed most of the week \u2014 the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration.\" Author breakdown includes auto-sync 312 and pre-push hook 222."}, {"text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)", "passed": true, "evidence": "\"the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration\" \u2014 identifies the facet corpus by size (814k rows, matching coin_facet_tokens.tsv) and attributes it to the automated commits, though it does not name the .tsv file itself."}, {"text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message", "passed": true, "evidence": "\"**I verified this is deployed right now**, not just committed \u2014 pulled the live index bundle, followed it to the lazy `CameraInput` chunk, and found the `lkupScanStats` marker present.\" Also a live anon-key probe table (before/now: 200\u2192401, 204\u2192401) and live `pg_get_functiondef('public.onboard_minor_grader')` on prod showing the bare `synth:` shape."}, {"text": "Reports a doc-vs-reality contradiction it found", "passed": true, "evidence": "\"## Documentation that has gone stale\" \u2014 three, incl. \"**`CLAUDE.md` says `core.hooksPath` is the default `.git/hooks` and the in-repo `.githooks/*` is NOT active.** It is now set to `.githooks` ... That line is inverted.\""}, {"text": "Retracts or corrects at least one of its own intermediate conclusions", "passed": true, "evidence": "\"## Retracted this session\" with three explicit self-corrections, e.g. \"**I said the zero-identity onboarding fix was working cleanly** \u2014 cut at 'since Aug 14 12:00' I got 0 of 26 certs with null identity. That window was a tail slice. Widened ... it's **53 of 116**.\""}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 561.3, "tokens": 184365, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Does NOT recommend a bare flip", "passed": true, "evidence": "\"**No \u2014 not right now, and not as-is.**\" followed by a 6-step ordered plan (\"Fix ordering and throughput first, then enable\") with enabling only at step 5 \"in a quiet window, watched.\""}, {"text": "Reads drain_comps_fanin's actual source before advising", "passed": true, "evidence": "Quotes the ORDER BY from the body \u2014 \"`drain_comps_fanin` orders `priority DESC, attempts ASC, enqueued_at DESC`\" \u2014 and reads the sibling function's predicate: \"`public.drain_comps_fanin_batch` filters only `done_at is null and attempts < 5` \u2014 **it does not check `parked_at`**\", plus the `and q.parked_at is null` filter in the main drain."}, {"text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)", "passed": true, "evidence": "Multiple: LIFO starvation (\"Oldest undone *and drainable* | 2026-08-11 04:30:36Z (4.8 days, not moving)\"), no automatic parking (\"no *automatic* park exists, so chronically failing rows never get demoted\"), and the `drain_comps_fanin_batch` park bypass landmine."}, {"text": "Investigates WHY the flag is off rather than assuming", "passed": true, "evidence": "\"### Why it is off (the containment measure)\" \u2014 debunks the obvious signal (\"`enrichment_flags.updated_at` reads `2026-08-09 02:21:13Z` \u2014 **do not use that as the flip time**\", it is the migration insert), then derives the real off-time from `enrichment_chain_state`/`comps_fanin_kick` (\"**Dispatch stopped ~2026-08-11 07:48Z**\") and ties it to commit `49f04c553` and the 53300 outage."}, {"text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims", "passed": true, "evidence": "Own EXPLAIN ANALYZE: \"cold: 6,101 ms / 5 rows = **1,220 ms/row**; warm re-run ... **636 ms/row**\", 7-day intake 126,986 rows = 18,141/day vs best drain 20,197/day, \"roughly **39 days** to clear the 78k drainable backlog\", 67,795 priority-10 drainable rows, 1,068 last_error rows (913 lock timeout, 155 deadlock)."}, {"text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone", "passed": true, "evidence": "It retracts the ILIKE-identity-write corruption claim and counts it: \"Damage count either way: **5 of 39,975 bound comps carry no `match_kind` (0.01%)**. Latent at most; not a reason to keep the flag off.\""}], "notes": []}, {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8333, "passed": 5, "failed": 1, "total": 6, "time_seconds": 248.2, "tokens": 141846, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Verifies against LIVE introspection rather than accepting the doc's claim", "passed": true, "evidence": "Live trigger states (`tgenabled='O'`), live EF version (\"ACTIVE, version 74, deployed 2026-08-15\"), and an actual execution: \"select * from public.drain_comps_fanin(5, 8000); -- processed=5, deferred=0, failed=0 ... Run just now against prod.\""}, {"text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)", "passed": true, "evidence": "Names three live paths: trigger `trg_marketplace_obs_to_comps` \u2192 `marketplace_obs_to_comps_trg()`, statement trigger `comps_fanin_drain_trg` \u2192 `fire_comps_fanin_drain()`, and EF `comps-rematch` running `select processed, deferred, failed from public.drain_comps_fanin($batch, $deadline_ms)`, plus `src/pages/Coin.tsx` calling `efPost('comps-rematch', {fanin:true,...})`."}, {"text": "Reports the current backlog/queue state with actual numbers and an as-of time", "passed": true, "evidence": "\"as of 2026-08-16 00:27 UTC\" with a full table: total 173,220 / done 67,016 / parked 28,162 / pending 78,042 / attempts>=5 = 0 / oldest enqueue 2026-08-03 20:58 / last drain 2026-08-15 09:25."}, {"text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker", "passed": true, "evidence": "\"**Automatic dispatch is intentionally OFF via a kill-switch, not missing.**\" \u2014 quotes the `public.enrichment_flags` row `comps_fanin_drain_enabled = false` with its notes, and \"Both trigger functions read that flag and `return` early when it is false.\""}, {"text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics", "passed": true, "evidence": "\"the top-of-report table row (line 249) was never updated. The document contradicts itself\" and identifies `audit/deployed-state-sections.html:320` as \"the grow-only fragment the report regenerates from \u2014 fixing only the HTML will be overwritten\", against its own live counts."}, {"text": "Does not overstate: separates what was verified from what remains unverified", "passed": false, "evidence": "It does flag one item as \"Unverified\", but it overstates the verdict: \"**No. Both halves of that claim are false**\" and \"'Queue is filling, not draining' \u2014 false\" is asserted from cumulative completions (67k done) and a 12-hour idle window, while its own table shows 106,204 rows not done against 67,016 done since 2026-08-03. It never measured intake rate, so declaring the filling half FALSE is a conclusion beyond what it verified."}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.6667, "passed": 4, "failed": 2, "total": 6, "time_seconds": 586.9, "tokens": 173944, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Censuses by file/lines changed rather than only reading commit subjects", "passed": true, "evidence": "Goes beyond subjects with file-level measures: \"`src/pages/Cert.tsx` is new \u2014 5,173 lines\", \"Roughly 90 migrations across Aug 11\u201313\", \"`audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows\", per-function lag from `audit/artifacts/ef-deploy-status-20260814.tsv`, and named new content scripts. The headline framing is still commit-count based, but real file/line aggregation is present."}, {"text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out", "passed": false, "evidence": "Explicitly filters them out in the opening line: \"813 commits on `prod` since Aug 9. 530 of those are `auto: sync` / knowledge-snapshot noise from the hooks \u2014 **the real number is 283**\". The automated commits are labelled noise and excluded from the census."}, {"text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)", "passed": true, "evidence": "\"**The asset nobody is reading.** `audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows, exactly 1:1 with `public.spine` ... Companions: `ground_truth_comps.tsv` (1,207 barcode-verified labelled comps) and `facet-match-scorecard.tsv` ... **Built by agents Aug 10\u201314 and auto-committed.**\""}, {"text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message", "passed": true, "evidence": "\"I checked the served bundle by content, not by commit. `Dealer-D_rSwTht.js` on lkup.info right now does not contain \\\"Limits are not enforced during alpha\\\" ... and the served `CameraInput-C4oWmWjM.js` contains no `prewarm` marker\" \u2192 concludes live is ~24\u201330h behind."}, {"text": "Reports a doc-vs-reality contradiction it found", "passed": true, "evidence": "\"**`audit/LOOP_LEDGER.md` is stale.** CLAUDE.md names it the sole live source of truth for architecture and priorities. It was last modified **Jul 26** \u2014 three weeks ago, and it missed the entire spine-convergence effort.\""}, {"text": "Retracts or corrects at least one of its own intermediate conclusions", "passed": false, "evidence": "The corrections are all of external artifacts, not of its own in-session reasoning: \"the note that EF auto-deploy was 'restored 2026-08-05 by killing the symlink farm' was wrong\" (a stored fact), \"todo #12783 blamed...\", and \"This was initially reported as a 69% identity-conflict crisis and **you** disproved it with CoinFacts\". No statement of a conclusion it itself reached mid-audit and then withdrew."}], "notes": []}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 465.2, "tokens": 145997, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Does NOT recommend a bare flip", "passed": true, "evidence": "\"**Not as a bare flip.** Re-park the stale backlog first (one reversible UPDATE), then flip.\" plus \"**Do not flip during a live show.**\" and a 5-step sequence."}, {"text": "Reads drain_comps_fanin's actual source before advising", "passed": true, "evidence": "\"`drain_comps_fanin` does **not** check `comps_fanin_drain_enabled` (verified against `prosrc`)\", \"I verified across all schemas that `drain_comps_fanin` is the *only* database object that references `parked_at`, and it only ever reads it\", and it quotes the ordering `priority DESC, attempts ASC, enqueued_at DESC` and the single-flight advisory lock from migration `20260811043000`."}, {"text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)", "passed": true, "evidence": "Parking: \"**Nothing re-parks.** Every row enqueued in the four days since has landed unparked in the live head\" \u2014 named as \"the actual defect here\". Single-flight: \"`drain_comps_fanin` is **single-flight** (global advisory lock ...) so there is no parallel speedup.\" Plus throughput vs inflow (2.2\u201313.6 h/day of matcher work)."}, {"text": "Investigates WHY the flag is off rather than assuming", "passed": true, "evidence": "\"## 1. Correcting the reason on file\" \u2014 shows the filed reason is \"chronologically impossible\", proves `updated_at` is the insert stamp from migration `20260809022113`, and derives the true flip window from `comps_fanin_kick.last_kick_at = 2026-08-11 07:48:17Z` plus the verbatim show-prep tradeoff note."}, {"text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims", "passed": true, "evidence": "Own EXPLAIN ANALYZE over 25 rows: \"`lkup_resolve_comp_v2` ... **1,338 ms** | 33,443 ms / 25 rows\" and \"`lkup_resolve_or_match_comp` ... **1,790 ms**\", against 762 ms and 445\u2013634 ms baselines; queue split 106,204 undone = 28,162 parked + 78,077 drainable (67,730 pri>=10); \"78,077 \u00d7 1.338 s = **~29 hours**\"; only 105 live-head rows in the last 6h."}, {"text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone", "passed": true, "evidence": "It raises no data-corruption risk \u2014 the opposite: \"New marketplace observations are still **captured** ... and **queued** \u2014 nothing is being lost.\" The risk items it does raise are quantified (\"1,068 undone rows carry a `last_error`\", \"57,445 of 97,420 comps are unmatched\", 57 `53300` errors in the 02:52\u201303:02Z window)."}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 550.6667, "stddev": 219.4433, "min": 326.1, "max": 764.6}, "tokens": {"mean": 185244.6667, "stddev": 23289.9628, "min": 162407, "max": 208962}}, "without_skill": {"pass_rate": {"mean": 0.8333, "stddev": 0.1667, "min": 0.6667, "max": 1.0}, "time_seconds": {"mean": 433.4333, "stddev": 171.57, "min": 248.2, "max": 586.9}, "tokens": {"mean": 153929.0, "stddev": 17457.3156, "min": 141846, "max": 173944}}, "delta": {"pass_rate": "+0.17", "time_seconds": "+117.2", "tokens": "+31316"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

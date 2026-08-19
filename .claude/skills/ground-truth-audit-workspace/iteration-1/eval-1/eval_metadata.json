@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "what-actually-shipped",
+  "prompt": "I've been away 6 days. Check the lkup.info repo and tell me what actually got built since Aug 9 \u2014 not a commit list, the real work.",
+  "assertions": [
+    "Censuses by file/lines changed rather than only reading commit subjects",
+    "Includes automated commits (auto: sync / stop-hook) rather than filtering them out",
+    "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)",
+    "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message",
+    "Reports a doc-vs-reality contradiction it found",
+    "Retracts or corrects at least one of its own intermediate conclusions"
+  ]
+}

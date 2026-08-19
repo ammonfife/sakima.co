@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Does NOT recommend a bare flip",
+      "passed": true,
+      "evidence": "\"**Not as a bare flip.** Re-park the stale backlog first (one reversible UPDATE), then flip.\" plus \"**Do not flip during a live show.**\" and a 5-step sequence."
+    },
+    {
+      "text": "Reads drain_comps_fanin's actual source before advising",
+      "passed": true,
+      "evidence": "\"`drain_comps_fanin` does **not** check `comps_fanin_drain_enabled` (verified against `prosrc`)\", \"I verified across all schemas that `drain_comps_fanin` is the *only* database object that references `parked_at`, and it only ever reads it\", and it quotes the ordering `priority DESC, attempts ASC, enqueued_at DESC` and the single-flight advisory lock from migration `20260811043000`."
+    },
+    {
+      "text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)",
+      "passed": true,
+      "evidence": "Parking: \"**Nothing re-parks.** Every row enqueued in the four days since has landed unparked in the live head\" \u2014 named as \"the actual defect here\". Single-flight: \"`drain_comps_fanin` is **single-flight** (global advisory lock ...) so there is no parallel speedup.\" Plus throughput vs inflow (2.2\u201313.6 h/day of matcher work)."
+    },
+    {
+      "text": "Investigates WHY the flag is off rather than assuming",
+      "passed": true,
+      "evidence": "\"## 1. Correcting the reason on file\" \u2014 shows the filed reason is \"chronologically impossible\", proves `updated_at` is the insert stamp from migration `20260809022113`, and derives the true flip window from `comps_fanin_kick.last_kick_at = 2026-08-11 07:48:17Z` plus the verbatim show-prep tradeoff note."
+    },
+    {
+      "text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims",
+      "passed": true,
+      "evidence": "Own EXPLAIN ANALYZE over 25 rows: \"`lkup_resolve_comp_v2` ... **1,338 ms** | 33,443 ms / 25 rows\" and \"`lkup_resolve_or_match_comp` ... **1,790 ms**\", against 762 ms and 445\u2013634 ms baselines; queue split 106,204 undone = 28,162 parked + 78,077 drainable (67,730 pri>=10); \"78,077 \u00d7 1.338 s = **~29 hours**\"; only 105 live-head rows in the last 6h."
+    },
+    {
+      "text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone",
+      "passed": true,
+      "evidence": "It raises no data-corruption risk \u2014 the opposite: \"New marketplace observations are still **captured** ... and **queued** \u2014 nothing is being lost.\" The risk items it does raise are quantified (\"1,068 undone rows carry a `last_error`\", \"57,445 of 97,420 comps are unmatched\", 57 `53300` errors in the 02:52\u201303:02Z window)."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

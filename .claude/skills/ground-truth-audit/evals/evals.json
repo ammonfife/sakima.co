@@ -1,0 +1,26 @@
+{
+  "skill_name": "ground-truth-audit",
+  "evals": [
+    {
+      "id": 0,
+      "name": "stale-doc-claim",
+      "prompt": "Our audit page audit/deployed-state.html says: 'public.comps_fanin_queue | work queue | trg_marketplace_obs_to_comps | drain_comps_fanin has no invoker — queue is filling, not draining'. Is that still true? The repo is ~/github/ammonfife/lkup.info and the Supabase project is vsotvatntzlrzrhemayh.",
+      "expected_output": "Determines the claim is STALE by live introspection: a trigger comps_fanin_drain_trg does exist on raw.marketplace_observations. Should NOT stop at the doc. Ideally also notices the doc's own auto-measured metrics contradict its curated narrative, and reports the real current state (flag disabled, backlog ~101k, oldest-undone frozen).",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "what-actually-shipped",
+      "prompt": "I've been away 6 days. Check the lkup.info repo (~/github/ammonfife/lkup.info) and tell me what actually got built since Aug 9 — not a commit list, the real work.",
+      "expected_output": "Censuses by file churn rather than commit subjects, INCLUDING automated commits (auto: sync / stop-hook), and surfaces the large artifacts that landed there — e.g. audit/artifacts/coin_facet_tokens.tsv (~814k rows), lowtier_solo_coins.tsv, facet-match-scorecard.tsv. A run that only reads curated commit subjects misses these entirely.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "should-i-re-enable",
+      "prompt": "In Supabase project vsotvatntzlrzrhemayh, public.enrichment_flags.comps_fanin_drain_enabled is false and public.comps_fanin_queue has ~100k undone rows. Should I flip the flag back on? Repo is ~/github/ammonfife/lkup.info.",
+      "expected_output": "Does NOT simply say yes. Reads drain_comps_fanin before recommending, and finds at least one structural defect — newest-first ordering (oldest_undone frozen), throughput ceiling vs intake rate, parked_at never set, or the ILIKE identity write in populate_comps_from_marketplace. If it raises the ILIKE path it should quantify actual damage rather than call it a crisis. Asks/investigates why the flag is off before recommending re-enable.",
+      "files": []
+    }
+  ]
+}

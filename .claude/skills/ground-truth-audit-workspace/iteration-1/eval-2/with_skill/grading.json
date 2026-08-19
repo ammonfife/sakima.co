@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Does NOT recommend a bare flip",
+      "passed": true,
+      "evidence": "\"**No \u2014 not right now, and not as-is.**\" followed by a 6-step ordered plan (\"Fix ordering and throughput first, then enable\") with enabling only at step 5 \"in a quiet window, watched.\""
+    },
+    {
+      "text": "Reads drain_comps_fanin's actual source before advising",
+      "passed": true,
+      "evidence": "Quotes the ORDER BY from the body \u2014 \"`drain_comps_fanin` orders `priority DESC, attempts ASC, enqueued_at DESC`\" \u2014 and reads the sibling function's predicate: \"`public.drain_comps_fanin_batch` filters only `done_at is null and attempts < 5` \u2014 **it does not check `parked_at`**\", plus the `and q.parked_at is null` filter in the main drain."
+    },
+    {
+      "text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)",
+      "passed": true,
+      "evidence": "Multiple: LIFO starvation (\"Oldest undone *and drainable* | 2026-08-11 04:30:36Z (4.8 days, not moving)\"), no automatic parking (\"no *automatic* park exists, so chronically failing rows never get demoted\"), and the `drain_comps_fanin_batch` park bypass landmine."
+    },
+    {
+      "text": "Investigates WHY the flag is off rather than assuming",
+      "passed": true,
+      "evidence": "\"### Why it is off (the containment measure)\" \u2014 debunks the obvious signal (\"`enrichment_flags.updated_at` reads `2026-08-09 02:21:13Z` \u2014 **do not use that as the flip time**\", it is the migration insert), then derives the real off-time from `enrichment_chain_state`/`comps_fanin_kick` (\"**Dispatch stopped ~2026-08-11 07:48Z**\") and ties it to commit `49f04c553` and the 53300 outage."
+    },
+    {
+      "text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims",
+      "passed": true,
+      "evidence": "Own EXPLAIN ANALYZE: \"cold: 6,101 ms / 5 rows = **1,220 ms/row**; warm re-run ... **636 ms/row**\", 7-day intake 126,986 rows = 18,141/day vs best drain 20,197/day, \"roughly **39 days** to clear the 78k drainable backlog\", 67,795 priority-10 drainable rows, 1,068 last_error rows (913 lock timeout, 155 deadlock)."
+    },
+    {
+      "text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone",
+      "passed": true,
+      "evidence": "It retracts the ILIKE-identity-write corruption claim and counts it: \"Damage count either way: **5 of 39,975 bound comps carry no `match_kind` (0.01%)**. Latent at most; not a reason to keep the flag off.\""
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

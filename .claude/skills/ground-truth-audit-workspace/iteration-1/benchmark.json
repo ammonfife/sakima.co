@@ -1,0 +1,353 @@
+{
+  "metadata": {
+    "skill_name": "ground-truth-audit",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-16T00:46:30Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 326.1,
+        "tokens": 162407,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Verifies against LIVE introspection rather than accepting the doc's claim",
+          "passed": true,
+          "evidence": "\"All numbers below are live from `vsotvatntzlrzrhemayh`, **as of 2026-08-16 00:30:55 UTC**\" \u2014 plus live pg_trigger state (`pg_trigger.tgenabled='O'`), `cron.job.active = false`, `enrichment_flags` row read, and full-table queue counts."
+        },
+        {
+          "text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)",
+          "passed": true,
+          "evidence": "\"Real call site in `supabase/functions/comps-rematch/index.ts:99`; last successful drain `done_at = 2026-08-16 00:30:07` \u2014 48s before I measured\", and it explicitly rejects the comment-only path: \"`lkup_maintenance_tick` ... only a comment remains \u2014 not a call site\"."
+        },
+        {
+          "text": "Reports the current backlog/queue state with actual numbers and an as-of time",
+          "passed": true,
+          "evidence": "Full-table table: total 173,260 / done 67,021 / not done 106,239 / parked 28,162 / drainable 78,077 / oldest drainable 2026-08-11 04:30:36Z, plus a 10-day in/out ledger, all stamped \"as of 2026-08-16 00:30:55 UTC\"."
+        },
+        {
+          "text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker",
+          "passed": true,
+          "evidence": "\"**`enrichment_flags.comps_fanin_drain_enabled = FALSE`, `updated_at = 2026-08-09 02:21:13Z`** ... It gates **only the two trigger paths** (the only two `pg_proc` bodies that read it). The EF path ignores it, which is why rows still complete daily.\""
+        },
+        {
+          "text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics",
+          "passed": true,
+          "evidence": "Section 5: the line \"lives in `audit/deployed-state-sections.html:589` \u2014 the grow-only curated file that survives regeneration by design. It is a **frozen artifact rendered inside a page that reads as live**\" \u2014 and it shows the page's own 2026-08-09 correction is itself now stale against live drainable=78,077."
+        },
+        {
+          "text": "Does not overstate: separates what was verified from what remains unverified",
+          "passed": true,
+          "evidence": "Dedicated \"## Unverified\" section listing three open items each with a settle-method (e.g. \"Which client fired the 00:30:07Z drain ... Settled by the `comps-rematch` Edge Function invocation logs\"), and it splits the doc claim into two halves with separate verdicts rather than a blanket true/false."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 764.6,
+        "tokens": 208962,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Censuses by file/lines changed rather than only reading commit subjects",
+          "passed": true,
+          "evidence": "\"Census was by lines-per-file, not by message\" \u2014 backed by actual file-level aggregation: \"**29 distinct migration files named `wire_cert_readiness_realtime.sql`** and **26 named `grader_evidence_gate_and_truthful_onboard.sql`**\" (checksummed all 29), \"Local versions dated \u2265 20260809: **220**\", \"1,363 migration versions against 1,145 recorded remotely \u2014 218 local-only\"."
+        },
+        {
+          "text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out",
+          "passed": true,
+          "evidence": "\"932 commits, of which **653 are automated** (auto-sync, pre-push hook, Lovable bot). A subject-line skim would have shown you 279 commits and missed most of the week \u2014 the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration.\" Author breakdown includes auto-sync 312 and pre-push hook 222."
+        },
+        {
+          "text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)",
+          "passed": true,
+          "evidence": "\"the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration\" \u2014 identifies the facet corpus by size (814k rows, matching coin_facet_tokens.tsv) and attributes it to the automated commits, though it does not name the .tsv file itself."
+        },
+        {
+          "text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message",
+          "passed": true,
+          "evidence": "\"**I verified this is deployed right now**, not just committed \u2014 pulled the live index bundle, followed it to the lazy `CameraInput` chunk, and found the `lkupScanStats` marker present.\" Also a live anon-key probe table (before/now: 200\u2192401, 204\u2192401) and live `pg_get_functiondef('public.onboard_minor_grader')` on prod showing the bare `synth:` shape."
+        },
+        {
+          "text": "Reports a doc-vs-reality contradiction it found",
+          "passed": true,
+          "evidence": "\"## Documentation that has gone stale\" \u2014 three, incl. \"**`CLAUDE.md` says `core.hooksPath` is the default `.git/hooks` and the in-repo `.githooks/*` is NOT active.** It is now set to `.githooks` ... That line is inverted.\""
+        },
+        {
+          "text": "Retracts or corrects at least one of its own intermediate conclusions",
+          "passed": true,
+          "evidence": "\"## Retracted this session\" with three explicit self-corrections, e.g. \"**I said the zero-identity onboarding fix was working cleanly** \u2014 cut at 'since Aug 14 12:00' I got 0 of 26 certs with null identity. That window was a tail slice. Widened ... it's **53 of 116**.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 561.3,
+        "tokens": 184365,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Does NOT recommend a bare flip",
+          "passed": true,
+          "evidence": "\"**No \u2014 not right now, and not as-is.**\" followed by a 6-step ordered plan (\"Fix ordering and throughput first, then enable\") with enabling only at step 5 \"in a quiet window, watched.\""
+        },
+        {
+          "text": "Reads drain_comps_fanin's actual source before advising",
+          "passed": true,
+          "evidence": "Quotes the ORDER BY from the body \u2014 \"`drain_comps_fanin` orders `priority DESC, attempts ASC, enqueued_at DESC`\" \u2014 and reads the sibling function's predicate: \"`public.drain_comps_fanin_batch` filters only `done_at is null and attempts < 5` \u2014 **it does not check `parked_at`**\", plus the `and q.parked_at is null` filter in the main drain."
+        },
+        {
+          "text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)",
+          "passed": true,
+          "evidence": "Multiple: LIFO starvation (\"Oldest undone *and drainable* | 2026-08-11 04:30:36Z (4.8 days, not moving)\"), no automatic parking (\"no *automatic* park exists, so chronically failing rows never get demoted\"), and the `drain_comps_fanin_batch` park bypass landmine."
+        },
+        {
+          "text": "Investigates WHY the flag is off rather than assuming",
+          "passed": true,
+          "evidence": "\"### Why it is off (the containment measure)\" \u2014 debunks the obvious signal (\"`enrichment_flags.updated_at` reads `2026-08-09 02:21:13Z` \u2014 **do not use that as the flip time**\", it is the migration insert), then derives the real off-time from `enrichment_chain_state`/`comps_fanin_kick` (\"**Dispatch stopped ~2026-08-11 07:48Z**\") and ties it to commit `49f04c553` and the 53300 outage."
+        },
+        {
+          "text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims",
+          "passed": true,
+          "evidence": "Own EXPLAIN ANALYZE: \"cold: 6,101 ms / 5 rows = **1,220 ms/row**; warm re-run ... **636 ms/row**\", 7-day intake 126,986 rows = 18,141/day vs best drain 20,197/day, \"roughly **39 days** to clear the 78k drainable backlog\", 67,795 priority-10 drainable rows, 1,068 last_error rows (913 lock timeout, 155 deadlock)."
+        },
+        {
+          "text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone",
+          "passed": true,
+          "evidence": "It retracts the ILIKE-identity-write corruption claim and counts it: \"Damage count either way: **5 of 39,975 bound comps carry no `match_kind` (0.01%)**. Latent at most; not a reason to keep the flag off.\""
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 248.2,
+        "tokens": 141846,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Verifies against LIVE introspection rather than accepting the doc's claim",
+          "passed": true,
+          "evidence": "Live trigger states (`tgenabled='O'`), live EF version (\"ACTIVE, version 74, deployed 2026-08-15\"), and an actual execution: \"select * from public.drain_comps_fanin(5, 8000); -- processed=5, deferred=0, failed=0 ... Run just now against prod.\""
+        },
+        {
+          "text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)",
+          "passed": true,
+          "evidence": "Names three live paths: trigger `trg_marketplace_obs_to_comps` \u2192 `marketplace_obs_to_comps_trg()`, statement trigger `comps_fanin_drain_trg` \u2192 `fire_comps_fanin_drain()`, and EF `comps-rematch` running `select processed, deferred, failed from public.drain_comps_fanin($batch, $deadline_ms)`, plus `src/pages/Coin.tsx` calling `efPost('comps-rematch', {fanin:true,...})`."
+        },
+        {
+          "text": "Reports the current backlog/queue state with actual numbers and an as-of time",
+          "passed": true,
+          "evidence": "\"as of 2026-08-16 00:27 UTC\" with a full table: total 173,220 / done 67,016 / parked 28,162 / pending 78,042 / attempts>=5 = 0 / oldest enqueue 2026-08-03 20:58 / last drain 2026-08-15 09:25."
+        },
+        {
+          "text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker",
+          "passed": true,
+          "evidence": "\"**Automatic dispatch is intentionally OFF via a kill-switch, not missing.**\" \u2014 quotes the `public.enrichment_flags` row `comps_fanin_drain_enabled = false` with its notes, and \"Both trigger functions read that flag and `return` early when it is false.\""
+        },
+        {
+          "text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics",
+          "passed": true,
+          "evidence": "\"the top-of-report table row (line 249) was never updated. The document contradicts itself\" and identifies `audit/deployed-state-sections.html:320` as \"the grow-only fragment the report regenerates from \u2014 fixing only the HTML will be overwritten\", against its own live counts."
+        },
+        {
+          "text": "Does not overstate: separates what was verified from what remains unverified",
+          "passed": false,
+          "evidence": "It does flag one item as \"Unverified\", but it overstates the verdict: \"**No. Both halves of that claim are false**\" and \"'Queue is filling, not draining' \u2014 false\" is asserted from cumulative completions (67k done) and a 12-hour idle window, while its own table shows 106,204 rows not done against 67,016 done since 2026-08-03. It never measured intake rate, so declaring the filling half FALSE is a conclusion beyond what it verified."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 586.9,
+        "tokens": 173944,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Censuses by file/lines changed rather than only reading commit subjects",
+          "passed": true,
+          "evidence": "Goes beyond subjects with file-level measures: \"`src/pages/Cert.tsx` is new \u2014 5,173 lines\", \"Roughly 90 migrations across Aug 11\u201313\", \"`audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows\", per-function lag from `audit/artifacts/ef-deploy-status-20260814.tsv`, and named new content scripts. The headline framing is still commit-count based, but real file/line aggregation is present."
+        },
+        {
+          "text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out",
+          "passed": false,
+          "evidence": "Explicitly filters them out in the opening line: \"813 commits on `prod` since Aug 9. 530 of those are `auto: sync` / knowledge-snapshot noise from the hooks \u2014 **the real number is 283**\". The automated commits are labelled noise and excluded from the census."
+        },
+        {
+          "text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)",
+          "passed": true,
+          "evidence": "\"**The asset nobody is reading.** `audit/artifacts/coin_facet_tokens.tsv` is 813,957 rows, exactly 1:1 with `public.spine` ... Companions: `ground_truth_comps.tsv` (1,207 barcode-verified labelled comps) and `facet-match-scorecard.tsv` ... **Built by agents Aug 10\u201314 and auto-committed.**\""
+        },
+        {
+          "text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message",
+          "passed": true,
+          "evidence": "\"I checked the served bundle by content, not by commit. `Dealer-D_rSwTht.js` on lkup.info right now does not contain \\\"Limits are not enforced during alpha\\\" ... and the served `CameraInput-C4oWmWjM.js` contains no `prewarm` marker\" \u2192 concludes live is ~24\u201330h behind."
+        },
+        {
+          "text": "Reports a doc-vs-reality contradiction it found",
+          "passed": true,
+          "evidence": "\"**`audit/LOOP_LEDGER.md` is stale.** CLAUDE.md names it the sole live source of truth for architecture and priorities. It was last modified **Jul 26** \u2014 three weeks ago, and it missed the entire spine-convergence effort.\""
+        },
+        {
+          "text": "Retracts or corrects at least one of its own intermediate conclusions",
+          "passed": false,
+          "evidence": "The corrections are all of external artifacts, not of its own in-session reasoning: \"the note that EF auto-deploy was 'restored 2026-08-05 by killing the symlink farm' was wrong\" (a stored fact), \"todo #12783 blamed...\", and \"This was initially reported as a 69% identity-conflict crisis and **you** disproved it with CoinFacts\". No statement of a conclusion it itself reached mid-audit and then withdrew."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 465.2,
+        "tokens": 145997,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Does NOT recommend a bare flip",
+          "passed": true,
+          "evidence": "\"**Not as a bare flip.** Re-park the stale backlog first (one reversible UPDATE), then flip.\" plus \"**Do not flip during a live show.**\" and a 5-step sequence."
+        },
+        {
+          "text": "Reads drain_comps_fanin's actual source before advising",
+          "passed": true,
+          "evidence": "\"`drain_comps_fanin` does **not** check `comps_fanin_drain_enabled` (verified against `prosrc`)\", \"I verified across all schemas that `drain_comps_fanin` is the *only* database object that references `parked_at`, and it only ever reads it\", and it quotes the ordering `priority DESC, attempts ASC, enqueued_at DESC` and the single-flight advisory lock from migration `20260811043000`."
+        },
+        {
+          "text": "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)",
+          "passed": true,
+          "evidence": "Parking: \"**Nothing re-parks.** Every row enqueued in the four days since has landed unparked in the live head\" \u2014 named as \"the actual defect here\". Single-flight: \"`drain_comps_fanin` is **single-flight** (global advisory lock ...) so there is no parallel speedup.\" Plus throughput vs inflow (2.2\u201313.6 h/day of matcher work)."
+        },
+        {
+          "text": "Investigates WHY the flag is off rather than assuming",
+          "passed": true,
+          "evidence": "\"## 1. Correcting the reason on file\" \u2014 shows the filed reason is \"chronologically impossible\", proves `updated_at` is the insert stamp from migration `20260809022113`, and derives the true flip window from `comps_fanin_kick.last_kick_at = 2026-08-11 07:48:17Z` plus the verbatim show-prep tradeoff note."
+        },
+        {
+          "text": "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims",
+          "passed": true,
+          "evidence": "Own EXPLAIN ANALYZE over 25 rows: \"`lkup_resolve_comp_v2` ... **1,338 ms** | 33,443 ms / 25 rows\" and \"`lkup_resolve_or_match_comp` ... **1,790 ms**\", against 762 ms and 445\u2013634 ms baselines; queue split 106,204 undone = 28,162 parked + 78,077 drainable (67,730 pri>=10); \"78,077 \u00d7 1.338 s = **~29 hours**\"; only 105 live-head rows in the last 6h."
+        },
+        {
+          "text": "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone",
+          "passed": true,
+          "evidence": "It raises no data-corruption risk \u2014 the opposite: \"New marketplace observations are still **captured** ... and **queued** \u2014 nothing is being lost.\" The risk items it does raise are quantified (\"1,068 undone rows carry a `last_error`\", \"57,445 of 97,420 comps are unmatched\", 57 `53300` errors in the 02:52\u201303:02Z window)."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 550.6667,
+        "stddev": 219.4433,
+        "min": 326.1,
+        "max": 764.6
+      },
+      "tokens": {
+        "mean": 185244.6667,
+        "stddev": 23289.9628,
+        "min": 162407,
+        "max": 208962
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8333,
+        "stddev": 0.1667,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 433.4333,
+        "stddev": 171.57,
+        "min": 248.2,
+        "max": 586.9
+      },
+      "tokens": {
+        "mean": 153929.0,
+        "stddev": 17457.3156,
+        "min": 141846,
+        "max": 173944
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.17",
+      "time_seconds": "+117.2",
+      "tokens": "+31316"
+    }
+  },
+  "notes": []
+}

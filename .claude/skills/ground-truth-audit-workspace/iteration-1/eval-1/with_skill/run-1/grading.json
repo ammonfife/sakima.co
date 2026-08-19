@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Censuses by file/lines changed rather than only reading commit subjects",
+      "passed": true,
+      "evidence": "\"Census was by lines-per-file, not by message\" \u2014 backed by actual file-level aggregation: \"**29 distinct migration files named `wire_cert_readiness_realtime.sql`** and **26 named `grader_evidence_gate_and_truthful_onboard.sql`**\" (checksummed all 29), \"Local versions dated \u2265 20260809: **220**\", \"1,363 migration versions against 1,145 recorded remotely \u2014 218 local-only\"."
+    },
+    {
+      "text": "Includes automated commits (auto: sync / stop-hook) rather than filtering them out",
+      "passed": true,
+      "evidence": "\"932 commits, of which **653 are automated** (auto-sync, pre-push hook, Lovable bot). A subject-line skim would have shown you 279 commits and missed most of the week \u2014 the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration.\" Author breakdown includes auto-sync 312 and pre-push hook 222."
+    },
+    {
+      "text": "Surfaces at least one large artifact that landed via an automated commit (e.g. coin_facet_tokens.tsv, lowtier_solo_coins.tsv, facet-match-scorecard.tsv)",
+      "passed": true,
+      "evidence": "\"the automated ones carry the 814k-row facet corpus, the session logs, and the schema dictionary regeneration\" \u2014 identifies the facet corpus by size (814k rows, matching coin_facet_tokens.tsv) and attributes it to the automated commits, though it does not name the .tsv file itself."
+    },
+    {
+      "text": "Verifies at least one load-bearing claim against a live/deployed source rather than trusting the commit message",
+      "passed": true,
+      "evidence": "\"**I verified this is deployed right now**, not just committed \u2014 pulled the live index bundle, followed it to the lazy `CameraInput` chunk, and found the `lkupScanStats` marker present.\" Also a live anon-key probe table (before/now: 200\u2192401, 204\u2192401) and live `pg_get_functiondef('public.onboard_minor_grader')` on prod showing the bare `synth:` shape."
+    },
+    {
+      "text": "Reports a doc-vs-reality contradiction it found",
+      "passed": true,
+      "evidence": "\"## Documentation that has gone stale\" \u2014 three, incl. \"**`CLAUDE.md` says `core.hooksPath` is the default `.git/hooks` and the in-repo `.githooks/*` is NOT active.** It is now set to `.githooks` ... That line is inverted.\""
+    },
+    {
+      "text": "Retracts or corrects at least one of its own intermediate conclusions",
+      "passed": true,
+      "evidence": "\"## Retracted this session\" with three explicit self-corrections, e.g. \"**I said the zero-identity onboarding fix was working cleanly** \u2014 cut at 'since Aug 14 12:00' I got 0 of 26 certs with null identity. That window was a tail slice. Widened ... it's **53 of 116**.\""
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

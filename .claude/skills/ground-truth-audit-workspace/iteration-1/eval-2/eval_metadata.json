@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "should-i-re-enable",
+  "prompt": "comps_fanin_drain_enabled is false and comps_fanin_queue has ~100k undone rows. Should I flip the flag back on?",
+  "assertions": [
+    "Does NOT recommend a bare flip",
+    "Reads drain_comps_fanin's actual source before advising",
+    "Identifies at least one structural defect (ordering/starvation, throughput vs intake, parking, or single-flight)",
+    "Investigates WHY the flag is off rather than assuming",
+    "Quantifies rather than asserting \u2014 gives measured rates/counts for its central claims",
+    "If it raises a data-corruption risk, it counts actual affected rows instead of escalating on capability alone"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Verifies against LIVE introspection rather than accepting the doc's claim",
+      "passed": true,
+      "evidence": "\"All numbers below are live from `vsotvatntzlrzrhemayh`, **as of 2026-08-16 00:30:55 UTC**\" \u2014 plus live pg_trigger state (`pg_trigger.tgenabled='O'`), `cron.job.active = false`, `enrichment_flags` row read, and full-table queue counts."
+    },
+    {
+      "text": "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)",
+      "passed": true,
+      "evidence": "\"Real call site in `supabase/functions/comps-rematch/index.ts:99`; last successful drain `done_at = 2026-08-16 00:30:07` \u2014 48s before I measured\", and it explicitly rejects the comment-only path: \"`lkup_maintenance_tick` ... only a comment remains \u2014 not a call site\"."
+    },
+    {
+      "text": "Reports the current backlog/queue state with actual numbers and an as-of time",
+      "passed": true,
+      "evidence": "Full-table table: total 173,260 / done 67,021 / not done 106,239 / parked 28,162 / drainable 78,077 / oldest drainable 2026-08-11 04:30:36Z, plus a 10-day in/out ledger, all stamped \"as of 2026-08-16 00:30:55 UTC\"."
+    },
+    {
+      "text": "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker",
+      "passed": true,
+      "evidence": "\"**`enrichment_flags.comps_fanin_drain_enabled = FALSE`, `updated_at = 2026-08-09 02:21:13Z`** ... It gates **only the two trigger paths** (the only two `pg_proc` bodies that read it). The EF path ignores it, which is why rows still complete daily.\""
+    },
+    {
+      "text": "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics",
+      "passed": true,
+      "evidence": "Section 5: the line \"lives in `audit/deployed-state-sections.html:589` \u2014 the grow-only curated file that survives regeneration by design. It is a **frozen artifact rendered inside a page that reads as live**\" \u2014 and it shows the page's own 2026-08-09 correction is itself now stale against live drainable=78,077."
+    },
+    {
+      "text": "Does not overstate: separates what was verified from what remains unverified",
+      "passed": true,
+      "evidence": "Dedicated \"## Unverified\" section listing three open items each with a settle-method (e.g. \"Which client fired the 00:30:07Z drain ... Settled by the `comps-rematch` Edge Function invocation logs\"), and it splits the doc claim into two halves with separate verdicts rather than a blanket true/false."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

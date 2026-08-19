@@ -1,0 +1,13 @@
+{
+  "eval_id": 0,
+  "eval_name": "stale-doc-claim",
+  "prompt": "Our audit page audit/deployed-state.html says: 'public.comps_fanin_queue | work queue | trg_marketplace_obs_to_comps | drain_comps_fanin has no invoker \u2014 queue is filling, not draining'. Is that still true?",
+  "assertions": [
+    "Verifies against LIVE introspection rather than accepting the doc's claim",
+    "Establishes that drain_comps_fanin DOES have an invoker (names a real call site or trigger, not a comment)",
+    "Reports the current backlog/queue state with actual numbers and an as-of time",
+    "Identifies that the dispatch is halted by the enrichment_flags kill-switch rather than by absence of an invoker",
+    "Distinguishes the doc's frozen/curated narrative from its own live-measured metrics",
+    "Does not overstate: separates what was verified from what remains unverified"
+  ]
+}
