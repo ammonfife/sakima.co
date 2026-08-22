@@ -24,6 +24,27 @@ If no arg is given, detect: if `bash ps` shows a compaction trigger in flight �
 
 ---
 
+## Step 0.0 — HOOK COVERAGE SELF-HEAL (mandatory, runs first, ~1s)
+
+An agent can only be held to the no-deferral contract if the Stop gate is
+actually registered on the surface it is running on. Surfaces differ: Cowork
+repoints `CLAUDE_CONFIG_DIR` per chat, cloud/web sessions and GitHub Actions have
+no `~/.claude` at all, and `bigmac-sync` does NOT propagate settings or hooks —
+it syncs agent workspace files and skills only. So verify, and repair if needed,
+before anything else:
+
+```bash
+bash ~/bigmac-state/scripts/ensure-no-deferral-hooks.sh || \
+  bash "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/../../scripts/ensure-no-deferral-hooks.sh" 2>/dev/null || \
+  echo "⚠️ hook installer unreachable — register manually before ending"
+```
+
+It is idempotent and platform-cased (Darwin / Linux / Windows policy paths). If
+it reports gaps it could not fix (usually the machine-wide policy file needing
+`sudo`), fix them in this session — a missing gate is not a note for later.
+
+---
+
 ## Step 0 — Identify your thread slug
 
 Nothing else can happen safely without this. The slug is how WORKFLOW_AUTO.md and the daily memory log know which thread you are.

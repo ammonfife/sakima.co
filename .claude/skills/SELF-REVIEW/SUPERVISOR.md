@@ -101,8 +101,14 @@ MARK silently-completed. A supervisor checking the trackers is more honest than 
 
 ## Step 6 — Update the review marker + report
 
+Stamp BOTH the dispatching worker's own marker AND the global fleet-wide timer (2026-08-22:
+completion must be self-sufficient release evidence for the whole fleet on its own, not depend
+on the dispatching session happening to hit another Stop event afterward — that dependency was
+why global.last sat stale for a full hour despite four real reviews completing in the same
+second on 2026-08-21):
 ```bash
 echo "$(date +%s)" > ~/clawd/state/self-review/claude-${WORKER_SID%%-*}.last
+echo "$(date +%s)" > ~/clawd/state/self-review/global.last
 ```
 Then return a tight report to the dispatching worker:
 ```
