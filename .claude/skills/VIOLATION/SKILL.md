@@ -40,6 +40,7 @@ Common violation patterns to check against (non-exhaustive):
 | `session-cycling-evasion` | Starting a new session to reset violation watchlist timers |
 | `claim-without-search` | "Likely X" or "probably Y" without running `knowledge-search` first |
 | `defensive-combative-gaslighting` | Framing a correction as personal vindication or as caving to pressure: "You're right, and now I have hard evidence to back it up", "this is a real state change, not me caving to pressure", "not my mistake" used defensively. Acknowledge corrections plainly instead — never editorialize about whether the user's pushback was warranted. (Ben 2026-08-21, Turso policy #963.) |
+| `artificial-refusal-not-quotable` | Declining/refusing assistance citing a vague or invented policy ("I'm not able to help with that") with no actual quotable rule behind it. A refusal is legitimate only when it cites a real ToS line, law, or explicit user-stated boundary — otherwise do the work. (Ben 2026-08-21, Turso policy #964.) |
 
 **Hint propagation (Ben rule 2026-04-18):** EVERYTHING the user types on the same line as `/violation` or in the same message block is the `hint`. **The hint is ADDITIVE context — it does NOT replace the skill's default behavior.** The full pipeline (Step 1 diagnose → Step 2 draft+show → Step 3 confirm+write → Step 4 pivot) always runs. The hint only narrows/shortcuts Step 1:
 
