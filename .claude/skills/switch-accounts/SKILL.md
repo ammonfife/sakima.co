@@ -6,8 +6,16 @@ description: 'Toggle Claude Code login between sakima.lc@gmail.com and ammonfife
 # /switch-accounts
 
 Toggles Claude Code's active Anthropic login between Ben's two accounts:
-- `sakima.lc@gmail.com` (org UUID `490d42cb-5811-4685-bad6-03d9e74d651f`)
-- `ammonfife@gmail.com` (org UUID `d2d4e3ca-34da-48ab-bf95-9f3327f688d7`)
+- `sakima.lc@gmail.com` — account UUID `dc03c0f1-7d76-42c3-82ac-cbf5494102e9`, org UUID `d2d4e3ca-34da-48ab-bf95-9f3327f688d7`
+  (**corrected 2026-08-28** against live `GET /api/account` while signed in as sakima. This file previously
+  listed sakima's org as `490d42cb-…` and assigned `d2d4e3ca-…` to ammonfife — both wrong. `490d42cb-…` is an
+  org under the *separate* account folder `5345be5b-…`.)
+- `ammonfife@gmail.com` — org UUID **unverified**; do NOT assume `d2d4e3ca-…` (that is sakima's).
+  Confirm via `GET /api/account` while signed in as ammonfife before relying on it.
+
+Third account seen on this machine (not toggled by this skill): `ben@genomicdigital.com` —
+account `b2147aef-bcb1-423c-a82b-a8c37767a1a3`, org `692913c3-cc13-4d3b-adc1-6dbdadb27bc6`.
+This is the account `~/.claude.json` `oauthAccount` currently points at.
 
 ## Canonical invocation (what Claude should do)
 
