@@ -1,317 +1,292 @@
 ---
 name: monthly-report
-description: Generate a monthly performance report for Avalara Capital (and extensible to other Genomic clients) using the full-account Google Ads puller. Builds a single combined report with three non-redundant sections (Month standalone, Month-over-Month, Year-to-Date), cross-checks numbers against a Google Ads UI CSV export, and leaves the email in DRAFT state for Ben to review and send. Codifies the procedure learned the hard way on 2026-04-08 when a 50% underreporting error almost reached Kyle Ivins.
-user-invocable: true
+description: Generate the monthly client performance report for Avalara Capital (extensible to other Genomic clients). Blended Google Ads + LinkedIn, May-format HTML with prose, penny-verified against three API query shapes, delivered as a Gmail draft via copy-paste from the rendered page. Never sends. Encodes the 2026-04-08 50%-underreporting incident and the 2026-09-03 format/delivery corrections.
 ---
-
-> [!IMPORTANT]
-> **Cross-Platform Skill**: This skill is shared across Claude Code, OpenClaw, Gemini, and Codex. 
-> Before executing, check the "Platform Blocks" below. If your current platform is missing, or if a command fails due to your unique toolset, **UPDATE THIS SKILL** by adding an `If you are [Platform]...` block detailing how your platform should execute it.
-
-### If you are Claude (Claude Code / OpenClaw)
-- Use your native `str_replace_editor` for targeted edits.
-- You can spawn background tasks directly using `Bash run_in_background`.
-
-### If you are Gemini (Antigravity / Google)
-- Use your native `multi_replace_file_content` or `replace_file_content` tools.
-- Background tasks should use the `run_command` tool with `WaitMsBeforeAsync` set appropriately.
-
-### If you are Codex / Grok
-- Use your respective file-editing APIs and terminal execution pipelines.
-
 
 # /monthly-report
 
-Generate the monthly performance report for Avalara Capital. Execute all steps without pausing unless a sanity check fails. **Never send email autonomously — this skill produces drafts only.**
+Generate the monthly performance report for Avalara Capital. Execute all steps
+without pausing unless a sanity check fails. **Never send email autonomously —
+this skill produces drafts only.**
 
 ## Default client: Avalara Capital
 
-The default run assumes Avalara Capital. If the user invokes `/monthly-report <client>`, substitute the client folder path accordingly.
-
 - Client folder: `/Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/`
 - Recipient: Kyle Ivins `<kyle.ivins@avalara.com>`
-- Customer ID: `7404128201` (Avalara - Embedded Finance)
-- Ground-truth file: `data/march-2026-ground-truth.json` (rename by month as you go: `data/<month>-<year>-ground-truth.json`)
-- Canonical puller: `scripts/fetch_performance_data.py` (must be the full-account version — see Step 0)
+- Google Ads customer: `7404128201` (Avalara - Embedded Finance)
+- LinkedIn ad account: `507797315`
+- Ground truth: `data/july-august-2026-ground-truth.json` (rename per cycle)
+- LinkedIn rollup: `data/linkedin-monthly-rollup.json` (built from
+  `data/linkedin-daily-normalized.csv`)
+
+---
+
+## THE FORMAT — read this before writing anything
+
+There are four report shapes on disk. Only one is the client deliverable.
+
+| File pattern | What it is | Send it? |
+|---|---|---|
+| `<MONTH>_COMBINED_REPORT.html` | **The deliverable.** Clone of `sent-archive/MAY_2026_REPORT_SENT.html` | **YES** |
+| `<MONTH>_2026_MONTH_END_REPORT.html` | tables-only, by-campaign, from `build_month_end_email.py` | no |
+| `<MONTH>_2026_REPORT.html` | ~44 KB variant in a Cowork outputs dir | no |
+| `AVALARA_WEEKLY_REPORT_*.xlsx` | weekly workbook | no |
+
+**Verify the format against what was actually sent, not against what is on
+disk.** Search Gmail: `in:sent to:kyle.ivins@avalara.com subject:report`. The
+May report (sent 2026-06-10) is the canonical structure:
+
+1. `<h1>` title + subtitle line
+2. **Headline** insight block (prose paragraph)
+3. Section **1** — `<Month> Performance`: 4 hero tiles + benchmark table
+4. Section **2** — `Month-over-Month: <Prior> → <Month>`: delta table +
+   narrative paragraph + channel detail table
+5. Section **3** — `2026 Year-to-Date (Jan – <Month>)`: 4 YTD tiles + monthly
+   trajectory table
+6. **Key Takeaways** — bullets
+
+Builder: `scripts/build_combined_report.py`. CSS: `scripts/may_report.css`
+(extracted verbatim from the sent May report).
+
+### Content rules (learned 2026-09-03, each one from a correction)
+
+- **Blend Google Ads + LinkedIn.** Google-only understates badly: July was
+  $8,431.55 Google vs **$11,236.92 blended**; YTD $34,747.16 vs **$40,747.16**.
+  Subtitle reads `Google Ads + LinkedIn | Full Account`.
+- **Channels are Search / Video & Display / LinkedIn / Blended.** Video&Display
+  groups `DISPLAY + VIDEO + DEMAND_GEN`. Google-as-a-whole is also acceptable.
+  Never break out individual campaigns — no sent email ever has.
+- **No IDs.** No customer ID, no LinkedIn account ID, no campaign IDs.
+- **Month is the finest date granularity.** Never "July 18" or "August 19" —
+  write "mid-month", "in July", "during the month". Scan the output for
+  `Month DD`, ISO and slash date patterns before shipping.
+- **No source footer.** No "Source: Google Ads API full-account pull,
+  customer …, Period YYYY-MM-DD to YYYY-MM-DD".
+- **Prose: yes. Advice: no.** Keep the Headline paragraph, the MoM narrative
+  and Key Takeaways. Cut: next steps, strategy changes, an Outlook section,
+  anything alarming or blunt.
+- **Banned phrases** (scan before shipping): `next step`, `recommend`,
+  `we should`, `outlook`, `action needed`, `collapse`, `starved`, `root cause`,
+  `suppressed`, `overshot`, and the whole attribution caveat family —
+  `pending`, `attribution`, `Salesforce`, `Adobe`, `generic Avalara`,
+  `validation`, `outstanding`. Ben rejected each of these by name.
+- **Framing that was approved:** spend running hot early in a month followed by
+  tightened price targets is described as a deliberate action we took, not a
+  defect we discovered. Keep every report internally consistent with that.
+
+---
 
 ## Step 0 — Freshness gate (MANDATORY)
 
-**Before touching anything, confirm the data puller is not in "single-campaign" mode.** This bug caused March 2026 to understate by 50%. See `Clients/avalara-capital/HOW_MARCH_REPORT_WENT_WRONG_2026-04-08.md` for the full root cause.
+The 2026-04-08 incident: the puller was in single-campaign mode and understated
+March by 50%. See `HOW_MARCH_REPORT_WENT_WRONG_2026-04-08.md`.
 
 ```bash
-grep -n "CAMPAIGN_ID = \"[0-9]\|campaign\.id = {CAMPAIGN_ID}" \
-  /Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/scripts/fetch_performance_data.py
+cd /Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/scripts
+grep -n 'CAMPAIGN_ID = "[0-9]\|campaign\.id = ' fetch_performance_data.py
+grep -n 'CAMPAIGN_ID = "[0-9]' monitor_tracking.py check_conversion_details.py update_budget.py
 ```
 
-If **either** pattern matches outside the HISTORICAL NOTE docstring, **STOP**. Re-apply the fix from commit `420fe4c`:
-- Delete the `CAMPAIGN_ID = "..."` line
-- Replace every `WHERE campaign.id = {CAMPAIGN_ID}` with `WHERE campaign.status != "REMOVED"`
+Matches are only acceptable inside a `HISTORICAL NOTE` docstring. Anything else
+— **STOP** and re-apply commit `420fe4c`. `update_budget.py` is on the write
+path and must never run in single-campaign mode.
 
-Do the same grep on the three sibling scripts that historically carried the same bug:
-```bash
-grep -n "CAMPAIGN_ID = \"[0-9]" \
-  /Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/scripts/monitor_tracking.py \
-  /Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/scripts/check_conversion_details.py \
-  /Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/scripts/update_budget.py
-```
+## Step 1 — Pin the month explicitly
 
-If any match, flag to the user before proceeding — `update_budget.py` in particular is on the write path and must not run in single-campaign mode.
-
-## Step 1 — Determine the reporting month
-
-The "monthly report" is always the **most recently completed full month**. Examples:
-- Run on April 8 → report covers March
-- Run on May 2 → report covers April
-
-In code:
-```python
-from datetime import date
-today = date.today()
-first_of_this_month = today.replace(day=1)
-last_of_last_month = first_of_this_month - timedelta(days=1)
-month_start = last_of_last_month.replace(day=1)
-month_end = last_of_last_month
-```
-
-Store as `REPORT_MONTH = "2026-03"` etc. for filename templating.
-
-## Step 2 — Pull ground truth from Google Ads API
-
-Use the FIXED `fetch_performance_data.py` OR run a direct Python query. For a fresh, skill-scoped pull that doesn't depend on the client script:
+**Never derive the window from an MTD cutoff.** On 2026-09-03 a
+`MTD_END = today - 1` cutoff silently pulled Sep 1–2 into the August figure
+($530.81 instead of $478.70). Hard-code both ends:
 
 ```python
-from google.ads.googleads.client import GoogleAdsClient
-from collections import defaultdict
-import json
-
-AUTH = "/Users/benfife/github/ammonfife/genomic/Clients/avalara-capital/auth/google-ads.json"
-CID  = "7404128201"  # Avalara - Embedded Finance
-
-client = GoogleAdsClient.load_from_dict(json.load(open(AUTH)))
-ga = client.get_service("GoogleAdsService")
-
-def period_totals(start, end):
-    q = f"""
-        SELECT metrics.impressions, metrics.clicks, metrics.cost_micros,
-               metrics.conversions, campaign.id, campaign.name, campaign.advertising_channel_type
-        FROM campaign
-        WHERE segments.date BETWEEN '{start}' AND '{end}'
-          AND campaign.status != 'REMOVED'
-    """
-    t = {'cost':0.0, 'conv':0.0, 'clicks':0, 'imp':0}
-    by_camp = defaultdict(lambda: {'cost':0,'conv':0,'name':'','type':''})
-    for row in ga.search(customer_id=CID, query=q):
-        m = row.metrics
-        c = row.campaign
-        t['cost'] += m.cost_micros / 1_000_000
-        t['conv'] += m.conversions
-        t['clicks'] += m.clicks
-        t['imp'] += m.impressions
-        by_camp[c.id]['cost'] += m.cost_micros / 1_000_000
-        by_camp[c.id]['conv'] += m.conversions
-        by_camp[c.id]['name'] = c.name
-        by_camp[c.id]['type'] = c.advertising_channel_type.name
-    return t, dict(by_camp)
-
-# Pull the three periods the report needs
-jan = period_totals('2026-01-01', '2026-01-31')
-feb = period_totals('2026-02-01', '2026-02-28')
-mar = period_totals('2026-03-01', '2026-03-31')   # ← the report month
-ytd = period_totals('2026-01-01', '2026-03-31')
+("august_2026",          "2026-08-01", "2026-08-31"),   # complete month
+("september_2026_mtd",   "2026-09-01", MTD_END.isoformat()),
+("ytd_through_august_2026", "2026-01-01", "2026-08-31"),
 ```
 
-Always pull at least:
-- The report month
-- The prior month (for MoM comparison)
-- Every prior month of the current year (for YTD rollup)
+If the month just closed, report it as complete. Check the real date with
+`date.today()` — a long session can roll past midnight or a month boundary.
 
-## Step 3 — Write the ground-truth JSON
+## Step 2 — Pull ground truth (full account, full precision)
 
-Save the raw numbers to `data/<month>-<year>-ground-truth.json` with this schema (matches the 2026-03 version in the repo):
+Puller: `scripts/fetch_july_august_2026-08-27.py` (rename per cycle). Rules:
 
-```json
-{
-  "source": "Google Ads API, live pull YYYY-MM-DD",
-  "customer_id": "7404128201",
-  "scope": "FULL ACCOUNT (all non-removed campaigns)",
-  "campaigns_included": [ {"id": "...", "name": "...", "type": "...", "status": "..."} ],
-  "periods": {
-    "january_2026": { "date_range": "...", "cost": N, "conversions": N, "clicks": N, "impressions": N, "cac": N, "cpc": N, "ctr_pct": N },
-    "february_2026": { ... },
-    "<report_month>_2026": { ..., "by_campaign": [ {"id":"...","name":"...","cost":N,"conversions":N} ] },
-    "ytd_through_<report_month>_2026": { ... }
-  },
-  "mom_deltas_<report_month>_vs_<prior_month>": { ... }
-}
-```
+- `WHERE campaign.status != 'REMOVED'` — **never** `WHERE campaign.id = X`.
+- **Do not round conversions.** Store the raw float; format only at display.
+  Rounding to 1dp gave July 160.70 instead of 160.68; rounding to 2dp still gave
+  CAC $69.93 instead of $69.94. Both are visible to the client.
+- **Pull YTD from the API per reporting month** (`ytd_through_<month>_2026`).
+  Summing rounded monthly values drifts a cent.
+- Emit `by_channel` per period (SEARCH / DISPLAY / VIDEO / DEMAND_GEN) and
+  `by_campaign` for internal use only.
+- LinkedIn: `scripts/_li_monthly.py` rolls
+  `data/linkedin-daily-normalized.csv` into `data/linkedin-monthly-rollup.json`.
+  **Check its last date** — it has trailed the month end (through Aug 27 for an
+  Aug 31 close). Note any gap in the closing summary.
 
-This file is the **canonical truth** for all downstream consumers. Every subsequent step reads from it.
+## Step 3 — Ground-truth JSON
 
-## Step 4 — Sanity-check count assertions (MANDATORY)
+Canonical for every downstream step. Include `source`, `customer_id`, `scope`,
+`periods{}` with derived cac/cpc/ctr/conv_rate, `by_channel`, `by_campaign`,
+and `cross_check`.
 
-Before generating HTML, verify:
+## Step 4 — Sanity assertions (MANDATORY)
 
-1. **Campaign count check** — at least 2 active campaigns pulled for the report month. If fewer, the query is filtering silently.
-2. **Cross-month continuity** — the prior month in this pull must match the prior month in the prior report's ground-truth JSON (if one exists). Diff them.
-3. **Zero-check** — no period should have cost=0 or conversions=0 unless the campaigns literally didn't run. If the script returns nothing, the query is wrong.
+1. ≥2 campaigns with delivery in the report month.
+2. Prior month matches the prior cycle's ground-truth JSON.
+3. No period silently zero.
+
+Failing any of these blocks generation. Do not "fix" a number by hand.
+
+## Step 5 — Cross-check with three independent query shapes
+
+The old step asked Ben for a Google Ads UI CSV. **Three API shapes are faster
+and self-verifying** — campaign-level vs customer-level vs ad-level:
 
 ```python
-if len(mar[1]) < 2:
-    raise SystemExit(f"FAIL: only {len(mar[1])} campaigns seen — expected 2+. Check query scope.")
+FROM campaign  WHERE campaign.status != 'REMOVED'   # primary
+FROM customer                                        # account rollup
+FROM ad_group_ad                                     # summed from ad grain
 ```
 
-Failing any assertion blocks report generation. Do NOT silently "fix" the number.
+All three must agree to `$0.0000` and `0.0000` conversions. Compare **raw**
+values — comparing already-rounded ones produced a false MISMATCH on a $0.004
+delta. A UI CSV export remains a valid extra check; the `" -- "` summary row
+must be excluded or totals double.
 
-## Step 5 — Ask the user for a Google Ads CSV cross-check
-
-Before generating HTML, **ask the user to export a Campaign report CSV from the Google Ads UI** covering the same month (and ideally including the MoM comparison against the prior month). The expected path is `~/Downloads/Campaign report.csv` but the user may provide another path.
-
-Parse the CSV and compare every line:
-
-```python
-import csv
-with open(csv_path) as f:
-    # Google Ads UI exports prepend 2 header lines ("Campaign report", date range)
-    lines = f.readlines()
-reader = csv.DictReader(lines[2:])
-totals = {'cost':0, 'conv':0}
-for row in reader:
-    name = row.get('Campaign','')
-    if not name or name.startswith('Total'): continue
-    if name.strip() == '--':           # Google Ads embeds a Total row with name ' -- '
-        continue                       # — skipping prevents a double-count
-    totals['cost'] += float(row['Cost'].replace(',',''))
-    totals['conv'] += float(row['Conversions'])
-```
-
-**Both totals must match the API pull to the penny.** Any mismatch > $0.01 or > 0.01 conversions blocks report generation. If the user pushes back, re-verify against a fresh API pull before overriding.
-
-**Important CSV gotcha:** Google Ads embeds a summary row whose Campaign name is `" -- "` (two dashes). Always exclude it when summing — summing everything double-counts to ~2× the real total.
-
-## Step 6 — Generate the combined report HTML
-
-Write a single file: `<CLIENT>/<MONTH>_COMBINED_REPORT.html`. Three sections, non-redundant:
-
-1. **Headline insight block** — 1 paragraph at the top summarizing the month's story (conversions trajectory, CAC direction, spend change, any campaign inventory change). Frame from ground truth, not prior reports.
-2. **Section 1 — `<Month>` <Year> Performance** — current-month standalone metrics (conversions, spend, CAC, CTR) as hero tiles; then a benchmark table (CPC, impressions, clicks, conv rate). **Do not** repeat the hero-tile numbers in the table.
-3. **Section 2 — Month-over-Month (`<PriorMonth>` → `<Month>`)** — just the delta table. Each row: metric / prior / current / change%. Do not repeat the current-month hero tiles.
-4. **Section 3 — `<Year>` Year-to-Date** — YTD hero tiles + a monthly trajectory table (one row per month in the current year, ending with the report month). Include an `Active Campaigns` column to make scope-change events visible.
-5. **Key Takeaways + Next Month Outlook** — bullet list, anchor each bullet to a specific number from the ground-truth JSON.
-
-**Styling:** clone the CSS block from the prior month's combined report (`MARCH_COMBINED_REPORT.html`). Do not reinvent it. The `.metric`, `.status-good`, `.status-warn`, `.highlight`, `.insight` classes must stay.
-
-**Narrative rules:**
-- Lead with the direction (up/down) and magnitude (%).
-- Explain any counter-intuitive signal inline. Example: "blended CTR dropped because the Display layer contributes high-volume low-CTR impressions by design."
-- Never write "despite lower spend" unless spend actually dropped.
-- Back every number with a `data/<month>-ground-truth.json` citation (comment in the HTML, not visible to the reader).
-
-## Step 7 — Generate the email draft HTML
-
-Create `<CLIENT>/<MONTH>_EMAIL_DRAFT.html` — same narrative, tighter. Use the Feb sent body as a structural template (stored in `sent-archive/` from the 2026-04-08 correction). Data cells only — do not redesign.
-
-## Step 8 — Save as Gmail draft, do NOT send
-
-Use the drafts-only path in `scripts/send_campaign_update_email.py` (already rewritten 2026-04-08 to create drafts only). The send function is named `create_march_draft` in the March version — rename or parameterize by month for each run.
-
-**Hard rule: this skill never sends email.** All outbound ends at "Gmail draft created." Ben reviews and sends manually.
-
-## Step 9 — Open reports in the user's browser
+## Step 6 — Build the report
 
 ```bash
-open <CLIENT>/<MONTH>_COMBINED_REPORT.html \
-     <CLIENT>/<MONTH>_MOM_REPORT.html \
-     <CLIENT>/<MONTH>_EMAIL_DRAFT.html \
-     <CLIENT>/<MONTH>_YTD_REPORT.html
+python3 scripts/build_combined_report.py     # writes <MONTH>_COMBINED_REPORT.html
 ```
 
-The combined report is the primary deliverable; the individual files are optional artifacts for historical parallel with the earlier report family. If you skip the individual files for a given month, note it in the commit message.
+Then scan the output:
+
+```bash
+# no day-level dates, no IDs, no banned phrases, no leftover template braces
+grep -nE '(January|February|…|December|Jan|Feb|…|Dec)[[:space:]]+[0-9]{1,2}\b' <MONTH>_COMBINED_REPORT.html
+grep -nE '7404128201|507797315|\{[a-z_]+\}' <MONTH>_COMBINED_REPORT.html
+```
+
+## Step 7 — Email body HTML
+
+```bash
+python3 scripts/inline_email_html.py    # <MONTH>_EMAIL_BODY.html
+```
+
+Inlines the class-based CSS. Two Gmail-sanitizer traps this handles:
+
+- **Gmail strips `background:` from CSS.** Purple `#667eea` table headers with
+  white text became **white-on-white and invisible**. The converter falls back
+  to dark text on a light `bgcolor` attribute so it reads either way.
+- The right-align regex must capture *up to but not including* the closing
+  quote. Capturing the quote produces `style="…";text-align:right"` — a broken
+  attribute. Same bug bit a "compress the CSS" pass that ate the `;` separator
+  and produced `#ecf0f1text-align:right`. **Assert** after any string surgery:
+
+```python
+assert "ecf0f1text" not in h and '";text-align' not in h
+```
+
+## Step 8 — Gmail draft: COPY-PASTE, not the API
+
+**This is the only reliable path, and Ben has insisted on it.** Writing HTML
+through `create_draft` works but loses backgrounds to the sanitizer. Pasting
+from the rendered page carries Chrome's *computed* styles, so the purple
+headers survive (`rgb(102, 126, 234)` confirmed in the compose DOM).
+
+Procedure per month:
+
+1. Create an empty draft via API to get a stable draft id and set
+   subject + recipient:
+   `create_draft(to=[kyle], subject="Avalara Capital: <Month> Report", htmlBody="<div>&nbsp;</div>")`
+2. Open the rendered `<MONTH>_COMBINED_REPORT.html` in a Chrome tab.
+   `⌘A`, `⌘C` via System Events.
+3. Open the draft: `https://mail.google.com/mail/u/4/#drafts?compose=<messageId>`
+   in **its own window**.
+4. **Scroll the compose body into view and confirm it.** This is the whole
+   failure mode: the body renders ~8,400 px tall and sat at `rect.top = -6115`,
+   so `⌘A`/`⌘V` never reached the editor — the paste **appended**, and June and
+   July ended up with three stacked copies. Verify `rect.top > 0` and
+   `document.activeElement === body` before pasting.
+5. Focus the body, `selectNodeContents`, then `⌘V`.
+6. **Verify the result** — do not assume:
+
+```js
+var d=document.querySelector('div[aria-label="Message Body"]');
+var t=d.innerText.replace(/\s+/g,' ').trim();
+// titles must be 1, takeaways must be 1
+(t.match(/Performance Report/g)||[]).length
+(t.match(/Key Takeaways/g)||[]).length
+getComputedStyle(d.querySelectorAll('th')[0]).backgroundColor  // want rgb(102,126,234)
+```
+
+7. Read the draft back with `get_draft` and confirm subject, recipient and a
+   single copy.
+
+Gmail's AppleScript `execute javascript` needs "Allow JavaScript from Apple
+Events" enabled in Chrome's Develop menu.
+
+**Hard rule: this skill never sends.** Ends at "draft created". Ben sends.
+
+## Step 9 — Open for review
+
+Open each `<MONTH>_COMBINED_REPORT.html` in one window, tabs not windows,
+unless Ben asks otherwise.
 
 ## Step 10 — Commit
 
-```bash
-cd /Users/benfife/github/ammonfife/genomic
-git add \
-  Clients/<client>/data/<month>-<year>-ground-truth.json \
-  Clients/<client>/data/performance_60days.csv \
-  Clients/<client>/<MONTH>_COMBINED_REPORT.html \
-  Clients/<client>/<MONTH>_EMAIL_DRAFT.html
-git commit -m "$(cat <<'EOF'
-feat(<client>): <month> <year> monthly report — full-account pull
-
-Headline: <one sentence — direction, magnitude, CAC>.
-Ground truth: data/<month>-<year>-ground-truth.json.
-Cross-checked against Google Ads UI CSV export: ✓ match to the penny.
-Campaigns included: N (X Search + Y Display).
-
-Draft saved to Gmail for Ben's review. Not sent.
-
-Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+The genomic repo has an autocommit hook; it often lands the work before a manual
+`git commit` runs ("nothing to commit, working tree clean" is normal). Check
+`git log --oneline -3` and confirm the files are in a commit either way. Keep
+prior report HTML as `.backup-<date>`.
 
 ## Step 11 — Log to Turso
 
-Insert a memory row marking the run. Use the HTTP pipeline API (the `turso` CLI may not be authenticated):
+Facts + a captains_log entry via the HTTP pipeline
+(`scripts/log_to_turso.py`). Todos for anything queued for Ben.
 
-```bash
-source ~/.moltbot/turso-bigmac.env
-URL=$(echo "$TURSO_DATABASE_URL" | sed 's|libsql://|https://|')/v2/pipeline
-TODAY=$(date -u +%Y-%m-%d)
-python3 - <<'PY'
-import json, urllib.request, os, subprocess
-URL = subprocess.check_output(['bash','-c','source ~/.moltbot/turso-bigmac.env && echo -n "$TURSO_DATABASE_URL" | sed "s|libsql://|https://|"']).decode() + "/v2/pipeline"
-TOKEN = subprocess.check_output(['bash','-c','source ~/.moltbot/turso-bigmac.env && echo -n "$TURSO_AUTH_TOKEN"']).decode()
-content = "Ran /monthly-report for <client> covering <month> <year>. Ground truth saved. Draft created. Not sent."
-body = {"requests":[{"type":"execute","stmt":{
-  "sql":"INSERT INTO memory (agent_id, date, content, tags, created_by, created_by_platform) VALUES (?, ?, ?, ?, ?, ?)",
-  "args":[
-    {"type":"text","value":"Claude"},
-    {"type":"text","value":"<today>"},
-    {"type":"text","value":content},
-    {"type":"text","value":"monthly-report,<client>,<month>-<year>"},
-    {"type":"text","value":"Claude"},
-    {"type":"text","value":"darwin"}
-  ]}}]}
-req = urllib.request.Request(URL, data=json.dumps(body).encode(), headers={"Authorization":f"Bearer {TOKEN}","Content-Type":"application/json"})
-print(urllib.request.urlopen(req,timeout=20).read().decode()[:200])
-PY
-```
+## Step 12 — Closing summary
 
-## Step 12 — Final report to user
+Report: file paths, draft ids, spend/conv/CAC per month and YTD, any sanity
+check that failed, and any data gap (for example LinkedIn trailing the month
+end). No next-steps list as a substitute for finished work.
 
-Output a concise summary:
-- Combined report path
-- Draft saved: yes / no (reason)
-- Numbers: spend / conv / CAC for the month, vs prior
-- Any campaigns added or removed
-- Any sanity check that failed
+---
 
-## Hard rules (never violate)
+## Hard rules
 
-1. **Never query with `WHERE campaign.id = X`.** Always full-account. Filter post-query if needed.
-2. **Never send email autonomously.** Drafts only, always.
-3. **Never generate a report if any sanity check fails.** Stop, ask Ben, fix the data.
-4. **Never trust a single source.** API pull + Google Ads UI CSV cross-check are both mandatory before send.
-5. **Never reuse narrative language from a prior month** without re-validating every number referenced. Chloe's March draft carried forward the Feb "efficiency improving" narrative against wrong March numbers and almost shipped "volume dipped" when reality was "nearly doubled."
-6. **Never delete a backup.** The prior month's report files stay on disk as `.backup` so future audits can diff.
+1. **Never** `WHERE campaign.id = X`. Full account, filter after.
+2. **Never** send email. Drafts only.
+3. **Never** generate a report if a sanity check fails.
+4. **Never** trust one source — three API query shapes must agree.
+5. **Never** reuse prior-month narrative without re-validating every number.
+6. **Never** delete a backup.
+7. **Never** round conversions before computing CAC.
+8. **Never** let an MTD cutoff define a completed month.
+9. **Never** rely on CSS `background:` in an email — Gmail strips it.
+10. **Never** paste into a Gmail compose without confirming the body is
+    on-screen and focused, then verifying the copy count afterward.
 
-## Known working artifacts from the 2026-04-08 run (reference)
+## Reference artifacts
 
-- `MARCH_COMBINED_REPORT.html` — exemplar combined format
-- `data/march-2026-ground-truth.json` — exemplar ground-truth schema
-- `HOW_MARCH_REPORT_WENT_WRONG_2026-04-08.md` — why every one of these rules exists
-- `sent-archive/` — the actual Feb emailed bodies extracted from Mail.app, structural templates for future months
-- Commit `420fe4c` in genomic repo — the corrected fetch_performance_data.py + all the above
+- `sent-archive/MAY_2026_REPORT_SENT.html` — canonical format
+- `HOW_MARCH_REPORT_WENT_WRONG_2026-04-08.md` — why Steps 0/4/5 exist
+- `scripts/build_combined_report.py` — deliverable builder
+- `scripts/inline_email_html.py` — Gmail-safe inliner
+- `scripts/fetch_july_august_2026-08-27.py` — full-account puller + cross-check
+- `scripts/_li_monthly.py` — LinkedIn monthly rollup
+- `scripts/build_month_end_email.py` — tables-only variant (NOT the deliverable)
+- Commit `420fe4c` — the single-campaign fix
 
-## Extending to other clients
+## 2026-09 cycle, for continuity
 
-To support a second client (e.g. a hypothetical "acme-corp"):
+| Month | Spend | Conversions | CAC |
+|---|---|---|---|
+| June | $8,749.08 | 110.00 | $79.54 |
+| July | $11,236.92 | 160.68 | $69.94 |
+| August | $532.21 | 23.00 | $23.14 |
+| YTD Jan–Aug | $40,747.15 | 598.30 | $68.10 |
 
-1. Ensure `Clients/acme-corp/auth/google-ads.json` exists
-2. Update the `CUSTOMER_ID` at the top of Step 2
-3. Update the default recipient
-4. All other steps transfer unchanged
-
-The skill is written around Avalara Capital because that's the only live client as of 2026-04-08. Parameterize by client when a second one ships.
+June, July and August 2026 were all sent on 2026-09-03 (May had been the last
+report sent, on 2026-06-10 — always check for a backlog rather than assuming
+only the latest month is due).
