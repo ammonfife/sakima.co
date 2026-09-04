@@ -278,6 +278,15 @@ end). No next-steps list as a substitute for finished work.
 - `scripts/build_month_end_email.py` — tables-only variant (NOT the deliverable)
 - Commit `420fe4c` — the single-campaign fix
 
+## Client-facing hygiene gate
+
+Before any report, spec sheet or email leaves the agency, run the
+`client-facing-document-hygiene` skill's grep and read the opening paragraph on
+its own. No internal incident history, no agency ad counts, no reference to work
+we paused or broke, no past-omission confessions. State current scope instead of
+a prior gap: "these totals combine Google and LinkedIn", never "LinkedIn was
+missing before". Also enforce: no em-dashes anywhere in client copy.
+
 ## 2026-09 cycle, for continuity
 
 | Month | Spend | Conversions | CAC |
