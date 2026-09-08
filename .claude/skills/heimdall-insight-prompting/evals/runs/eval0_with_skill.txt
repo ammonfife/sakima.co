@@ -1,0 +1,6 @@
+Patagonia (h=0.091) and REI (h=0.077) sit furthest left on the Political Spectrum axis, drawing from a
+similar customer base. Cabela's (h=-0.061) and Bass Pro Shops (h=-0.048) anchor the opposite half, aligning
+with a more conservative-leaning outdoors audience. Backcountry.com (h=0.083) sits closest to Patagonia
+despite a fraction of the search volume (550K vs 3.35M), suggesting a smaller but similarly aligned
+customer base. Carhartt (h=-0.033) and Sierra Trading Post (h=0.021) sit near the center and are shown for
+context rather than as movers. Not charted: Temu, an unvolumed row with no reliable behavioral signal.

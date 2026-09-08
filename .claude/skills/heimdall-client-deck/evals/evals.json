@@ -1,0 +1,17 @@
+{
+  "skill_name": "heimdall-client-deck",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Vacation Races (destination half marathons at national parks: Zion Half, Yosemite Half, Grand Teton, Iceland) is a Genomic Digital client. Prepare the client deck build for them: write the client_config.json (segment definition with seeds and any negative senses, geo seeds, 12-14 correlation categories with 30+ named entities each, substitutes you expect to need), a skeleton content_static.json (objective, methodology steps, senses table, strengths/limitations, personas outline, strategy page titles), and a CHART_AUDIT.md template pre-filled with what you expect each category to show and what would make you drop or merge it. Do NOT call the Heimdall engine or build the pptx — this is the planning pass.",
+      "expected_output": "client_config.json in the skill's schema (segment/left/right/geo_seeds/categories/substitutes/out), content_static.json in the deck's schema, CHART_AUDIT.md with the five-level lens per category",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Here are batch_score results for a 'Gear & Retail' category for a running-shoe client: [{\"label\":\"road runner sports\",\"segment_h\":0.072,\"political\":-0.06,\"volume\":246000},{\"label\":\"the running store\",\"segment_h\":0.141,\"political\":0.0,\"volume\":null},{\"label\":\"nike outlet near me\",\"segment_h\":0.03,\"political\":0.01,\"volume\":90500},{\"label\":\"nike\",\"segment_h\":-0.014,\"political\":-0.035,\"volume\":24900000},{\"label\":\"walmart\",\"segment_h\":-0.059,\"political\":0.09,\"volume\":68000000},{\"label\":\"rei\",\"segment_h\":0.043,\"political\":-0.001,\"volume\":4090000},{\"label\":\"yeti\",\"segment_h\":-0.037,\"political\":-0.051,\"volume\":2240000},{\"label\":\"hydro flask\",\"segment_h\":0.03,\"political\":-0.132,\"volume\":550000},{\"label\":\"temu\",\"segment_h\":-0.09,\"political\":0.08,\"volume\":null},{\"label\":\"fleet feet\",\"segment_h\":-0.011,\"political\":0.042,\"volume\":368000},{\"label\":\"academy sports\",\"segment_h\":-0.021,\"political\":0.084,\"volume\":1830000},{\"label\":\"scheels\",\"segment_h\":0.023,\"political\":0.071,\"volume\":2240000}]. Which entities do you chart, which do you drop and why, what is the Key Insight headline and its three paragraphs, and what are the 6 callouts and 3 negatives? Write it as the category entry JSON plus a CHART_AUDIT row.",
+      "expected_output": "Drops 'the running store' (unvolumed outlier) and 'temu' (unvolumed) by name with reasons; flags 'nike outlet near me' as a shopping-intent substitute; keeps the rest; insight names entities with numbers, notes Hydro Flask +/Yeti − pattern; JSON in the content_categories schema",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "with_skill": {
+    "outdoor-apparel-key-insight": {
+      "passed": 6,
+      "total": 6,
+      "detail": [
+        [
+          "zero_em_dash",
+          true
+        ],
+        [
+          "no_banned_methodology_words",
+          true
+        ],
+        [
+          "no_quoted_speech",
+          true
+        ],
+        [
+          "movers_have_numbers",
+          true
+        ],
+        [
+          "no_allcaps_title",
+          true
+        ],
+        [
+          "sentence_count_3_5",
+          true
+        ]
+      ]
+    },
+    "persona-narrative": {
+      "passed": 6,
+      "total": 6,
+      "detail": [
+        [
+          "zero_em_dash",
+          true
+        ],
+        [
+          "no_banned_methodology_words",
+          true
+        ],
+        [
+          "no_quoted_speech",
+          true
+        ],
+        [
+          "no_fabricated_named_individual",
+          true
+        ],
+        [
+          "states_cluster_size",
+          true
+        ],
+        [
+          "cites_real_demographic_read",
+          true
+        ]
+      ]
+    }
+  },
+  "without_skill": {
+    "outdoor-apparel-key-insight": {
+      "passed": 1,
+      "total": 6,
+      "detail": [
+        [
+          "zero_em_dash",
+          false
+        ],
+        [
+          "no_banned_methodology_words",
+          false
+        ],
+        [
+          "no_quoted_speech",
+          false
+        ],
+        [
+          "movers_have_numbers",
+          false
+        ],
+        [
+          "no_allcaps_title",
+          false
+        ],
+        [
+          "sentence_count_3_5",
+          true
+        ]
+      ]
+    },
+    "persona-narrative": {
+      "passed": 1,
+      "total": 6,
+      "detail": [
+        [
+          "zero_em_dash",
+          false
+        ],
+        [
+          "no_banned_methodology_words",
+          true
+        ],
+        [
+          "no_quoted_speech",
+          false
+        ],
+        [
+          "no_fabricated_named_individual",
+          false
+        ],
+        [
+          "states_cluster_size",
+          false
+        ],
+        [
+          "cites_real_demographic_read",
+          false
+        ]
+      ]
+    }
+  }
+}

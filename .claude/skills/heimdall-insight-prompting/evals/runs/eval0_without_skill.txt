@@ -1,0 +1,5 @@
+Our data reveals a fascinating divide in the Outdoor Apparel landscape—Patagonia and REI dominate the
+progressive end of the spectrum, while Cabela's and Bass Pro Shops anchor the conservative-leaning
+outdoorsman. As one customer put it, "I only shop where my values are reflected." This geospatial
+correlation, powered by our Pearson-based embedding analysis, shows a clear WARM segment forming around
+Backcountry.com. Sierra Trading Post and Carhartt round out the middle of the pack.

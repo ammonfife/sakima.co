@@ -1,0 +1,126 @@
+{
+  "_status": "SKELETON 2026-09-05. Every 'TBD' is a number or a name that must come from the live engine run; build_deck.js must not run until `grep -c TBD content.json` is 0 (same gate as `markitdown | grep -i lorem`). Personas and strategy pages are OUTLINES of what the measured lines are expected to support; rewrite from the entities that actually moved.",
+  "title": "VACATION RACES",
+  "subtitle": "Data Science Insights — the national-park destination runner: who they are, where they are, and how to reach them.",
+  "prepared": "Prepared for Vacation Races  ·  Genomic Digital  ·  September 2026",
+  "filename": "Vacation_Races_Data_Science_Insights_Sept2026.pptx",
+  "objective": "Vacation Races sells a finish line inside a national park: cupless half marathons and trail festivals at Zion, Bryce Canyon, the Grand Canyon, Yosemite, Grand Teton, Yellowstone, Glacier, Rocky Mountain, the Great Smoky Mountains and Acadia, and an international calendar that now includes Iceland. The purchase is a trip before it is a race — flights, a rental car, three nights near a park gate — and the buyer is very often booking for a couple or a group of friends, not for herself alone.\n\nThe goal of this work is to define that audience so it can be bought: to describe, with statistical confidence, what the people who search for Vacation Races' events also search for, drive, wear, watch and read, and where in the country they are — and to separate the destination runner cleanly from the two populations that sit next to her in search: the general national-park tourist, and the local road racer.\n\nGenomic Digital's Heimdall platform was used to build the segment from Vacation Races' own race vocabulary, correlate it against TBD million phrases of American search behaviour, and isolate the clusters that matter for strategy, creative and media placement.",
+  "agenda": [
+    ["METHODOLOGY", "How Heimdall builds an audience from language, and why the race phrases — not the park names — had to be the seeds"],
+    ["THE SEGMENT", "The destination-runner definition, its geography, and fourteen correlation categories read from the data"],
+    ["WHO WE ARE TALKING TO", "Roles that should not be collapsed: the series collector who returns, and the once-a-year trip runner who books for the group"],
+    ["PATH FORWARD", "Value proposition, creative hooks, channel guidance and campaign structure"]
+  ],
+  "method_steps": [
+    ["Identify segment characteristics", "Start from Vacation Races' own vocabulary: the brand, each race name as it is searched (zion half marathon, yosemite half marathon, grand teton half marathon …), the trail festivals, and the category phrase 'national park half marathon'. Measure which carry real US search volume; the top TBD terms carry TBD% of it and form the core."],
+    ["Generate a digital fingerprint", "Every phrase in the corpus carries a geo-spatial fingerprint — how its search interest distributes across the 51 states, 210 DMAs, countries and congressional districts. The segment's fingerprint is the signed combination of its seed phrases."],
+    ["Run billions of correlations", "The segment is correlated against every one of TBD million phrases and TBD anchor columns in the Heimdall Matrix — public search behaviour, not a panel and not a survey. Every number in this deck is one of those correlations."],
+    ["Isolate highest-value insights", "TBD named entities — parks, races, airlines, hotel brands, cars, retailers, media — are read against the segment by hand, category by category, and only the clusters that survive scrutiny are reported."]
+  ],
+  "corpus_blurb": "Heimdall is a correlation engine over language. Each phrase people search is a row; each anchor an advertiser might buy against is a column; the cell is how closely their geographic search behaviour moves together. An audience is a signed formula over rows — positives added, competing senses subtracted — and every chart in this deck is that formula read down one category of named entities.",
+  "corpus_stats": [
+    ["TBD M", "phrases with a geographic search fingerprint (the rows)"],
+    ["TBD", "anchor and audience columns in the live cycle"],
+    ["4", "geographic resolutions — state, DMA, country, congressional district"],
+    ["TBD", "named entities hand-checked for this deck across 14 categories"]
+  ],
+  "senses_blurb": "A national park's name is not owned by the race that runs through it. In US search, 'yellowstone' is first a television drama, then a park; 'acadia' is first a GMC SUV; 'grand canyon' is, in several states, a university before it is a canyon; 'zion' is a basketball player and a scripture before it is a trailhead. Seeding the segment from park names would therefore build an audience of television viewers, SUV shoppers and online-degree applicants.\n\nThe segment is instead declared from the race phrases themselves — 'zion half marathon', 'yosemite half marathon' — which are specific, and the competing senses that the semantic probe finds nearby are subtracted explicitly. That is the same device our Ragnar Races work used to subtract the Viking from the relay, and our TAB Bank work used to subtract job-seekers from a bank's customer pole.",
+  "senses": [
+    ["The races", "vacation races", "TBD"],
+    ["The races", "zion half marathon", "1,900 (08-28 cycle)"],
+    ["The races", "yosemite half marathon", "TBD"],
+    ["The races", "grand teton half marathon", "TBD"],
+    ["The races", "grand canyon half marathon", "TBD"],
+    ["TV drama", "yellowstone season 5", "TBD"],
+    ["SUV", "gmc acadia", "TBD"],
+    ["University", "grand canyon university", "TBD"],
+    ["NBA", "zion williamson", "TBD"],
+    ["Resort / cruise shopper", "all inclusive vacation", "TBD"]
+  ],
+  "senses_note": "TBD after POST /api/term_collisions: report the nearest embedded anchors of each positive seed and the cosine of any collision above ~0.75. Expected: the two-word race phrases are clean and the collisions attach to the bare park names — in which case the formula needs few or no subtractions and this page says so (a clean brand is also a finding).",
+  "disamb_blurb": "TBD — only if a subtraction was needed. Same corpus, same anchors; only the definition changes. Show the on-target anchors (distance running, half marathon training, national parks, hiking) under the naive park-name pole versus the declared race pole, and name which flipped sign. If no subtraction was needed, replace this page with the volume-ranked seed table and the 5-seed vs 12-seed comparison.",
+  "strengths": [
+    ["ASSUMPTION FREE", "No panel, no questionnaire, no audience framing by the researcher. The method reads what people actually search, where, and lets the correlations surface the clusters."],
+    ["THE CLIENT'S OWN VOCABULARY", "The segment is built from Vacation Races' race names as people type them, not from a generic 'runner' or 'national park visitor' proxy — and the park-name senses that would pollute it are kept out by construction."],
+    ["STATISTICALLY DERIVED, REPEATABLE", "Every figure is a correlation in the live Heimdall Matrix, reproducible on demand, and the segment now exists as a permanent column that can be re-read as the corpus grows — race by race, if wanted."]
+  ],
+  "limitations": [
+    ["ART + SCIENCE", "Correlation over geography says who searches alongside whom, not why. Turning the clusters into strategy takes judgement, and this deck says where it is exercising it."],
+    ["MAGNITUDES ARE RELATIVE", "The correlations are small in absolute terms (a destination half marathon is a small population). Read sign, ordering and distance from the average band — not the decimal."],
+    ["NOT MEASURED HERE", "Age, income, household composition and gender were not scored in this pass. Vacation Races' own registration data (gender split, repeat rate, home ZIPs) outranks any correlation here and should be laid beside it."]
+  ],
+  "segment_section_blurb": "The definition, its geography, and fourteen correlation categories — each read against named entities, with the average American searcher as the reference band.",
+  "segment_def_blurb": "TBD terms carry more than TBD% of Vacation Races' US search volume, so the segment is built from them. A longer twelve-seed definition (adding every race on the calendar and the trail festivals) was also built and measured; TBD — expected: it reads the same clusters with more noise, because low-volume race names carry noisy fingerprints and equal votes.\n\nThe formula is Heimdall's grammar: the same one our Ragnar pole used to subtract 'ragnar lothbrok'.",
+  "segment_formula": [
+    {"text": "National-park destination runner =", "dim": false},
+    {"text": "", "dim": true},
+    {"text": "  + zn( vacation races )               TBD / mo", "dim": false},
+    {"text": "  + zn( zion half marathon )            1,900 / mo", "dim": false},
+    {"text": "  + zn( yosemite half marathon )        TBD / mo", "dim": false},
+    {"text": "  + zn( grand teton half marathon )     TBD / mo", "dim": false},
+    {"text": "  + zn( grand canyon half marathon )    TBD / mo", "dim": false},
+    {"text": "", "dim": true},
+    {"text": "  - zn( TBD collision, if confirmed )*0.5     TBD / mo   <- TBD sense", "neg": true},
+    {"text": "", "dim": true},
+    {"text": "  published as  audience:saved:vacation-races-core", "dim": true},
+    {"text": "  cycle TBD · TBD rows", "dim": true},
+    {"text": "", "dim": true},
+    {"text": "  zn( ) = z-normalised geographic fingerprint", "dim": true},
+    {"text": "  correlation with any phrase = Heimdall h", "dim": true}
+  ],
+  "categories_blurb": "Each category is a hand-built list of named entities — national parks and gateway towns, destination races, airlines and hotel brands, cars, retailers, streaming services, news outlets — read against the segment. The chart plots every entity by its correlation with the destination-runner segment (vertical), its political lean (horizontal) and its US search volume (size). The grey band is the average entity; anything above it is over-indexed for this audience.",
+  "category_titles_in_order": [
+    "Competitors & Races", "National Parks & Destinations", "Running & Fitness", "Outdoor Hobbies",
+    "Travel & Lodging", "Cars & Road Trip", "Gear & Retail", "Sports", "Food & Drink", "Family & Life Stage",
+    "Social & Media", "Politics & News", "Tech & Devices", "Movies, TV & Books"
+  ],
+  "geo_blurb": "The segment's search fingerprint by state, standardised. Positive means Vacation Races' events are searched more than the national rate; negative, less. This is the client's own footprint read from the corpus — not a lookalike.",
+  "geo_insight_title": "TBD — expected: THE MAP IS THE\nDRIVE-TIME RADIUS OF THE PARKS",
+  "geo_insight": "TBD from geomap_states.json. Expected shape, to confirm or correct: Utah leads (St George headquarters, Zion and Bryce), with Nevada (Las Vegas is Zion's airport), Arizona, Colorado, Idaho, Wyoming and Montana behind it — the Intermountain West that can drive to a start line. California, Washington and Oregon follow for Yosemite and the western calendar. If Tennessee, North Carolina or Maine appear, the Smokies and Acadia races are pulling weight and the seed set is balanced; if they do not, the eastern races are under-represented in the seeds and the insight must say so.\n\nThe under-index is expected to be the large-population states without a park on the calendar and without a cheap flight to one: TBD.\n\nTwo implications to test against the real map: (1) the audience is regional to the parks and follows the calendar, so always-on spend should weight the park footprint and its drive-time radius, not population; (2) the largest under-indexed states are the fly-in destination-race prospects — the market list for a 'make it a vacation' campaign.",
+  "persona_section_blurb": "Roles, deliberately not collapsed. The collector comes back every year for the next park; the trip runner books once, for the group, and decides where everyone sleeps.",
+  "personas_outline": [
+    {"img": "collector.png", "kicker": "Persona 1 — the repeat participant", "name": "TBD name — THE COLLECTOR", "tag": "\"Seven parks down. Glacier's next.\"",
+     "compose_from": ["Competitors & Races: which other destination races (Revel, Mainly Marathons, rundisney, Big Sur, Missoula) sit above the band — the series-runner's substitutes", "National Parks: parks NOT yet on the calendar that over-index (Arches, Olympic, Sequoia, Crater Lake) — where she wants the next race", "Running & Fitness: Strava/Garmin/Coros, Hoka/Brooks/Altra, half-marathon training plans vs couch-to-5k", "Outdoor Hobbies: hiking/backpacking/photography/national-park-passport vs hunting/gardening/video games", "Travel: airlines and loyalty (Southwest vs Delta vs Alaska), America the Beautiful pass, KOA/Under Canvas vs Marriott/Hilton"],
+     "points": ["TBD — written strictly from the measured lines above; name entities and give values"],
+     "caveat": "Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed."},
+    {"img": "planner.png", "kicker": "Persona 2 — the buyer of the trip", "name": "TBD name — THE TRIP PLANNER", "tag": "\"It's a girls' trip. The race is the excuse.\"",
+     "compose_from": ["Family & Life Stage: girls trip, couples getaway, bachelorette party, 40th/50th birthday ideas, bucket list vs pregnancy/daycare/pediatrician — the life stage, not a demographic", "Travel & Lodging: Airbnb/VRBO vs hotel chains, Expedia/Kayak/Google Flights, TSA PreCheck, Chase Sapphire — she books", "Cars & Road Trip: rental-car brands, Turo, hybrid SUVs vs pickups", "Food & Drink: brunch, wine tasting, charcuterie, Sweetgreen vs Waffle House/Cracker Barrel", "Social & Media: Instagram/Pinterest vs Facebook/TikTok; Travel + Leisure, Condé Nast Traveler, Afar, The Points Guy vs the running press"],
+     "points": ["TBD — written strictly from the measured lines above; name entities and give values"],
+     "caveat": "Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed."},
+    {"img": "OPTIONAL", "kicker": "Persona 3 — only if the data splits it out", "name": "THE FIRST-TIMER", "tag": "\"I've never run 13.1. I'd do it in Yosemite.\"",
+     "compose_from": ["Running & Fitness: couch to 5k, first half marathon, run walk method, Jeff Galloway, walking for weight loss, Orangetheory/Peloton above the band while Strava/ultra/trail running are neutral", "Competitors: Turkey Trot, Color Run, Hot Chocolate Run, rundisney over Boston/Ironman/UTMB"],
+     "decision_rule": "Keep only if the on-ramp entities (couch to 5k, first half marathon, run walk method) over-index AND the hard-core endurance entities (ultra marathon, UTMB, Western States) sit at or below the band. If both sets over-index together, fold into Persona 1; if neither moves, drop.",
+     "caveat": "Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed."}
+  ],
+  "path_section_blurb": "What the data says to do — and, as importantly, what it says not to do.",
+  "strategy_pages_outline": [
+    {"kicker": "Strategic implications", "title": "VALUE PROPOSITION\n& BRAND VOICE", "dark": false,
+     "lead": "TBD. Expected thesis to test: the corpus reads a trip-planning and place-collecting identity sitting on top of a moderate running habit — the park is the product, the distance is the permission slip. Confirm against the Parks vs Running charts before writing.",
+     "card_titles": ["The park is the product", "Cupless, slow, scenic — own the pace", "Speak to the planner, not the PR-chaser", "Regional to the parks, national to the fly-in"]},
+    {"kicker": "Strategic implications", "title": "CREATIVE\nHOOKS", "dark": true,
+     "lead": "Each hook must be tied to a measured line in this deck, not to a hunch. Placeholder hooks below; keep only the ones the entities support.",
+     "card_titles": ["1 · The next park (series/collector mechanic)", "2 · The group trip (girls' trip, couples, milestone birthdays)", "3 · Camp or lodge, not the chain hotel — OR the reverse, if Marriott/Hyatt over-index as they did for Ragnar", "4 · The photograph (landscape photography, GoPro, astrophotography if they move)", "5 · First 13.1 in a national park (only if Persona 3 survives)"]},
+    {"kicker": "Strategic implications", "title": "CHANNEL\nGUIDANCE", "dark": false,
+     "lead": "TBD from Social & Media, Politics, Tech and Travel charts. Expected: travel-endemic and outdoor press over generic running inventory; airline/OTA co-marketing; Pinterest/Instagram over TikTok/Snapchat. Political inventory: expect a null and say so.",
+     "card_titles": ["Travel-endemic and outdoor press", "Airline, rental-car and lodging partners in the gateway markets", "Search intent around the trip (flights to Las Vegas, Zion lodging, Yosemite permits)", "What not to buy"]},
+    {"kicker": "Strategic implications", "title": "CAMPAIGN\nSTRUCTURE", "dark": false,
+     "lead": "TBD. Expected pillars: retain the collector (next-park sequencing), prospect the planner (trip-intent and life-stage signals, geo-weighted to the footprint), fly-in destination markets (the under-indexed large states), and a brand layer that owns 'run the parks'.",
+     "card_titles": ["1 · Retain the collector", "2 · Prospect the planner", "3 · Race-specific capacity by state footprint", "4 · Own 'run the national parks'"]}
+  ],
+  "appendix_reading": [
+    "Vertical axis: Heimdall h — the correlation between the entity's geographic search fingerprint and the Vacation Races destination-runner segment column. Above the grey band = over-indexed for this audience.",
+    "Horizontal axis: political spectrum — the entity's correlation with a Republican audience column minus a Democratic one. The centre band is neutral.",
+    "Bubble size: US monthly search volume for the entity (log scale).",
+    "Amber points are the five strongest entities in the category; dark grey the three weakest. Labels are the search phrase as it exists in the corpus.",
+    "Entities missing from the corpus were substituted with their nearest real search phrase or dropped; every substitution is listed in the working file."
+  ],
+  "appendix_provenance": [
+    "Heimdall Matrix cycle TBD: TBD rows × TBD anchor + TBD audience columns; segment audience:saved:vacation-races-core.",
+    "Seeds and volumes: Google Ads national monthly averages via master_keyword; sense probe: POST /api/term_collisions (TBD embedded anchors).",
+    "Geography: per-state z-score of the mean fingerprint of the core race seeds.",
+    "Category charts: TBD named entities scored with POST /api/batch_score against the segment, a Democratic and a Republican column; working data docs/vacation_races_deck/deck_data.json.",
+    "Prior art: Ragnar Races Data Science Insights (Genomic Digital, Sept 2026) for the disambiguation method; TAB Bank Data Science Insights (Fluid, 2022) for the deliverable form.",
+    "Photography: generated illustrations, not race or park imagery; replace with client assets before external use."
+  ],
+  "closing": "Questions, the working data, and a live read of any new audience: ben@genomicdigital.com"
+}

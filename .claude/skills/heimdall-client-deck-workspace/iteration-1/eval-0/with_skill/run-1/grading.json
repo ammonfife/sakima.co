@@ -1,0 +1,45 @@
+{
+ "expectations": [
+  {
+   "text": "client_config.json parses and has 12-14 categories with >=30 named entities each",
+   "passed": true,
+   "evidence": "14 categories, sizes [51, 52, 49, 40, 50, 42, 45, 46, 43, 40, 43, 45, 44, 40]"
+  },
+  {
+   "text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)",
+   "passed": true,
+   "evidence": "seed text sample: {\"client\": \"Vacation Races\", \"segment\": [\"audience:saved:vacation-races-core\"], \"segment_label\": \"the national-park destination runner\", \"left\": [\"audience:save"
+  },
+  {
+   "text": "client_config includes geo seeds for the geography chart",
+   "passed": true,
+   "evidence": "keys: ['client', 'segment', 'segment_label', 'left', 'right', '_planning_notes', 'seed_definition', 'geo_seeds', '_geo_expectation', 'categories', '_substitutes_note', 'substitutes']"
+  },
+  {
+   "text": "content_static.json parses and has both strengths and limitations",
+   "passed": true,
+   "evidence": "keys: ['_status', 'title', 'subtitle', 'prepared', 'filename', 'objective', 'agenda', 'method_steps', 'corpus_blurb', 'corpus_stats', 'senses_blurb', 'senses', 'senses_note', 'disamb_blurb']"
+  },
+  {
+   "text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)",
+   "passed": true,
+   "evidence": "drop=23 merge=13"
+  },
+  {
+   "text": "CHART_AUDIT.md includes a political-axis sanity check",
+   "passed": true,
+   "evidence": "political mentions=3"
+  },
+  {
+   "text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole",
+   "passed": true,
+   "evidence": "lift mentions=3, band mentions=6"
+  }
+ ],
+ "summary": {
+  "passed": 7,
+  "failed": 0,
+  "total": 7,
+  "pass_rate": 1.0
+ }
+}

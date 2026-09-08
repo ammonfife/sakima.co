@@ -1,0 +1,31 @@
+{
+  "skill_name": "heimdall-insight-prompting",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "outdoor-apparel-key-insight",
+      "prompt": "Write the Key Insight paragraph (Political Spectrum x Segment chart) for an Outdoor Apparel category. Scored rows: patagonia h=0.091 political=-0.18 vol=3350000; rei h=0.077 political=-0.02 vol=4090000; backcountry.com h=0.083 political=-0.05 vol=550000; carhartt h=-0.033 political=0.07 vol=1830000; sierra trading post h=0.021 political=0.01 vol=246000; cabelas h=-0.061 political=0.13 vol=2740000; bass pro shops h=-0.048 political=0.11 vol=3010000; temu h=-0.095 political=0.09 vol=null (unvolumed).",
+      "assertions": [
+        "zero_em_dash",
+        "no_banned_methodology_words",
+        "no_quoted_speech",
+        "movers_have_numbers",
+        "no_allcaps_title",
+        "sentence_count_3_5"
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "persona-narrative",
+      "prompt": "Write the persona-narrative line for a cluster: n=42 members, sum volume 1.2M, high on outdoor-engagement axis, low on price-sensitivity, top members REI/Patagonia/backcountry.com. A demographic read WAS run via audience_profile against the segment's own row vs the audience:gads:* columns: slight male lean (+0.03), barbell age curve (65+ and 18-34 over-index ~+0.02-0.027, 35-54 under-index), parents over-index (+0.033).",
+      "assertions": [
+        "zero_em_dash",
+        "no_banned_methodology_words",
+        "no_quoted_speech",
+        "no_fabricated_named_individual",
+        "states_cluster_size",
+        "cites_real_demographic_read"
+      ]
+    }
+  ]
+}

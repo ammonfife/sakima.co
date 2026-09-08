@@ -1,0 +1,45 @@
+{
+ "expectations": [
+  {
+   "text": "client_config.json parses and has 12-14 categories with >=30 named entities each",
+   "passed": false,
+   "evidence": "0 categories, sizes []"
+  },
+  {
+   "text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)",
+   "passed": false,
+   "evidence": "seed text sample: {\"client\": {\"name\": \"Vacation Races\", \"agency\": \"Genomic Digital\", \"platform\": \"Heimdall\", \"deck_slug\": \"vacation-races-audience-correlation-2026-09\", \"business"
+  },
+  {
+   "text": "client_config includes geo seeds for the geography chart",
+   "passed": true,
+   "evidence": "keys: ['client', 'segment', 'geo', 'correlation_categories', 'substitution_policy', 'engine_run_plan']"
+  },
+  {
+   "text": "content_static.json parses and has both strengths and limitations",
+   "passed": true,
+   "evidence": "keys: ['deck_title', 'subtitle', 'date', 'status', 'objective', 'methodology_steps', 'senses_table', 'strengths', 'limitations', 'personas_outline', 'strategy_page_titles', 'appendix_pages']"
+  },
+  {
+   "text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)",
+   "passed": true,
+   "evidence": "drop=21 merge=20"
+  },
+  {
+   "text": "CHART_AUDIT.md includes a political-axis sanity check",
+   "passed": false,
+   "evidence": "political mentions=0"
+  },
+  {
+   "text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole",
+   "passed": true,
+   "evidence": "lift mentions=0, band mentions=0"
+  }
+ ],
+ "summary": {
+  "passed": 4,
+  "failed": 3,
+  "total": 7,
+  "pass_rate": 0.5714
+ }
+}

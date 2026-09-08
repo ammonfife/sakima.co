@@ -1,0 +1,45 @@
+{
+ "expectations": [
+  {
+   "text": "drops 'the running store' by name (unvolumed +0.141 outlier)",
+   "passed": true,
+   "evidence": "exclude: [\"the running store\"]"
+  },
+  {
+   "text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)",
+   "passed": false,
+   "evidence": "exclude: [\"the running store\"]"
+  },
+  {
+   "text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand",
+   "passed": true,
+   "evidence": "mentioned in insight/audit"
+  },
+  {
+   "text": "exactly 6 callouts and 3 negatives",
+   "passed": true,
+   "evidence": "callouts=6 negatives=3"
+  },
+  {
+   "text": "insight names Hydro Flask and Yeti together as a split",
+   "passed": true,
+   "evidence": "both present"
+  },
+  {
+   "text": "insight cites numeric correlations (e.g. +0.072)",
+   "passed": true,
+   "evidence": "['+0.072', '+0.043', '+0.030', '+0.030', '+0.023']"
+  },
+  {
+   "text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)",
+   "passed": true,
+   "evidence": "['SHIP']"
+  }
+ ],
+ "summary": {
+  "passed": 6,
+  "failed": 1,
+  "total": 7,
+  "pass_rate": 0.8571
+ }
+}

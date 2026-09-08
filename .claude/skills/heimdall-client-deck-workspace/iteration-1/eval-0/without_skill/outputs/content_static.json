@@ -1,0 +1,111 @@
+{
+  "deck_title": "Vacation Races: Who the Destination-Race Runner Really Is",
+  "subtitle": "A Heimdall search-audience correlation study prepared by Genomic Digital",
+  "date": "2026-09",
+  "status": "SKELETON — numbers, charts, and persona details to be filled after the engine pass",
+
+  "objective": {
+    "headline": "Find the adjacent interests, places, and brands that separate a destination-race runner from an ordinary half-marathoner, so Vacation Races can buy media, pick partners, and write copy against the real audience rather than the assumed one.",
+    "questions_answered": [
+      "Which brand and interest clusters does the Vacation Races audience over-index on relative to the general search population?",
+      "Which of those clusters are unique to the destination-race buyer versus shared with every runner?",
+      "Which source metros carry the highest propensity per capita, and do they differ by event?",
+      "Which competing race series share the same buyer, and which are merely adjacent?",
+      "What sponsor and partner categories does the data justify pursuing?"
+    ],
+    "not_in_scope": [
+      "Individual-level targeting or PII; Heimdall works on aggregate search-phrase correlation only",
+      "Registration attribution; this is an audience study, not a conversion study",
+      "Iceland as a source market; it is a destination only in this data"
+    ]
+  },
+
+  "methodology_steps": [
+    {"step": 1, "title": "Define the segment", "text": "We seeded Heimdall with 26 search phrases that describe someone planning a trip around a half marathon at a national park (event names, 'runcation', 'destination half marathon', training-plan phrases). Each seed was weighted so that event and travel intent dominate over generic running intent."},
+    {"step": 2, "title": "Remove the wrong meanings", "text": "Several seed words have unrelated meanings in search (Zion the basketball player, Marathon the oil company, Iceland the UK grocer, Yosemite the operating system). We declared 12 negative senses and subtracted them from the segment so those meanings do not leak in."},
+    {"step": 3, "title": "Compose the audience vector", "text": "Heimdall combines the positive seeds into a single audience vector (a 'pole') in its search-behavior space, built from the geographic and temporal co-movement of millions of search phrases."},
+    {"step": 4, "title": "Score the candidate entities", "text": "For each of 14 categories we named 30-40 brands, places, events, or interests and measured how strongly each one's search behavior correlates with the audience vector. Positive means the audience searches it more than the general population; negative means less."},
+    {"step": 5, "title": "Map the geography", "text": "The same audience vector was scored at the state and DMA level and normalized by population, producing a propensity map of where destination-race runners live rather than where the parks are."},
+    {"step": 6, "title": "Audit and prune", "text": "Categories where too few entities resolved, or where the correlations were flat, were dropped or merged. Every drop is documented in the chart audit so the client can see what was tested and rejected."},
+    {"step": 7, "title": "Translate into personas and strategy", "text": "Clusters of over-indexing entities were grouped into two or three personas, and each strategy page ties a recommendation to the specific chart that supports it."}
+  ],
+
+  "senses_table": {
+    "columns": ["Term", "Meaning we kept", "Meanings we removed", "How"],
+    "rows": [
+      ["Zion", "Zion National Park / Zion Half", "Zion Williamson, Zion IL, Zionism, church names", "negative seeds + collision check"],
+      ["Marathon", "26.2 / 13.1 running event", "TV marathon, Marathon Petroleum, Marathon gas", "negative seeds"],
+      ["Race", "Footrace / running event", "Motorsport, horse racing, ethnicity", "negative seeds"],
+      ["Vacation", "Trip built around a race", "Beach, cruise, all-inclusive, Disney", "negative seeds + 'runcation' positive weight"],
+      ["Iceland", "Destination for the Iceland Half", "Iceland Foods, volcano news, football", "negative seeds"],
+      ["Yosemite", "Yosemite National Park / Yosemite Half", "Yosemite Sam, macOS Yosemite", "negative seeds"],
+      ["Teton", "Grand Teton National Park / Jackson Hole", "County government, real estate, ski pass", "negative seeds"],
+      ["Glacier", "Glacier National Park / Glacier Half", "Climate news, Glacier Bay cruise", "negative seeds"],
+      ["Trail", "Trail running / hiking trail", "Oregon Trail, trail mix, trailer", "negative seeds"],
+      ["Rocky", "Rocky Mountain National Park", "Rocky films, Rocky Mountain Chocolate", "negative seeds"],
+      ["Smoky", "Great Smoky Mountains", "Smokey Bear, smoky-eye makeup", "negative seeds"],
+      ["Half", "Half marathon", "Half price, half-and-half, halftime", "negative seeds"]
+    ]
+  },
+
+  "strengths": [
+    "Built on real search behavior at scale, not survey self-report or panel extrapolation",
+    "Correlation is measured against a composed audience vector, so 'runner who travels' is distinguishable from 'runner' and from 'traveler'",
+    "Every entity is named and auditable; nothing is a black-box 'affinity score'",
+    "Geographic output is per-capita propensity, which surfaces small high-intent metros (Boise, Boulder, Bozeman) that raw volume hides",
+    "Negative senses are declared and documented, so the client can see what was excluded and why"
+  ],
+
+  "limitations": [
+    "Correlation is not causation; an over-indexing brand is a signal of shared audience, not proof that its customers register for races",
+    "Search volume for event-name seeds is small relative to general terms; confidence intervals on the smallest entities will be wide and are flagged in the audit",
+    "The audience vector reflects the last refresh of Heimdall's corpus; seasonal events (Iceland in summer, Zion in spring) may shift results by month",
+    "International behavior (Iceland) is observed only through U.S. searchers; no Icelandic-origin data is included",
+    "Brands with heavy generic-word names (On, Clear, Buff, Yeti) were scored via disambiguated phrases and may under-count",
+    "Heimdall measures search, not purchase; premium brands that are researched heavily but bought rarely can over-index"
+  ],
+
+  "personas_outline": [
+    {
+      "id": "bucket_list_couple",
+      "working_name": "The Bucket-List Couple",
+      "sketch": "Late 30s to 50s, travels as a pair or small friend group, runs 2-4 halves a year, books an Airbnb or mid-scale hotel, tacks on two days of hiking. Garmin on the wrist, Hoka on the feet, Subaru in the lot.",
+      "expected_supporting_categories": ["travel_booking_platforms", "lodging_hospitality", "vehicles_gear_haul", "adventure_activities", "life_stage_household"],
+      "fill_after_engine": ["top 5 over-indexing entities", "top 3 source DMAs", "one surprising negative"]
+    },
+    {
+      "id": "fifty_states_collector",
+      "working_name": "The Fifty-States Collector",
+      "sketch": "Goal-driven, tracks races on Strava and a spreadsheet, chases medals and state counts, loyal to series that offer bundles, flies Southwest, compares Vacation Races directly against Rock 'n' Roll and Revel.",
+      "expected_supporting_categories": ["race_series_competitors", "fitness_tech_wearables", "airlines_ground_transport", "media_content_community"],
+      "fill_after_engine": ["which competitor series correlate highest", "airline loyalty signal", "podcast/media overlap"]
+    },
+    {
+      "id": "trail_curious_hiker",
+      "working_name": "The Trail-Curious Hiker",
+      "sketch": "Came to running from hiking, not the other way around. Follows national-park content, donates to conservation groups, camps or glamps, and sees a park half marathon as a guided way to experience the place. Softer on pace, harder on scenery.",
+      "expected_supporting_categories": ["national_parks_public_lands", "causes_charities", "outdoor_retail", "nutrition_hydration", "adventure_activities"],
+      "fill_after_engine": ["parks that over-index but have no VR event (expansion list)", "conservation orgs for cause-marketing", "REI vs Fleet Feet split"]
+    }
+  ],
+
+  "strategy_page_titles": [
+    "Where the Runners Live: Source Metros Ranked by Propensity, Not Population",
+    "Buy Against Interests, Not Just 'Running': The Five Clusters That Separate This Audience",
+    "Competitive Set: Which Race Series Share Your Buyer and Which Only Look Like They Do",
+    "Partner and Sponsor Shortlist: Categories the Data Justifies Pitching",
+    "Creative Direction by Persona: Three Messages, Three Media Mixes",
+    "Expansion Signals: Parks the Audience Already Searches Where No Event Exists",
+    "Event-by-Event Notes: Zion, Yosemite, Grand Teton, Iceland",
+    "Seasonality and Timing: When Each Cluster Peaks Relative to Registration Windows",
+    "What We Dropped and Why: The Chart Audit in One Page",
+    "Next Steps and Measurement Plan"
+  ],
+
+  "appendix_pages": [
+    "Full entity tables per category with r and volume",
+    "Negative-sense seed lists",
+    "Geo table at state and DMA level",
+    "Glossary: pole, correlation, propensity index, resolution"
+  ]
+}

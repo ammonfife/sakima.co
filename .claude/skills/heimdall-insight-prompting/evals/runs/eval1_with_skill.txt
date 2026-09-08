@@ -1,0 +1,5 @@
+This persona (n=42 members, sum volume 1.2M) sits high on the outdoor-engagement axis and low on
+price-sensitivity, clustering around REI, Patagonia and backcountry.com. The demographic read
+(audience_profile against the segment's own row) shows a barbell age curve (65+ and 18-34 both
+over-index +0.02 to +0.027, prime working years under-perform), parents over-indexing (+0.033), and
+a slight male lean (+0.03) - read as a life stage, not a single age bracket.

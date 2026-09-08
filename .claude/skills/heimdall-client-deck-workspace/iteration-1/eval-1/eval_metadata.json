@@ -1,0 +1,14 @@
+{
+ "eval_id": 1,
+ "eval_name": "gear-retail-qualitative-audit",
+ "prompt": "Here are batch_score results for a 'Gear & Retail' category for a running-shoe client: [{\"label\":\"road runner sports\",\"segment_h\":0.072,\"political\":-0.06,\"volume\":246000},{\"label\":\"the running store\",\"segment_h\":0.141,\"political\":0.0,\"volume\":null},{\"label\":\"nike outlet near me\",\"segment_h\":0.03,\"political\":0.01,\"volume\":90500},{\"label\":\"nike\",\"segment_h\":-0.014,\"political\":-0.035,\"volume\":24900000},{\"label\":\"walmart\",\"segment_h\":-0.059,\"political\":0.09,\"volume\":68000000},{\"label\":\"rei\",\"segment_h\":0.043,\"political\":-0.001,\"volume\":4090000},{\"label\":\"yeti\",\"segment_h\":-0.037,\"political\":-0.051,\"volume\":2240000},{\"label\":\"hydro flask\",\"segment_h\":0.03,\"political\":-0.132,\"volume\":550000},{\"label\":\"temu\",\"segment_h\":-0.09,\"political\":0.08,\"volume\":null},{\"label\":\"fleet feet\",\"segment_h\":-0.011,\"political\":0.042,\"volume\":368000},{\"label\":\"academy sports\",\"segment_h\":-0.021,\"political\":0.084,\"volume\":1830000},{\"label\":\"scheels\",\"segment_h\":0.023,\"political\":0.071,\"volume\":2240000}]. Which entities do you chart, which do you drop and why, what is the Key Insight headline and its three paragraphs, and what are the 6 callouts and 3 negatives? Write it as the category entry JSON plus a CHART_AUDIT row.",
+ "assertions": [
+  "drops 'the running store' by name (unvolumed +0.141 outlier)",
+  "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)",
+  "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand",
+  "exactly 6 callouts and 3 negatives",
+  "insight names Hydro Flask and Yeti together as a split",
+  "insight cites numeric correlations (e.g. +0.072)",
+  "audit row carries an explicit verdict (SHIP/MERGE/DROP)"
+ ]
+}

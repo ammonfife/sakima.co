@@ -1,0 +1,14 @@
+{
+ "eval_id": 0,
+ "eval_name": "vacation-races-planning-pass",
+ "prompt": "Vacation Races (destination half marathons at national parks: Zion Half, Yosemite Half, Grand Teton, Iceland) is a Genomic Digital client. Prepare the client deck build for them: write the client_config.json (segment definition with seeds and any negative senses, geo seeds, 12-14 correlation categories with 30+ named entities each, substitutes you expect to need), a skeleton content_static.json (objective, methodology steps, senses table, strengths/limitations, personas outline, strategy page titles), and a CHART_AUDIT.md template pre-filled with what you expect each category to show and what would make you drop or merge it. Do NOT call the Heimdall engine or build the pptx \u2014 this is the planning pass.",
+ "assertions": [
+  "client_config.json parses and has 12-14 categories with >=30 named entities each",
+  "segment definition declares at least one NEGATIVE sense seed (leading '-' term)",
+  "client_config includes geo seeds for the geography chart",
+  "content_static.json parses and has both strengths and limitations",
+  "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)",
+  "CHART_AUDIT.md includes a political-axis sanity check",
+  "y-axis is the segment correlation, not per-entity lift vs an average-person pole"
+ ]
+}

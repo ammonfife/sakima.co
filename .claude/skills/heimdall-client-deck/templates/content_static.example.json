@@ -1,0 +1,145 @@
+{
+  "title": "RAGNAR RACES",
+  "subtitle": "Data Science Insights — the relay-participant audience, who they are, where they are, and how to reach them.",
+  "prepared": "Prepared for Ragnar Races  ·  Genomic Digital  ·  September 2026",
+  "filename": "Ragnar_Races_Data_Science_Insights_Sept2026.pptx",
+  "objective": "Ragnar sells a team logistics adventure with a finish line: a ~200-mile overnight road relay run by twelve people in two vans, and a trail relay run by eight from a shared base camp. The buyer is the team captain — one captain converts twelve registrations.\n\nThe goal of this work is to define that audience so it can be bought: to describe, with statistical confidence, what the people who search for Ragnar's races also search for, buy, drive, watch and read, and where in the country they are — and to separate them cleanly from the four other populations that share the word \"Ragnar\".\n\nGenomic Digital's Heimdall platform was used to build the segment from Ragnar's own search vocabulary, correlate it against 2.5 million phrases of American search behaviour, and isolate the clusters that matter for strategy, creative and media placement.",
+  "agenda": [
+    ["METHODOLOGY", "How Heimdall builds an audience from language, and why the word \"Ragnar\" needed disambiguating first"],
+    ["THE SEGMENT", "The Ragnar relay definition, its geography, and twelve correlation categories read from the data"],
+    ["WHO WE ARE TALKING TO", "Two roles that should not be collapsed: the captain who buys, and the Ragnarian who returns"],
+    ["PATH FORWARD", "Value proposition, creative hooks, channel guidance and campaign structure"]
+  ],
+  "method_steps": [
+    ["Identify segment characteristics", "Start from Ragnar's own vocabulary: brand terms (ragnar relay, ragnar trail, ragnar races), the race formats, the competitors, and the terms a captain types. Registered 44 anchors in six tiers, then measured which carry real US search volume."],
+    ["Generate a digital fingerprint", "Every phrase in the corpus carries a geo-spatial fingerprint — how its search interest distributes across the 51 states, 210 DMAs, countries and congressional districts. The segment's fingerprint is the signed combination of its seed phrases."],
+    ["Run billions of correlations", "The segment is correlated against every one of 2.46 million phrases and 34,000 anchor columns in the Heimdall Matrix — public search behaviour, not a panel and not a survey. Every number in this deck is one of those correlations."],
+    ["Isolate highest-value insights", "Hundreds of named entities — teams, brands, retailers, cars, destinations, media — are read against the segment by hand, category by category, and only the clusters that survive scrutiny are reported."]
+  ],
+  "corpus_blurb": "Heimdall is a correlation engine over language. Each phrase people search is a row; each anchor an advertiser might buy against is a column; the cell is how closely their geographic search behaviour moves together. An audience is a signed formula over rows — positives added, competing senses subtracted — and every chart in this deck is that formula read down one category of named entities.",
+  "corpus_stats": [
+    ["2.46M", "phrases with a geographic search fingerprint (the rows)"],
+    ["34,377", "anchor and audience columns in the live cycle"],
+    ["4", "geographic resolutions — state, DMA, country, congressional district"],
+    ["554", "named entities hand-checked for this deck across 13 categories"]
+  ],
+  "senses_blurb": "The brand string is not owned by the brand. In US search, \"ragnar\" is first a Viking on television, then a relay race, then an employer, then a Norwegian economist. A naive audience built from the bare word is not merely diluted — measured against the corpus it is anti-correlated with distance running, and its strongest neighbours are Norse mythology, Norway, Sweden and How to Train Your Dragon.\n\nThe segment therefore has to be declared, not searched: the race sense added, the television and employer senses subtracted. That is the same device our TAB Bank work used to subtract job-seekers and branch-finders from a bank's customer pole — done here as a first-class part of the definition.",
+  "senses": [
+    ["Norse / TV", "ragnar lothbrok", "368,000"],
+    ["Norse / TV", "vikings ragnar", "33,100"],
+    ["The race", "ragnar races", "6,600"],
+    ["The race", "ragnar relay", "3,600"],
+    ["The race", "ragnar trail", "1,000"],
+    ["Employer", "ragnar careers", "20"],
+    ["Economist", "ragnar frisch", "< 10"]
+  ],
+  "senses_note": "The television character out-searches every genuine Ragnar Races term combined by more than thirty to one. Heimdall's semantic probe confirms the collision is live: of 26,746 anchors, the two nearest neighbours of the bare word are \"ragnar lothbrok\" (cosine 0.81) and \"vikings ragnar\" (0.80).",
+  "disamb_blurb": "The same corpus, the same anchors; only the definition changes. Under the bare word, distance running, running news, team sports and sports tickets all correlate negatively. Under the declared segment every one flips positive, and the Norse anchors — nordic, pagan, vikings — fall from the strongest correlations in the set to negative.\n\nThe fix is additive: more declared seeds, and three subtracted. No filter, no veto.",
+  "strengths": [
+    ["ASSUMPTION FREE", "No panel, no questionnaire, no audience framing by the researcher. The method reads what people actually search, where, and lets the correlations surface the clusters."],
+    ["THE CLIENT'S OWN VOCABULARY", "The segment is built from Ragnar's brand terms and race formats, not from a generic \"runner\" proxy — and the competing senses of the brand word are subtracted explicitly."],
+    ["STATISTICALLY DERIVED, REPEATABLE", "Every figure is a correlation in the live Heimdall Matrix, reproducible on demand, and the segment now exists as a permanent column that can be re-read as the corpus grows."]
+  ],
+  "limitations": [
+    ["ART + SCIENCE", "Correlation over geography says who searches alongside whom, not why. Turning the clusters into strategy takes judgement, and this deck says where it is exercising it."],
+    ["MAGNITUDES ARE RELATIVE", "The correlations are small in absolute terms (a relay race is a small population). Read sign, ordering and distance from the average band — not the decimal."],
+    ["NOT MEASURED HERE", "Age, income, household composition and gender were not scored in this pass. Where the 2021 strategy relied on Meta's own performance data, that evidence outranks a correlation and is left standing."]
+  ],
+  "segment_section_blurb": "The definition, its geography, and twelve correlation categories — each read against named entities, with the average American searcher as the reference band.",
+  "segment_def_blurb": "Three brand terms carry more than 95% of Ragnar Races' US search volume, so the segment is built from them, with the three competing senses subtracted at half weight. A longer twelve-seed definition (adding the race formats, Wasatch Back, runragnar.com) was also built and measured; it reads the same clusters with more noise, because its low-volume seeds carry noisy fingerprints and equal votes.\n\nThe formula is Heimdall's grammar: the same one our TAB Bank pole used to subtract \"tab bank jobs\" and \"tab bank ogden utah\".",
+  "segment_formula": [
+    {"text": "Ragnar relay participant =", "dim": false},
+    {"text": "", "dim": true},
+    {"text": "  + zn( ragnar races )        6,600 / mo", "dim": false},
+    {"text": "  + zn( ragnar relay )        3,600 / mo", "dim": false},
+    {"text": "  + zn( ragnar trail )        1,000 / mo", "dim": false},
+    {"text": "", "dim": true},
+    {"text": "  - zn( ragnar lothbrok )   368,000 / mo   <- Norse / TV sense", "neg": true},
+    {"text": "  - zn( vikings ragnar )     33,100 / mo   <- Norse / TV sense", "neg": true},
+    {"text": "  - zn( ragnar careers )         20 / mo   <- employer sense", "neg": true},
+    {"text": "", "dim": true},
+    {"text": "  published as  audience:saved:ragnar-race-core", "dim": true},
+    {"text": "  cycle 20260828T183159 · 2,458,762 rows", "dim": true},
+    {"text": "", "dim": true},
+    {"text": "  zn( ) = z-normalised geographic fingerprint", "dim": true},
+    {"text": "  correlation with any phrase = Heimdall h", "dim": true}
+  ],
+  "categories_blurb": "Each category is a hand-built list of named entities — leagues and teams, shoe brands, van models, hotel chains, streaming services, news outlets — read against the segment. The chart plots every entity by its correlation with the Ragnar segment (vertical), its political lean (horizontal) and its US search volume (size). The grey band is the average entity; anything above it is over-indexed for this audience.",
+  "geo_blurb": "The segment's search fingerprint by state, standardised. Positive means Ragnar Races is searched more than the national rate; negative, less. This is the client's own footprint read from the corpus — not a lookalike.",
+  "geo_insight_title": "THE MAP IS THE\nRACE CALENDAR",
+  "geo_insight": "Utah leads at more than three standard deviations above the national rate, followed by Washington, Minnesota and New Hampshire — Wasatch Back, Northwest Passage, the Minnesota road race and Reach the Beach, in that order. Alaska, Wyoming, Colorado, Wisconsin, Vermont and Arizona complete the top ten; every one hosts or borders a Ragnar race.\n\nThe under-index is as clean: New Jersey, Louisiana, Oklahoma, South Carolina, Missouri, Mississippi, New York, Kansas, Texas and Indiana — large populations with no race nearby.\n\nTwo implications. First, the audience is regional and follows the calendar; national always-on spend should be weighted to the race footprint and its drive-time radius, not to population. Second, Texas and New York are the largest under-indexed markets in the country — the destination-race play the 2021 strategy proposed has its target list here.",
+  "persona_section_blurb": "Two roles, deliberately not collapsed. The captain buys twelve registrations; the Ragnarian comes back every year.",
+  "personas": [
+    {"img": "captain.png", "kicker": "Persona 1 — the buyer", "name": "CAPTAIN DANA", "tag": "\"I'm not the fastest on the team. I'm the one with the spreadsheet.\"",
+     "points": [
+       "Organiser, not the keenest runner: one captain converts twelve registrations, and the captain's own vocabulary — relay team captain, how to organize a relay team — is dead at zero search volume. She has to be reached through what she actually does.",
+       "Vehicles are her problem. Roof racks (Thule, Yakima), Subarus and Rivians over-index; 15-passenger van rental carries 40,500 US searches a month on its own.",
+       "Lodging is camping or a modest hotel near the start line: Moab, St George, Zion, Cape Cod and Bend all over-index; Priceline, Booking.com and Airbnb do not.",
+       "She buys for the team: Road Runner Sports, Scheels, Big 5, REI. Walmart, Amazon and Temu under-index.",
+       "She is not on the newsfeed: the streaming and social platforms sit below the average band; Outside magazine and the outdoor press above it.",
+       "Politically ordinary — no political anchor rises above the noise in either direction."
+     ],
+     "caveat": "Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed."},
+    {"img": "nate.png", "kicker": "Persona 2 — the repeat participant", "name": "NATE THE RAGNARIAN", "tag": "\"Joyous misery. Five medals. Ask me about van two.\"",
+     "points": [
+       "Highest lifetime value: the affinity seeds — Ragnar legacy, Wasatch Back, trifecta — belong to him, and he is the one who recruits next year's captain.",
+       "Endurance framed as identity: Strava, trail running, ultra marathon, Hood to Coast and Tough Mudder over-index; Ironman and gym-culture brands do not.",
+       "Outdoors first: skiing, snowboarding, paddle boarding and backpacking sit well above the average; video games, gardening and board games below it.",
+       "Regional and travelling: he lives in the race footprint (Utah, Washington, Minnesota, New England) and searches the next destination.",
+       "Retention, not acquisition: nurture him with the post-race sign-up push and the fall challenge, and hand him the captain's tools."
+     ],
+     "caveat": "Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed."}
+  ],
+  "path_section_blurb": "What the data says to do — and, as importantly, what it says not to do.",
+  "strategy_pages": [
+    {"kicker": "Strategic implications", "title": "VALUE PROPOSITION\n& BRAND VOICE", "dark": false,
+     "lead": "The corpus reads a group-transport and group-lodging problem sitting on top of a team-athletics identity. Ragnar's differentiator is that it solves the logistics of the adventure — and that is what the buyer is shopping for.\n\nThe 2021 \"Hurts So Good\" voice needs no correction. Endurance framed as a psychological event is exactly how this audience frames it.",
+     "cards": [
+       ["Team · Endurance · Logistics solved", "Lead with the van, the base camp and the twelve — the format is the product. Individual-race copy sells against Ragnar's own strength."],
+       ["Keep the voice", "\"Ready for joyous misery?\", \"Embrace the pain\", \"So much fun it hurts\" — the audience's own vocabulary is endurance-as-identity. Do not soften it."],
+       ["Speak to the captain", "Her purchases are the only trace she leaves: van, roof rack, rooms near the start, gear for twelve. Creative that solves her checklist reaches the buyer."],
+       ["Regional, calendar-shaped", "The footprint is the race map. Message by market and by weeks-to-race, not nationally and evenly."]
+     ]},
+    {"kicker": "Strategic implications", "title": "CREATIVE\nHOOKS", "dark": true,
+     "lead": "Each hook is tied to a measured line in this deck, not to a hunch. The first is untapped; the last is carried forward from the 2021 creative learnings.",
+     "cards": [
+       ["1 · The van", "Roof racks, Subarus, sprinter and 15-passenger rentals — the shared, absurd, photogenic centre of the format. Nobody else can own it."],
+       ["2 · Team over solo", "Team sports and relay formats over-index; Ironman and solo endurance brands do not. The twelve are the story."],
+       ["3 · Camp, don't hotel", "Camping, base camp, KOA and the trailhead towns beat the hotel chains and OTAs."],
+       ["4 · Gear for twelve", "Specialty running retail — Road Runner Sports, Fleet Feet, Scheels — over the mass market. Partner and co-op inventory lives here."],
+       ["5 · Dark photos, neon light", "The 2021 learning for Trail races: celebratory poses against painful copy; dark photography with colourful neon performed best."]
+     ]},
+    {"kicker": "Strategic implications", "title": "CHANNEL\nGUIDANCE", "dark": false,
+     "lead": "The 2021 plan ran Google and Meta only. This audience layer supports a test the plan never ran — and argues against one expansion.",
+     "cards": [
+       ["Do not buy political inventory", "No political outlet, host or cause rises above the noise for this segment in either direction. The one unambiguous negative in the deck."],
+       ["Test endemic outdoor and running", "Outside, the running press, Strava, AllTrails-class placements and specialty-retail co-op — the categories that over-index and were never bought."],
+       ["Reach the captain through logistics intent", "Van and sprinter rental, roof racks, group lodging near race towns, team gear — search and shopping intent, not running affinity."],
+       ["Meta on its own evidence", "The naive brand audience would justify social expansion; the disambiguated one does not. Meta's 2021 performance record stands on its own — the audience layer adds no case for growing it."]
+     ]},
+    {"kicker": "Strategic implications", "title": "CAMPAIGN\nSTRUCTURE", "dark": false,
+     "lead": "The 2021 four-pillar plan still holds. This work changes who pillar two targets and how they are found; it does not change the structure.",
+     "cards": [
+       ["1 · Nurture past Ragnarians", "Post-race sign-up push, fall challenge, gear — aimed at Nate, who recruits next year's captain."],
+       ["2 · Prospect new captains", "Now defined by logistics purchases and the regional footprint, not by running affinity. The segment column is live for lookalike and suppression builds."],
+       ["3 · Race-specific capacity", "Weight by the state footprint; the top-ten and bottom-ten markets in this deck are the first cut of the plan."],
+       ["4 · Build the brand", "Own the van. The sense collision means brand search will never be clean — the visual has to do what the word cannot."]
+     ]}
+  ],
+  "appendix_reading": [
+    "Vertical axis: Heimdall h — the correlation between the entity's geographic search fingerprint and the Ragnar relay segment column. Above the grey band = over-indexed for this audience.",
+    "Horizontal axis: political spectrum — the entity's correlation with a Republican audience column minus a Democratic one. The centre band is neutral.",
+    "Bubble size: US monthly search volume for the entity (log scale).",
+    "Amber points are the five strongest entities in the category; dark grey the three weakest. Labels are the search phrase as it exists in the corpus.",
+    "Entities missing from the corpus were substituted with their nearest real search phrase or dropped; every substitution is listed in the working file."
+  ],
+  "appendix_provenance": [
+    "Heimdall Matrix cycle 20260828T183159: 2,458,762 rows × 25,798 anchor + 8,579 audience columns; segment audience:saved:ragnar-race-core.",
+    "Seeds and volumes: Google Ads national monthly averages via master_keyword; sense probe: POST /api/term_collisions (26,746 embedded anchors).",
+    "Geography: per-state z-score of the mean fingerprint of ragnar races, ragnar relay, ragnar trail.",
+    "Category charts: 554 named entities scored with POST /api/batch_score against the segment, a Democratic and a Republican column; working data reports/ragnar_deck_data.json.",
+    "Prior art: Ragnar Digital Strategy 2021–22 (Fluid); TAB Bank Data Science Insights (Fluid, 2022) for the deliverable form; Genomic Digital working papers of 22 Aug and 5 Sept 2026.",
+    "Photography: generated illustrations, not race imagery; replace with client assets before external use."
+  ],
+  "closing": "Questions, the working data, and a live read of any new audience: ben@genomicdigital.com"
+}

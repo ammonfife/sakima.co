@@ -1,0 +1,23 @@
+{
+  "name": "Gear & Retail",
+  "chart_note": "Horizontal lollipop/bubble chart of 11 retail entities. X = segment_h (correlation with the client's audience segment, zero line drawn). Marker size = log(US monthly search volume); temu has no volume and is drawn as a hollow marker at the minimum size with a '(volume n/a)' tag. Marker color = political lean (right-minus-left, diverging scale, hydro flask at -0.132 is the left anchor, walmart at +0.09 the right anchor). Sort by segment_h descending. Dropped 'the running store' (see exclude.json). Axis label: 'Audience correlation (Pearson r)'. Add a footnote that |r| < 0.05 is directional only. nike is kept on the chart as the mega-brand baseline (24.9M searches, r = -0.014) so the reader has a 'zero' reference.",
+  "insight_title": "Your buyer shops specialty and outdoor, not mass and discount",
+  "insight": [
+    "Every retailer that indexes positively for this segment is either a running-specialty shop or a premium outdoor brand: road runner sports (+0.072) leads, followed by rei (+0.043), hydro flask (+0.030), nike outlet near me (+0.030) and scheels (+0.023). Every retailer that indexes negatively is mass-market or discount: temu (-0.090), walmart (-0.059), yeti (-0.037), academy sports (-0.021). The split is clean enough to act on even though the individual correlations are modest.",
+    "Two cautions before over-reading it. First, the magnitudes are small: the strongest charted signal is r = 0.072, and anything under about 0.05 (scheels, academy, fleet feet, nike) should be treated as directional, not as a ranking. Second, the pattern partly rides on geography and politics. The positive brands lean left or neutral (hydro flask -0.132, road runner sports -0.06, rei ~0) and the negative brands lean right (walmart +0.09, academy +0.084, temu +0.08), so part of what the segment axis is picking up is a coastal-metro, left-of-center outdoor shopper. scheels (+0.023 with a +0.071 right lean) and yeti (-0.037 with a -0.051 left lean) are the two exceptions that show the segment is not purely a political proxy. nike itself is a wash at -0.014 on 24.9M monthly searches: everyone searches nike, so it carries no audience information.",
+    "What to do with it: prioritize co-marketing, affiliate and retail-media placements with road runner sports and rei, and treat hydro flask's audience as a lookalike seed for prospecting. Avoid spending against walmart-, temu- and academy-adjacent inventory for this segment. fleet feet is the one to watch: a running-specialty chain at -0.011 is out of pattern and most likely reflects its Southeast and Midwest store footprint rather than a real audience miss, so test it regionally before writing it off. scheels is the right-leaning crossover if the client wants to extend the segment into the Upper Midwest and Mountain West."
+  ],
+  "callouts": [
+    ["road runner sports", "+0.072 (246K/mo) — strongest retail signal; running specialty, west-coast footprint"],
+    ["rei", "+0.043 (4.1M/mo) — premium outdoor at real scale; politically neutral (-0.001)"],
+    ["hydro flask", "+0.030 (550K/mo) — positive AND the most left-leaning term in the set (-0.132)"],
+    ["nike outlet near me", "+0.030 (91K/mo) — local-intent Nike beats the brand term (nike -0.014)"],
+    ["scheels", "+0.023 (2.2M/mo) — the right-leaning exception (+0.071); crossover into Upper Midwest / Mountain West"],
+    ["fleet feet", "-0.011 (368K/mo) — running specialty but flat; likely a footprint effect, test regionally"]
+  ],
+  "negatives": [
+    ["temu", "-0.090 (volume n/a) — discount marketplace; strongest negative in the set"],
+    ["walmart", "-0.059 (68M/mo) — mass retail; right lean +0.09"],
+    ["yeti", "-0.037 (2.2M/mo) — premium but negative; the one premium brand that does not index with this buyer"]
+  ]
+}

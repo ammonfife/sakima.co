@@ -1,0 +1,758 @@
+{
+ "client": "Ragnar Races",
+ "segment": [
+  "audience:saved:ragnar-race-core"
+ ],
+ "segment_label": "the Ragnar relay segment",
+ "left": [
+  "audience:saved:democrat"
+ ],
+ "right": [
+  "audience:saved:republican"
+ ],
+ "geo_seeds": [
+  "ragnar races",
+  "ragnar relay",
+  "ragnar trail"
+ ],
+ "categories": {
+  "Sports": [
+   "nfl",
+   "nba",
+   "mlb",
+   "nhl",
+   "mls",
+   "premier league",
+   "march madness",
+   "college football",
+   "ncaa basketball",
+   "olympics",
+   "world cup",
+   "ufc",
+   "pga tour",
+   "nascar",
+   "formula 1",
+   "wnba",
+   "boston marathon",
+   "new york marathon",
+   "chicago marathon",
+   "ironman",
+   "triathlon",
+   "tour de france",
+   "x games",
+   "crossfit games",
+   "utah jazz",
+   "minnesota vikings",
+   "denver broncos",
+   "seattle seahawks",
+   "green bay packers",
+   "dallas cowboys",
+   "kansas city chiefs",
+   "new england patriots",
+   "los angeles lakers",
+   "golden state warriors",
+   "boston celtics",
+   "new york yankees",
+   "los angeles dodgers",
+   "atlanta braves",
+   "chicago cubs",
+   "real salt lake",
+   "byu football",
+   "utah utes",
+   "colorado rockies",
+   "arizona cardinals",
+   "portland trail blazers",
+   "minnesota twins",
+   "milwaukee bucks"
+  ],
+  "Running & Fitness": [
+   "strava",
+   "garmin",
+   "nike run club",
+   "peloton",
+   "crossfit",
+   "orangetheory",
+   "planet fitness",
+   "f45",
+   "barry's bootcamp",
+   "hoka",
+   "brooks running",
+   "asics",
+   "saucony",
+   "on running",
+   "altra",
+   "new balance",
+   "nike",
+   "adidas",
+   "lululemon",
+   "gymshark",
+   "whoop",
+   "oura ring",
+   "fitbit",
+   "apple watch",
+   "couch to 5k",
+   "half marathon training",
+   "marathon training plan",
+   "trail running",
+   "ultra marathon",
+   "parkrun",
+   "running club",
+   "5k near me",
+   "spartan race",
+   "tough mudder",
+   "hood to coast",
+   "hyrox",
+   "obstacle course race",
+   "hydration vest",
+   "running headlamp",
+   "gu energy gel",
+   "tailwind nutrition",
+   "body glide"
+  ],
+  "Cars & Vans": [
+   "subaru outback",
+   "subaru forester",
+   "subaru crosstrek",
+   "toyota 4runner",
+   "toyota tacoma",
+   "toyota sienna",
+   "honda odyssey",
+   "chrysler pacifica",
+   "kia carnival",
+   "ford transit",
+   "mercedes sprinter",
+   "ford f150",
+   "chevy silverado",
+   "ram 1500",
+   "jeep wrangler",
+   "jeep grand cherokee",
+   "toyota rav4",
+   "honda cr-v",
+   "tesla model y",
+   "tesla",
+   "rivian",
+   "ford bronco",
+   "15 passenger van rental",
+   "sprinter van rental",
+   "enterprise rent a car",
+   "hertz",
+   "u-haul",
+   "turo",
+   "yakima",
+   "thule",
+   "roof rack",
+   "car camping",
+   "van life",
+   "minivan",
+   "truck bed tent"
+  ],
+  "Travel & Lodging": [
+   "airbnb",
+   "vrbo",
+   "marriott",
+   "hilton",
+   "hyatt",
+   "holiday inn",
+   "hampton inn",
+   "la quinta",
+   "motel 6",
+   "super 8",
+   "best western",
+   "koa campgrounds",
+   "hipcamp",
+   "recreation.gov",
+   "national parks",
+   "zion national park",
+   "yellowstone",
+   "moab",
+   "southwest airlines",
+   "delta airlines",
+   "united airlines",
+   "alaska airlines",
+   "spirit airlines",
+   "frontier airlines",
+   "expedia",
+   "kayak",
+   "booking.com",
+   "priceline",
+   "hotels.com",
+   "road trip",
+   "glamping",
+   "camping near me",
+   "rv rental",
+   "park city",
+   "st george utah",
+   "lake tahoe",
+   "bend oregon",
+   "asheville",
+   "cape cod",
+   "napa valley"
+  ],
+  "Gear & Retail": [
+   "rei",
+   "backcountry.com",
+   "patagonia",
+   "north face",
+   "arc'teryx",
+   "columbia sportswear",
+   "cotopaxi",
+   "osprey",
+   "yeti",
+   "hydro flask",
+   "stanley cup tumbler",
+   "dick's sporting goods",
+   "academy sports",
+   "scheels",
+   "cabela's",
+   "bass pro shops",
+   "big 5 sporting goods",
+   "running warehouse",
+   "road runner sports",
+   "fleet feet",
+   "costco",
+   "target",
+   "walmart",
+   "amazon",
+   "trader joe's",
+   "whole foods",
+   "sprouts",
+   "smith's",
+   "kroger",
+   "home depot",
+   "lowe's",
+   "ikea",
+   "nordstrom",
+   "kohl's",
+   "tj maxx",
+   "etsy",
+   "temu",
+   "shein"
+  ],
+  "Social & Media": [
+   "instagram",
+   "facebook",
+   "tiktok",
+   "snapchat",
+   "reddit",
+   "twitter",
+   "x.com",
+   "linkedin",
+   "pinterest",
+   "youtube",
+   "twitch",
+   "discord",
+   "spotify",
+   "apple music",
+   "pandora",
+   "podcasts",
+   "netflix",
+   "hulu",
+   "disney plus",
+   "hbo max",
+   "peacock",
+   "paramount plus",
+   "espn",
+   "espn plus",
+   "the athletic",
+   "bleacher report",
+   "barstool sports",
+   "runner's world",
+   "outside magazine",
+   "trail runner magazine",
+   "letsrun",
+   "slowtwitch",
+   "fox news",
+   "cnn",
+   "msnbc",
+   "npr",
+   "new york times",
+   "wall street journal",
+   "usa today",
+   "the atlantic"
+  ],
+  "Family & Life": [
+   "baby names",
+   "pregnancy",
+   "daycare near me",
+   "preschool",
+   "kindergarten registration",
+   "pediatrician",
+   "toddler",
+   "stroller",
+   "jogging stroller",
+   "car seat",
+   "disney world",
+   "disneyland",
+   "chuck e cheese",
+   "family vacation",
+   "summer camp",
+   "youth soccer",
+   "little league",
+   "girl scouts",
+   "boy scouts",
+   "pta",
+   "wedding venues",
+   "engagement rings",
+   "divorce lawyer",
+   "retirement",
+   "401k",
+   "mortgage rates",
+   "first time home buyer",
+   "dog park",
+   "dog boarding",
+   "chewy",
+   "petsmart",
+   "veterinarian"
+  ],
+  "Food & Drink": [
+   "starbucks",
+   "dutch bros",
+   "chipotle",
+   "cafe rio",
+   "chick-fil-a",
+   "in-n-out",
+   "panera",
+   "sweetgreen",
+   "cava",
+   "jersey mike's",
+   "olive garden",
+   "texas roadhouse",
+   "waffle house",
+   "ihop",
+   "denny's",
+   "crumbl cookies",
+   "swig",
+   "celsius energy drink",
+   "liquid iv",
+   "gatorade",
+   "body armor",
+   "nuun",
+   "clif bar",
+   "kodiak cakes",
+   "protein powder",
+   "creatine",
+   "oatly",
+   "kombucha",
+   "craft beer",
+   "white claw",
+   "athletic brewing",
+   "coors light",
+   "bud light",
+   "michelob ultra",
+   "bourbon",
+   "whiskey",
+   "seltzer"
+  ],
+  "Politics & News": [
+   "fox news",
+   "cnn",
+   "msnbc",
+   "npr",
+   "breitbart",
+   "daily wire",
+   "huffpost",
+   "the blaze",
+   "newsmax",
+   "politico",
+   "axios",
+   "ben shapiro",
+   "joe rogan",
+   "tucker carlson",
+   "rachel maddow",
+   "sean hannity",
+   "aoc",
+   "bernie sanders",
+   "donald trump",
+   "joe biden",
+   "kamala harris",
+   "ron desantis",
+   "gavin newsom",
+   "mitt romney",
+   "mike lee",
+   "spencer cox",
+   "nra",
+   "planned parenthood",
+   "aclu",
+   "turning point usa",
+   "freedomworks",
+   "moveon",
+   "black lives matter",
+   "second amendment",
+   "climate change",
+   "abortion",
+   "gun control",
+   "immigration",
+   "student loan forgiveness",
+   "medicare for all",
+   "school choice"
+  ],
+  "Tech & Devices": [
+   "iphone",
+   "android",
+   "samsung galaxy",
+   "pixel phone",
+   "macbook",
+   "ipad",
+   "chromebook",
+   "windows 11",
+   "gmail",
+   "outlook",
+   "hotmail",
+   "yahoo mail",
+   "google maps",
+   "apple maps",
+   "waze",
+   "alltrails",
+   "gaia gps",
+   "onx maps",
+   "komoot",
+   "garmin connect",
+   "zwift",
+   "trainingpeaks",
+   "myfitnesspal",
+   "noom",
+   "headspace",
+   "calm app",
+   "chatgpt",
+   "venmo",
+   "cash app",
+   "zelle",
+   "paypal",
+   "apple pay",
+   "verizon",
+   "at&t",
+   "t-mobile",
+   "mint mobile",
+   "starlink",
+   "ring doorbell",
+   "nest thermostat"
+  ],
+  "Movies & TV": [
+   "ted lasso",
+   "yellowstone",
+   "the last of us",
+   "stranger things",
+   "the bear",
+   "succession",
+   "the office",
+   "friends",
+   "seinfeld",
+   "parks and recreation",
+   "top gun maverick",
+   "barbie",
+   "oppenheimer",
+   "dune",
+   "free solo",
+   "the dawn wall",
+   "14 peaks",
+   "forrest gump",
+   "chariots of fire",
+   "mcfarland usa",
+   "unbroken",
+   "wild",
+   "into the wild",
+   "the way",
+   "brittany runs a marathon",
+   "rocky",
+   "vikings",
+   "game of thrones",
+   "the crown",
+   "bridgerton",
+   "survivor",
+   "the amazing race",
+   "american ninja warrior",
+   "running man"
+  ],
+  "Hobbies & Outdoors": [
+   "hiking",
+   "backpacking",
+   "camping",
+   "fly fishing",
+   "rock climbing",
+   "bouldering",
+   "mountain biking",
+   "gravel biking",
+   "cycling",
+   "skiing",
+   "snowboarding",
+   "cross country skiing",
+   "snowshoeing",
+   "kayaking",
+   "paddle boarding",
+   "pickleball",
+   "golf",
+   "tennis",
+   "disc golf",
+   "hunting",
+   "birdwatching",
+   "gardening",
+   "woodworking",
+   "board games",
+   "dungeons and dragons",
+   "fantasy football",
+   "video games",
+   "photography",
+   "yoga",
+   "pilates",
+   "meditation",
+   "crochet",
+   "home brewing",
+   "sourdough"
+  ],
+  "Competitors & Races": [
+   "ragnar relay",
+   "ragnar trail",
+   "hood to coast",
+   "the speed project",
+   "red rock relay",
+   "american odyssey relay",
+   "reach the beach relay",
+   "bourbon chase",
+   "wasatch back",
+   "spartan race",
+   "tough mudder",
+   "savage race",
+   "rugged maniac",
+   "warrior dash",
+   "color run",
+   "turkey trot",
+   "rock n roll marathon",
+   "boston marathon",
+   "new york marathon",
+   "chicago marathon",
+   "big sur marathon",
+   "st george marathon",
+   "salt lake city marathon",
+   "ogden marathon",
+   "revel races",
+   "vacation races",
+   "zion half marathon",
+   "western states 100",
+   "leadville 100",
+   "ultra marathon",
+   "50k trail race",
+   "hyrox",
+   "ironman",
+   "triathlon",
+   "bike msn",
+   "seattle to portland",
+   "lotoja",
+   "ride the rockies"
+  ]
+ },
+ "substitutes": {
+  "ford f150": [
+   "ford f-150",
+   "f150"
+  ],
+  "boston marathon": [
+   "boston marathon date"
+  ],
+  "x.com": [],
+  "hoka": [
+   "hoka shoes",
+   "hoka one one"
+  ],
+  "arc'teryx": [
+   "arcteryx"
+  ],
+  "cabela's": [
+   "cabelas"
+  ],
+  "dick's sporting goods": [
+   "dicks sporting goods"
+  ],
+  "kohl's": [
+   "kohls"
+  ],
+  "trader joe's": [
+   "trader joes"
+  ],
+  "jersey mike's": [
+   "jersey mikes"
+  ],
+  "denny's": [
+   "dennys"
+  ],
+  "chick-fil-a": [
+   "chick fil a"
+  ],
+  "in-n-out": [
+   "in n out"
+  ],
+  "lowe's": [
+   "lowes"
+  ],
+  "at&t": [
+   "att"
+  ],
+  "runner's world": [],
+  "smith's": [
+   "smiths"
+  ],
+  "st george utah": [
+   "st. george utah",
+   "saint george utah"
+  ],
+  "alltrails": [
+   "alltrails com"
+  ],
+  "komoot": [
+   "komoot com"
+  ],
+  "zwift": [
+   "zwift com"
+  ],
+  "trainingpeaks": [
+   "trainingpeaks com"
+  ],
+  "letsrun": [
+   "letsrun com"
+  ],
+  "hipcamp": [
+   "hipcamp com"
+  ],
+  "recreation.gov": [
+   "recreation gov"
+  ],
+  "backcountry.com": [
+   "backcountry com"
+  ],
+  "north face": [
+   "the north face"
+  ],
+  "macbook": [
+   "macbook air 2020"
+  ],
+  "ipad": [
+   "ipad costs"
+  ],
+  "samsung galaxy": [
+   "samsung galaxy comparison"
+  ],
+  "pixel phone": [
+   "google pixel"
+  ],
+  "chromebook": [
+   "chromebook guide"
+  ],
+  "apple pay": [
+   "apple pay wallet"
+  ],
+  "zelle": [
+   "zelle app"
+  ],
+  "apple maps": [
+   "apple maps app"
+  ],
+  "mint mobile": [
+   "mint mobile store"
+  ],
+  "ring doorbell": [
+   "ring doorbell camera price"
+  ],
+  "altra": [
+   "altra shoes"
+  ],
+  "on running": [
+   "on running shoes"
+  ],
+  "half marathon training": [
+   "half marathon training plan 16 weeks"
+  ],
+  "obstacle course race": [
+   "obstacle course"
+  ],
+  "triathlon": [
+   "triathlon training plan"
+  ],
+  "sprinter van rental": [
+   "sprinter van rental utah"
+  ],
+  "honda cr-v": [
+   "honda crv"
+  ],
+  "sprouts": [
+   "sprouts farmer market"
+  ],
+  "peacock": [
+   "peacock best shows"
+  ],
+  "ted lasso": [
+   "ted lasso soundtrack"
+  ],
+  "dune": [
+   "dune movie rating"
+  ],
+  "chariots of fire": [
+   "chariots of fire song"
+  ],
+  "college football": [
+   "college football live"
+  ],
+  "ncaa basketball": [
+   "ncaa basketball live"
+  ],
+  "byu football": [
+   "byu football schedule"
+  ],
+  "utah utes": [
+   "utah utes football"
+  ],
+  "daily wire": [
+   "daily wire newsletter"
+  ],
+  "ron desantis": [
+   "ron desantis 2024"
+  ],
+  "toddler": [
+   "toddler clothes"
+  ],
+  "disney world": [
+   "disney world fast pass"
+  ],
+  "chuck e cheese": [
+   "chuck e cheese's"
+  ],
+  "family vacation": [
+   "family vacation ideas"
+  ],
+  "youth soccer": [
+   "youth soccer camps near me"
+  ],
+  "nuun": [
+   "nuun electrolytes"
+  ],
+  "clif bar": [
+   "clif bars"
+  ],
+  "protein powder": [
+   "protein powder recipes"
+  ],
+  "oatly": [
+   "oatly milk"
+  ],
+  "white claw": [
+   "white claws"
+  ],
+  "athletic brewing": [
+   "athletic brewing co run wild"
+  ],
+  "bud light": [
+   "bud light beer"
+  ],
+  "bouldering": [
+   "bouldering gyms near me"
+  ],
+  "reach the beach relay": [
+   "reach the beach"
+  ],
+  "rv rental": [
+   "rv rentals"
+  ],
+  "park city": [
+   "park city mountain"
+  ]
+ },
+ "out": "docs/ragnar_deck/deck_data.json"
+}

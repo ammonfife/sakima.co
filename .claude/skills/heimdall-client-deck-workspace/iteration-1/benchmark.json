@@ -1,0 +1,276 @@
+{
+  "metadata": {
+    "skill_name": "heimdall-client-deck",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-06T02:50:18Z",
+    "evals_run": [
+      0,
+      1
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 678.5,
+        "tokens": 202206,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "client_config.json parses and has 12-14 categories with >=30 named entities each",
+          "passed": true,
+          "evidence": "14 categories, sizes [51, 52, 49, 40, 50, 42, 45, 46, 43, 40, 43, 45, 44, 40]"
+        },
+        {
+          "text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)",
+          "passed": true,
+          "evidence": "seed text sample: {\"client\": \"Vacation Races\", \"segment\": [\"audience:saved:vacation-races-core\"], \"segment_label\": \"the national-park destination runner\", \"left\": [\"audience:save"
+        },
+        {
+          "text": "client_config includes geo seeds for the geography chart",
+          "passed": true,
+          "evidence": "keys: ['client', 'segment', 'segment_label', 'left', 'right', '_planning_notes', 'seed_definition', 'geo_seeds', '_geo_expectation', 'categories', '_substitutes_note', 'substitutes']"
+        },
+        {
+          "text": "content_static.json parses and has both strengths and limitations",
+          "passed": true,
+          "evidence": "keys: ['_status', 'title', 'subtitle', 'prepared', 'filename', 'objective', 'agenda', 'method_steps', 'corpus_blurb', 'corpus_stats', 'senses_blurb', 'senses', 'senses_note', 'disamb_blurb']"
+        },
+        {
+          "text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)",
+          "passed": true,
+          "evidence": "drop=23 merge=13"
+        },
+        {
+          "text": "CHART_AUDIT.md includes a political-axis sanity check",
+          "passed": true,
+          "evidence": "political mentions=3"
+        },
+        {
+          "text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole",
+          "passed": true,
+          "evidence": "lift mentions=3, band mentions=6"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 130.9,
+        "tokens": 128585,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "drops 'the running store' by name (unvolumed +0.141 outlier)",
+          "passed": true,
+          "evidence": "exclude: [\"the running store\", \"temu\"]"
+        },
+        {
+          "text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)",
+          "passed": true,
+          "evidence": "exclude: [\"the running store\", \"temu\"]"
+        },
+        {
+          "text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand",
+          "passed": true,
+          "evidence": "mentioned in insight/audit"
+        },
+        {
+          "text": "exactly 6 callouts and 3 negatives",
+          "passed": true,
+          "evidence": "callouts=6 negatives=3"
+        },
+        {
+          "text": "insight names Hydro Flask and Yeti together as a split",
+          "passed": true,
+          "evidence": "both present"
+        },
+        {
+          "text": "insight cites numeric correlations (e.g. +0.072)",
+          "passed": true,
+          "evidence": "['+0.072', '+0.043', '-0.059', '-0.021', '-0.014']"
+        },
+        {
+          "text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)",
+          "passed": true,
+          "evidence": "['MERGE', 'SHIP']"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5714,
+        "passed": 4,
+        "failed": 3,
+        "total": 7,
+        "time_seconds": 417.3,
+        "tokens": 137460,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "client_config.json parses and has 12-14 categories with >=30 named entities each",
+          "passed": false,
+          "evidence": "0 categories, sizes []"
+        },
+        {
+          "text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)",
+          "passed": false,
+          "evidence": "seed text sample: {\"client\": {\"name\": \"Vacation Races\", \"agency\": \"Genomic Digital\", \"platform\": \"Heimdall\", \"deck_slug\": \"vacation-races-audience-correlation-2026-09\", \"business"
+        },
+        {
+          "text": "client_config includes geo seeds for the geography chart",
+          "passed": true,
+          "evidence": "keys: ['client', 'segment', 'geo', 'correlation_categories', 'substitution_policy', 'engine_run_plan']"
+        },
+        {
+          "text": "content_static.json parses and has both strengths and limitations",
+          "passed": true,
+          "evidence": "keys: ['deck_title', 'subtitle', 'date', 'status', 'objective', 'methodology_steps', 'senses_table', 'strengths', 'limitations', 'personas_outline', 'strategy_page_titles', 'appendix_pages']"
+        },
+        {
+          "text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)",
+          "passed": true,
+          "evidence": "drop=21 merge=20"
+        },
+        {
+          "text": "CHART_AUDIT.md includes a political-axis sanity check",
+          "passed": false,
+          "evidence": "political mentions=0"
+        },
+        {
+          "text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole",
+          "passed": true,
+          "evidence": "lift mentions=0, band mentions=0"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8571,
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "time_seconds": 112.9,
+        "tokens": 109195,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "drops 'the running store' by name (unvolumed +0.141 outlier)",
+          "passed": true,
+          "evidence": "exclude: [\"the running store\"]"
+        },
+        {
+          "text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)",
+          "passed": false,
+          "evidence": "exclude: [\"the running store\"]"
+        },
+        {
+          "text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand",
+          "passed": true,
+          "evidence": "mentioned in insight/audit"
+        },
+        {
+          "text": "exactly 6 callouts and 3 negatives",
+          "passed": true,
+          "evidence": "callouts=6 negatives=3"
+        },
+        {
+          "text": "insight names Hydro Flask and Yeti together as a split",
+          "passed": true,
+          "evidence": "both present"
+        },
+        {
+          "text": "insight cites numeric correlations (e.g. +0.072)",
+          "passed": true,
+          "evidence": "['+0.072', '+0.043', '+0.030', '+0.030', '+0.023']"
+        },
+        {
+          "text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)",
+          "passed": true,
+          "evidence": "['SHIP']"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 404.7,
+        "stddev": 387.2117,
+        "min": 130.9,
+        "max": 678.5
+      },
+      "tokens": {
+        "mean": 165395.5,
+        "stddev": 52057.9083,
+        "min": 128585,
+        "max": 202206
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7143,
+        "stddev": 0.202,
+        "min": 0.5714,
+        "max": 0.8571
+      },
+      "time_seconds": {
+        "mean": 265.1,
+        "stddev": 215.2433,
+        "min": 112.9,
+        "max": 417.3
+      },
+      "tokens": {
+        "mean": 123327.5,
+        "stddev": 19986.3732,
+        "min": 109195,
+        "max": 137460
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.29",
+      "time_seconds": "+139.6",
+      "tokens": "+42068"
+    }
+  },
+  "notes": []
+}

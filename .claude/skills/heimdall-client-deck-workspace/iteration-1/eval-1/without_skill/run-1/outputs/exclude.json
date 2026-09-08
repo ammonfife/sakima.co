@@ -1,0 +1,32 @@
+{
+  "category": "Gear & Retail",
+  "charted": [
+    "road runner sports", "rei", "hydro flask", "nike outlet near me", "scheels",
+    "fleet feet", "nike", "academy sports", "yeti", "walmart", "temu"
+  ],
+  "dropped": [
+    {
+      "label": "the running store",
+      "segment_h": 0.141,
+      "political": 0.0,
+      "volume": null,
+      "reason": "Highest segment_h in the set but the row has the signature of a thin or fallback estimate: political is exactly 0.000 and volume is null. 'the running store' is also a generic phrase (a Georgia chain, but as a search string it is indistinguishable from the common noun phrase), so its identity as a retail entity is not verifiable from the label alone. Putting a 0.141 on an unverifiable phrase at the top of a client chart would make it the headline and it cannot be defended. Re-onboard with volume and a real political estimate; if it holds, it becomes the lead callout next revision."
+    }
+  ],
+  "flagged_but_kept": [
+    {
+      "label": "temu",
+      "segment_h": -0.09,
+      "political": 0.08,
+      "volume": null,
+      "reason": "Kept because the entity is unambiguous and the signal is directionally consistent with walmart and academy sports. Volume null is a lookup miss, not an unknown term (temu is a top-tier US query), so it is drawn as a hollow minimum-size marker with a 'volume n/a' tag rather than sized. Fix the volume join before the next deck."
+    },
+    {
+      "label": "nike",
+      "segment_h": -0.014,
+      "political": -0.035,
+      "volume": 24900000,
+      "reason": "Near-zero on 24.9M searches. Kept as the saturated-brand baseline so the reader sees what 'no audience information' looks like; not a callout or a negative."
+    }
+  ]
+}

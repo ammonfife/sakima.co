@@ -248,3 +248,54 @@ Latency alone is not a gate. A map drawing population, 8.6% of a correlation mat
 silently stale, and four named-geography modes 502-ing for 6-19 s all shipped past
 timing-only checks. Budgets gate the WARM number; cold measures the page cache, not the
 code. Wider latency sweep lives in `phase1/_bench_demo.py`.
+
+## THE BOX HAS A CONCURRENCY BUDGET — one heavy job at a time (measured 2026-09-06, the machine crashed)
+
+The demo server holds a ~20 GB `rows_sem` memmap plus the fingerprint plane and depends on those
+pages staying in the OS cache. Anything that materialises multi-GB arrays evicts them, and *every*
+consumer of the engine degrades at once — silently, by two orders of magnitude, without a single
+error line.
+
+Measured that evening: `mint_gads_from_columns.py` climbed 24 → 47 GB RSS while
+`gads_build_formulas.py --all` and `gads_improve_audience.py --all` were both calling
+`/api/seasonality/semantic_match`. `top_k` went 0.6 s → 371 s per call, the loop watchdog logged
+71 s and 152 s stalls, `/api/landscapes` timed out at 30 s, swap climbed 13.0 → 18.3 GB at
+~170 MB/min, and the machine rebooted — taking 66 minutes of uncheckpointed build work with it.
+
+**Rules that follow:**
+- Before starting any batch against the engine: `sysctl vm.swapusage` (abort above ~24 GB used) and
+  `ps aux | grep -E "[m]int_gads|[g]ads_|[b]uild_addendum|[b]uild_res_fingerprints|[i]ngest_daemon|matrix"`.
+  If a mint or a grow is live, wait — do not "just start it too". **That name list is not complete
+  and the jobs are not all yours:** observed live at 22:38 the same night, `build_res_fingerprints`
+  (9.2 GB) and `ingest_daemon` (12.3 GB) came up on their own launchd schedules mid-build — nobody
+  started them — and `top_k` drifted 0.66 s → 6.46 s, roughly halving the build's rate. So check the
+  head of `ps aux | sort -k6 -nr` for anything multi-GB rather than grepping only for names you
+  already know, and expect a long batch to be overtaken by scheduled work partway through.
+- `ps -o rss` on the other job is the leading indicator; swap is the lagging one. A job whose RSS is
+  still climbing has not peaked, so the box is not safe yet.
+- A slow engine is almost never the engine. Check `[seasonality][timing] … top_k` and the
+  `[WATCHDOG] event loop STALLED` lines in `logs/heimdall-demo-server.log` before blaming a route.
+- Long batches must be restartable. Anything that writes its output only at the end is one reboot
+  away from losing the whole run — prefer `--resume`, or checkpoint every N.
+
+### The demo can vanish for ~40 s WITHOUT crashing — launchd respawn storm (2026-09-06 22:01)
+
+Diagnosed from `logs/heimdall-demo-server.log`: six `Started server process` lines in 40 s, each
+followed by
+`ERROR: [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): address already in
+use` → `Application shutdown complete`. The incumbent was serving 200s throughout the first few, so
+these were *extra* instances being launched, failing to bind, exiting 1, and being respawned by
+launchd's KeepAlive (~20 s throttle) — until one finally bound, which means the incumbent had by
+then been displaced. `launchctl list | grep heimdall.demo` shows the second column as the last exit
+status; a `1` there with a fresh PID is this pattern, not a healthy start.
+
+Consequences and rules:
+- **`Errno 48` in that log is not "the demo crashed"** — it is "two things want to own port 8000".
+  Look for a second starter (the toggle app, a watchdog, a manual `heimdall-server`) before
+  investigating memory.
+- **Any long batch that calls the engine must tolerate a ~40 s hole.** That window silently hollowed
+  91 audiences of a gads build whose client returned `[]` on connection-refused. Clients now retry
+  3× at 2/5/15 s (`8111bf03`); write new engine clients the same way.
+- Do not "fix" it by killing PIDs in a loop — that is what produces the storm. Identify the second
+  starter. Changing the plist is gateway/global config: surface it to Ben rather than editing it
+  mid-run.

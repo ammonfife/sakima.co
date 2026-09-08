@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "heimdall-client-deck", "runs": [{"id": "eval-0-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CHART_AUDIT.md", "type": "text", "content": "# Vacation Races deck \u2014 chart-by-chart qualitative audit (TEMPLATE, planning pass 2026-09-05)\n\nBen: \"you need to look at each with a qualitative lens. does the data make sense, is it similar\nto these examples, do we have the seeds we need, what can we substitute if needed.\"\n\nReference example: TAB Bank Data Science Insights (Fluid 2022) pp. 13\u201345 and the Ragnar deck\n(`docs/ragnar_deck/CHART_AUDIT.md`) \u2014 one curated named-entity list per category, y = correlation\nwith the segment pole, x = political spectrum, size = volume, grey \"Average\" band (middle half of\ncharted entities); paired with a Key Insight written from the entities that moved.\n\nNothing below is measured yet. Each row states (a) what I EXPECT the chart to show, (b) the\nsanity check that says the data makes sense, (c) known seed / row gaps and the substitute plan,\n(d) the rule that would make me DROP or MERGE the category. Replace every \"expect\" with the\nmeasured read from `deck_data.json` before a single chart is rendered. Source data when it\nexists: `docs/vacation_races_deck/deck_data.json` (segment `audience:saved:vacation-races-core`,\ncycle TBD).\n\n## Pre-flight gates (before any category is read)\n\n| gate | pass condition | if it fails |\n|---|---|---|\n| Seed volume ranking | 3\u20135 seeds carry >90% of measured US volume. `zion half marathon` is 1,900/mo on the 08-28 cycle; `vacation races` was not yet a row. | If the brand word is <500/mo and no race phrase clears 1,000, the core is too thin \u2014 build from the race phrases plus `national park half marathon` and state the thinness in Limitations. |\n| Sense probe | `term_collisions` on every positive seed returns running / park / race neighbours first; any collision >0.75 cosine is a different population and gets `-term*0.5`. | Do NOT fall back to bare park names as seeds \u2014 their collisions (Yellowstone TV 4.09M/mo, GMC Acadia, Grand Canyon University, Zion Williamson) are exactly the populations we must keep out. |\n| Mint complete | `background mint complete for 'vacation-races-core'` in `logs/heimdall-demo-server.log`. | Do not score. Re-run `remint_signed_audiences.py --only vacation-races-core` if a peer restarted the demo mid-mint. |\n| Geography sanity | UT, NV, AZ, CO, ID, WY, MT, CA, WA, OR dominate the top ten; under-index is Deep South / large no-park states. | Top-ten led by NJ/NY/FL/TX = wrong seeds (probably a park-name or vacation-shopper sense leaked in). Fix the seeds, not the map. |\n| Political axis sanity (every chart) | hunting / NASCAR / Cracker Barrel right; yoga / NPR / Premier League left. | If it reads flat or inverted, the left/right columns are stale \u2014 stop and check `audience:saved:democrat` / `republican` before trusting y anywhere. |\n\n## Per-category expectations and drop/merge rules\n\n| chart | expect (does the data make sense?) | like the TAB / Ragnar example? | seeds / rows / substitutions | drop or merge if \u2026 | verdict |\n|---|---|---|---|---|---|\n| Geography | UT \u226b NV, AZ, CO, ID, WY, MT, then CA/WA/OR. TN/NC/ME only if the eastern race seeds carry weight. Under-index: Deep South, NJ/NY, large flat states with no park on the calendar. | Ragnar geo = the race calendar; ours should be the park footprint + its airports (Las Vegas, SLC, Denver, Fresno, Bozeman, Jackson). | Fingerprint of positive core seeds only (compose_pole ignores negatives). | Never dropped. If it fails the sanity gate, everything downstream is wrong \u2014 fix seeds first. | TBD |\n| Competitors & Races | Own races cluster at the top (Zion, Bryce, Grand Canyon, Yosemite, Grand Teton half). Other destination/bucket-list races over the band: Revel, Mainly Marathons, rundisney, Big Sur, Missoula, Honolulu, Napa, Great Wall/Antarctica (tiny volume). Local Utah road marathons (St George, Ogden, SLC, Utah Valley) over \u2014 geography showing through. Under: Ironman, UTMB, Western States, Leadville (solo hard-core endurance), Turkey Trot neutral-to-over (the on-ramp). Ragnar relay: expect mildly positive (Zion Half was +0.059 on the Ragnar pole; symmetry is a sanity check). | TAB \"competitive landscape\"; Ragnar \"Competitors & Races\" (19/38 charted, thinnest). | KNOWN GAPS on 08-28: `vacation races`, `revel races`, `st george marathon`, `salt lake city marathon`, `ogden marathon`, `rock n roll marathon`, `big sur marathon`, `new york marathon`, `chicago marathon`, `western states 100`, `leadville 100` were not rows (queued). Subs: revel \u2192 `revel big cottonwood`; rundisney \u2192 `run disney`; boston \u2192 `boston marathon date` (accepted for Ragnar). Reject any `\u2026 results` / `\u2026 live stream` variant. | MERGE the Vacation Races-own races into the \"National Parks\" chart and rename this \"Other Races\" if fewer than ~15 non-own races chart. DROP an own race whose row is unvolumed and reads negative (Bourbon Chase precedent). | TBD \u2014 expect \"SHIP, thinnest; re-cut after the vacationraces.com crawl lands\" |\n| National Parks & Destinations | The strongest chart of the study, expected. Every park on the calendar over the band, plus Arches, Canyonlands, Capitol Reef (Mighty 5), Moab, Sedona, Jackson Hole, Antelope Canyon, Angels Landing, Half Dome; gateway towns (Springdale, Kanab, Estes Park, West Yellowstone, Bar Harbor) over. Under: Pigeon Forge/Gatlinburg (a different tourist \u2014 Dollywood), Banff/Denali (fly-far), Big Bend (Texas). Iceland: expect slightly over on `iceland`, neutral on `reykjavik`. | No TAB analogue; Ragnar Travel chart had Zion +0.048, Moab +0.042, national parks +0.026 and Yellowstone \u22120.033 (TV collision). | CRITICAL: chart `yellowstone national park`, never bare `yellowstone` (TV). `grand canyon` bare row carries the GCU sense \u2014 if it under-indexes while `grand canyon half marathon` over-indexes, that IS the collision finding; say so. `acadia national park` not `acadia`. `torres del paine` stands in for Patagonia (brand collision). `america the beautiful pass` \u2190 `national park pass`. | Never dropped \u2014 it is the client's product. If a park on the calendar reads negative on a volumed row, investigate the population behind the phrase before smoothing (van precedent). | TBD \u2014 expect \"SHIP \u2014 strongest chart\" |\n| Running & Fitness | Half-marathon-specific over: `half marathon training plan`, Hal Higdon, Jeff Galloway, run-walk, `first half marathon`; Hoka/Brooks/Altra/On over, Nike/Adidas/Asics under; Strava/Garmin/Coros over; Orangetheory/Peloton probably over (as Ragnar). Split to watch: couch-to-5k vs ultra marathon \u2014 which side of the band each sits decides Persona 3. Walking-for-weight-loss is the tell for a softer, broader runner than Ragnar's. | TAB \"Hobbies\"; Ragnar \"Running & Fitness\" (34/42). | Subs (accepted for Ragnar): `hoka shoes`, `altra shoes`, `on running shoes`. Drop `half marathon training plan 16 weeks`-style plan-page rows if they read as noise (Ragnar \u22120.04 on 1,300 vol). `coros` may need `coros watch`. Gap on 08-28: `garmin connect`, `hyrox`. | MERGE Outdoor Hobbies into this if Hobbies charts <15; otherwise keep both. | TBD |\n| Outdoor Hobbies | Hiking, backpacking, camping, canyoneering, photography (landscape, astro, wildlife), stargazing, national park passport, junior ranger over; kayaking/paddle boarding/rafting over; skiing over but weaker than Ragnar (this is a spring\u2013fall, warm-park audience). Under: hunting, fly fishing (?), gardening, crochet, video games, board games. Pickleball is the wildcard \u2014 Utah signal may lift it. | TAB \"Hobbies\"; Ragnar (skiing +0.157 top of study). | Gaps on 08-28: `gravel biking`, `cross country skiing`, `snowshoeing`. `junior ranger` may need `junior ranger program`. | If photography + passport + stargazing all chart, consider splitting a \"Park Culture\" mini-cluster into the Key Insight, not a new chart. MERGE into Running & Fitness if <15. | TBD |\n| Travel & Lodging | The vertical's decisive chart. Expect Airbnb/VRBO, Under Canvas, AutoCamp, glamping, cabin rental, KOA over; park lodges (Zion Lodge, Yosemite Valley Lodge) over on small volume; Marriott/Hyatt possibly over (Ragnar surprise \u2014 do not assume budget), Super 8/Motel 6/La Quinta under. Airlines: Southwest and Delta over (SLC/LAS hubs), Alaska over (PNW), Spirit/Frontier/Allegiant under or mixed (Allegiant serves St George/Provo \u2014 watch it), Icelandair small but positive. OTAs: Google Flights/Kayak/Expedia over, Booking.com/Priceline under (Ragnar pattern). `road trip`, `utah mighty 5`, TSA PreCheck, Chase Sapphire over. Cruise / all-inclusive under \u2014 the declared negative sense showing up as a chart entity. | TAB \"Travel\" (budget over); Ragnar (inverted: Hyatt/Marriott over, Hampton/Super 8 under). | 50 listed \u2014 the fattest list; expect to chart 40+. Gaps on 08-28: `hotels.com`, `camping near me`. Subs: `hipcamp com`, `recreation gov`, `outdoorsy com`. If `cruise` bare row is a verb/generic, drop it. | SPLIT into \"Lodging & Camping\" and \"Airlines & Booking\" if more than ~45 chart and labels collide; MERGE nothing here. | TBD |\n| Cars & Road Trip | Subaru \u00d73, Toyota 4Runner/RAV4/Highlander, Telluride/Palisade, hybrid SUV, Rivian, Tesla Model Y over; roof rack/Thule/Yakima/rooftop tent over; every pickup and Jeep under. Rental: Turo and Enterprise/Hertz/Avis over (fly-in + rent), `rental car near me` over; U-Haul under. `gas prices`, AAA neutral. `scenic drives` over. | TAB \"Cars\" (Ford +, Tesla \u2212); Ragnar (Subaru/Rivian +, Ram/F-150 \u2212; 15-passenger van \u22120.053 = the stated correction). | Subs: `honda crv`, `ford f-150`/`f150`, `ev charging stations`. Tesla Model Y unvolumed but plausible \u2014 keep (Ragnar precedent). | MERGE the rental-car rows into Travel and keep only vehicles if <15 vehicles chart; DROP the chart entirely only if both vehicles and rentals are flat (|h| < 0.02 across the board) \u2014 then say \"the car is not the signal, the flight is\". | TBD |\n| Gear & Retail | REI, Backcountry, Patagonia, Cotopaxi, Osprey, Merrell/Keen/Teva/Chaco (sandal/trail-shoe tell), Hydro Flask, Owala, Goodr, Sun Bum over; Road Runner Sports/Fleet Feet over; Athleta/Vuori/Lululemon \u2014 expect Athleta over (planner persona) where Ragnar had Lululemon under. Under: Walmart, Amazon, Shein, Temu, Bass Pro, Cabela's, Academy; Yeti under (hunting/truck audience, Ragnar precedent) vs Hydro Flask over. | TAB \"Retail/brands\"; Ragnar (Road Runner +0.072 top; Walmart \u22120.059). | Subs: `the north face`, `arcteryx`, `dicks sporting goods`, `cabelas`, `kohls`, `trader joes`, `backcountry com`, `goodr`. Drop Temu/Stanley if unvolumed outliers (Ragnar dropped both). | Never <15 \u2014 45 listed, Ragnar charted 38/38. | TBD \u2014 expect SHIP |\n| Sports | Global/endurance over: Olympics, World Cup, Tour de France, triathlon, Boston/NYC marathon, X Games; NFL flagships under; home-market teams over (Jazz, RSL, BYU, Utes, Broncos, Nuggets, Rockies, Cardinals, Suns, Golden Knights). Ironman under (again). Tennessee Titans is the Smokies control \u2014 expect neutral. | TAB \"Sports\" (NFL > NHL > MLB); Ragnar (triathlon +0.069; Cowboys \u22120.038). | Reject `college football live` / `ncaa basketball live` (streaming intent \u2014 Ragnar rejects). Gaps on 08-28: `new york marathon`, `chicago marathon`. | Never <15. Weakest-expected chart of the shipped set; if all |h| < 0.02, ship with \"sports sponsorship is regional, not league\" as the null finding. | TBD |\n| Food & Drink | Endurance nutrition over (Nuun, LMNT, Honey Stinger, GU, Clif, Kodiak, RXBAR) vs Gatorade neutral / Body Armor under; fast-casual + brunch + wine tasting + charcuterie + farmers market over (planner persona); Utah chains (Cafe Rio, Swig, Crumbl) over = geography; Cracker Barrel, Waffle House, Texas Roadhouse, Olive Garden under. Beer: Athletic Brewing over on tiny volume; Coors/Michelob under. | No TAB analogue; Ragnar (Nuun +0.092 top; Body Armor \u22120.046). | Gaps on 08-28: `liquid iv`, `coors light`, `michelob ultra`, `celsius`. Subs: `nuun electrolytes`, `clif bars`, `oatly milk`, `white claws`, `gu gel`. Drop `brunch near me`/`charcuterie board` if they read as recipe-intent noise. | MERGE into Gear & Retail as \"Brands\" if <15 (unlikely \u2014 43 listed). | TBD |\n| Family & Life Stage | THE persona chart. Expect girls trip, couples getaway, bachelorette, anniversary trip, 40th/50th birthday ideas, bucket list, honeymoon, empty nester over; dog boarding/Rover/dog-friendly hotels over (the dog stays home or comes); pregnancy, pediatrician, daycare, car seat, youth soccer under (Ragnar: pregnancy \u22120.121, pediatrician \u22120.104 were the two weakest in that study \u2014 expect the same direction, maybe weaker); mortgage rates over; college applications the wildcard for an older skew. | TAB \"Family\" (+4% parents); Ragnar (mortgage rates +0.107 / pregnancy \u22120.121 \u2192 \"life stage, not demographic\"). | Drop `baby names`, `toddler`-class zero-volume placeholders (Ragnar). Subs: `girls weekend`, `romantic getaways`, `pet friendly hotels`, `rover com`. | Never dropped \u2014 it feeds both personas. Word the insight as a life stage; never claim age or income (not scored). | TBD |\n| Social & Media | Instagram and Pinterest over (destination + photography), Facebook neutral, TikTok/Snapchat under; travel press over (Travel + Leisure, Cond\u00e9 Nast Traveler, Afar, Lonely Planet, National Geographic, The Points Guy); Outside/Backpacker over; Runner's World neutral; national news mildly over (NYT, WSJ, NPR, Atlantic) per Ragnar; Fox under; streaming platforms under; podcasts/Audible over (road-trip audience). Morning shows (GMA, Today) \u2014 expect neutral; they are a control. | TAB \"Social media\" (FB/YouTube 1.5\u00d7); Ragnar (Outside +0.044 top; YouTube/Paramount+ \u22120.046). | Gaps on 08-28: `runner's world`, `trail runner magazine`, `the athletic`. Drop `new york times` if it is the unvolumed +0.136 outlier again; use `nytimes`. `threads` bare row is ambiguous (sewing) \u2014 expect to drop. | Never <15. If travel press does NOT over-index, the channel page loses its main recommendation \u2014 say so rather than soften. | TBD |\n| Politics & News | Expect the Ragnar null again: max |h| \u2248 0.04, nothing in the top tier of any category. Conservation entities are the one place a signal might appear: Sierra Club, Nature Conservancy, National Park Foundation, NPS, public lands, Leave No Trace mildly over; `climate change` mildly over; gun / immigration / school choice flat. Fox/Newsmax/Hannity mildly under. | TAB \"Politics\" (strongest signal); Ragnar (null = the finding). | Zero-volume politician placeholders (trump/biden/desantis/cox/newsom/romney/lee at h\u22480) \u2192 drop by name. Gaps on 08-28: `kamala harris`, `gavin newsom`, `mitt romney`, `mike lee`, `the blaze`, `abortion`, `school choice`. | Ship the null as the finding (\"do not buy political inventory\"). If the conservation cluster clears the band cleanly, split it out as a Key Insight paragraph (\"public-lands affinity, not partisanship\"), not a new chart. DROP only if <15 chart after placeholder removal \u2014 then fold the null sentence into Social & Media. | TBD |\n| Tech & Devices | Trailhead + trip stack over: Google Maps, AllTrails, Gaia, onX, Garmin Connect, NPS app, Merlin, Google Photos, Lightroom, GoPro, DJI, Sony/Canon; iPhone/iPad/AirPods over, Android/Yahoo Mail/Cash App/Starlink under (Ragnar pattern). Apple Pay / Zelle: no meaning-preserving row existed \u2014 expect to drop. | TAB \"Technology\" (Android/Hotmail customer); Ragnar (iPad +0.044; Cash App \u22120.075). | Gaps on 08-28: `gaia gps`, `onx maps`, `garmin connect`. Reject `apple pay wallet`, `ring doorbell camera price`, `apple maps app`, `zelle app` (Ragnar rejects). `dji` bare row may be fine; `canon camera` \u2192 `canon eos`. | Weakest of the shipped charts by precedent. MERGE the camera rows into Outdoor Hobbies (\"photography\") if Tech charts <15 trustworthy rows. | TBD |\n| Movies, TV & Books | Outdoor/park titles over: Free Solo, Dawn Wall, 14 Peaks, Wild, Into the Wild, 127 Hours, Nomadland, A Walk in the Woods, Ken Burns' National Parks, Planet Earth/Our Planet, Alone, Survivor, Amazing Race; travel-memoir books over (Born to Run, The Salt Path, Eat Pray Love). Under: Game of Thrones, Stranger Things, Barbie, Friends, Bridgerton. `yellowstone` (TV) \u2014 expect UNDER or neutral: that is the disambiguation working, and the slide says so. `1883` is the control for the same fandom. | TAB \"Movies\" (Braveheart/Top Gun); Ragnar (Wild +0.036; Barbie \u22120.034; `vikings` neutral = subtraction working). | Gaps on 08-28: `free solo`, `the dawn wall`, `14 peaks`, `into the wild`, `brittany runs a marathon`, `mcfarland usa`. Reject song/soundtrack rows (`chariots of fire song`, `ted lasso soundtrack`). `wild`, `alone`, `the way` bare rows are ambiguous \u2014 use the disambiguated subs or drop. | MERGE the books into Social & Media if fewer than 4 book rows chart; MERGE the whole chart into Social & Media if <15. | TBD |\n| Disambiguation | Only if a subtraction was needed. Show sign flips on on-target anchors (distance running, half marathon, national parks, hiking) between the naive park-name pole and the declared race pole. | Ragnar: 8/13 anchors flipped; the differentiator slide. | z-normalised rows, live cycle. | If the probe finds the race phrases already clean, REPLACE with the volume-ranked seed table + 5-seed vs 12-seed comparison \u2014 a clean brand is also a finding. | TBD |\n\n## Global decisions carried from Ragnar (apply unchanged unless the data argues)\n\n1. y is the segment correlation itself, never \"lift vs Average Person\" \u2014 the 20-generic-row\n   control is a popularity axis (creatine seg +0.000 / \"lift\" \u22120.315). The average is a band =\n   the middle half of all charted entities, as TAB drew it.\n2. Unvolumed rows: drop when the value is an outlier for the category; keep when plausible\n   (Tesla Model Y, Oura). Say which in this file.\n3. Volume 0 with h\u22480 on a famous name = placeholder, not a measurement \u2014 drop by name.\n4. Every substitution lives in `client_config.json::substitutes`; every exclusion in\n   `exclude.json` by name, with the reason in this file.\n5. Where the entity read contradicts an anchor-level or prior-deck finding, state the\n   correction on the slide (Ragnar: the 15-passenger van; lodging is Hyatt not Super 8). For\n   Vacation Races the candidates are: (a) lodging tier, (b) whether the car matters at all for a\n   fly-in audience, (c) whether `yellowstone`/`grand canyon` bare rows under-index because of\n   their collisions.\n6. A category with fewer than ~15 trustworthy entities is merged or dropped, never padded.\n7. Entities not in the corpus are queued for onboarding by the engine automatically; list them\n   here per category and re-run `deck_data.py` on the next cycle to thicken Competitors first.\n\n## Exclusions log (fill during the build \u2014 `exclude.json` mirrors this list)\n\n| entity | category | reason (unvolumed outlier / placeholder / meaning-changing substitute / ambiguous bare row) |\n|---|---|---|\n| yellowstone (bare) | National Parks | TV sense; charted as `yellowstone national park` instead; bare row stays in Movies & TV as the TV show |\n| TBD | | |\n"}, {"name": "client_config.json", "type": "text", "content": "{\n \"client\": \"Vacation Races\",\n \"segment\": [\n  \"audience:saved:vacation-races-core\"\n ],\n \"segment_label\": \"the national-park destination runner\",\n \"left\": [\n  \"audience:saved:democrat\"\n ],\n \"right\": [\n  \"audience:saved:republican\"\n ],\n \"_planning_notes\": {\n  \"status\": \"PLANNING PASS 2026-09-05 - engine not called, nothing scored, nothing published. Keys prefixed _ are ignored by deck_data.py (it reads segment/left/right/categories/substitutes/out only).\",\n  \"prior_art\": \"Cycle 20260828T183159 (Ragnar build): 'zion half marathon' IS a row (1,900/mo, h=+0.059 on the Ragnar segment); 'vacation races', 'revel races', 'st george marathon', 'salt lake city marathon', 'ogden marathon', 'rock n roll marathon', 'big sur marathon', 'new york marathon', 'chicago marathon', 'western states 100', 'leadville 100', 'camping near me', 'hotels.com' were NOT rows and were queued for onboarding (117 units). Re-check on the live cycle before assuming.\",\n  \"step1_seed_gate\": \"Rank every candidate seed by master_keyword google_volume. The 3-5 terms carrying >90% of volume are the core; the rest are measured in a 12-seed variant only to prove the core reads the same clusters with less noise (Ragnar lesson: low-volume seeds = noisy fingerprints with equal votes).\",\n  \"step1_sense_probe\": \"POST :8000/api/term_collisions {terms:[all positive seeds + bare park names]}. Subtract any neighbour above ~0.75 cosine that is a different population. Expected collisions listed under seed_definition.negatives_candidates; only the ones the probe confirms go into the published formula.\",\n  \"publish\": \"POST :8000/api/save_audience {name:'vacation-races-core', terms:<seed_definition.core + confirmed negatives>, source:'deliverable:vacation-races-2026-09'} then wait for 'background mint complete' in logs/heimdall-demo-server.log. 'vacation races' itself will be a cold seed (not a row on 08-28) - expect minutes, not seconds.\"\n },\n \"seed_definition\": {\n  \"grammar\": \"term | -term | term*2 | -term*0.5  (heimdall_core.matrix.parse_term). Default weighting: positives at 1, subtracted senses at *0.5 (Ragnar precedent, Ben's +2/-1 net +1).\",\n  \"core_candidates_ranked_by_expected_volume\": [\n   \"vacation races\",\n   \"zion half marathon\",\n   \"yosemite half marathon\",\n   \"grand canyon half marathon\",\n   \"grand teton half marathon\",\n   \"national park half marathon\"\n  ],\n  \"long_variant_extra_positives\": [\n   \"yellowstone half marathon\",\n   \"bryce canyon half marathon\",\n   \"great smoky mountains half marathon\",\n   \"glacier half marathon\",\n   \"rocky mountain half marathon\",\n   \"acadia half marathon\",\n   \"iceland half marathon\",\n   \"zion ultras\",\n   \"bryce canyon ultras\",\n   \"grand circle trailfest\",\n   \"vacationraces com\"\n  ],\n  \"negatives_candidates\": [\n   {\"term\": \"-yellowstone season 5*0.5\", \"why\": \"TV-show sense of 'yellowstone' (4.09M/mo; bare row read -0.033 on Ragnar). Only needed if 'yellowstone half marathon' or the bare park name lands in the formula.\"},\n   {\"term\": \"-zion williamson*0.5\", \"why\": \"NBA sense of 'zion'. Only if the probe puts it near 'zion half marathon'; the two-word race phrase is probably clean.\"},\n   {\"term\": \"-gmc acadia*0.5\", \"why\": \"SUV sense of 'acadia' - dominant in search volume; matters only if the Acadia race is a seed.\"},\n   {\"term\": \"-grand canyon university*0.5\", \"why\": \"GCU out-searches the park in several states (online enrolment); matters only if a bare 'grand canyon' phrase is seeded.\"},\n   {\"term\": \"-all inclusive vacation*0.5\", \"why\": \"the generic vacation-shopper sense of the brand word 'vacation' - the resort/cruise buyer is a different population.\"},\n   {\"term\": \"-horse racing*0.5\", \"why\": \"the generic 'races' sense (horse/NASCAR). Probe first; probably not needed for the two-word brand phrase.\"}\n  ],\n  \"rule\": \"Do NOT seed bare park names (zion, yosemite, glacier, acadia). Seed the race phrases. Bare park names are entities in the National Parks category, where their collisions are the finding, not the definition.\"\n },\n \"geo_seeds\": [\n  \"vacation races\",\n  \"zion half marathon\",\n  \"yosemite half marathon\",\n  \"grand canyon half marathon\",\n  \"grand teton half marathon\"\n ],\n \"_geo_expectation\": \"compose_pole takes positives only. Sanity: UT (HQ St George + Zion/Bryce), NV (Las Vegas is the Zion gateway), AZ, CO, ID, WY, MT, CA, WA, OR in the top ten; TN/NC/ME only if the Smokies/Acadia seeds carry weight. If the Deep South or NJ/NY lead, the seeds are wrong, not the map.\",\n \"categories\": {\n  \"Competitors & Races\": [\n   \"zion half marathon\", \"bryce canyon half marathon\", \"grand canyon half marathon\", \"yosemite half marathon\",\n   \"grand teton half marathon\", \"yellowstone half marathon\", \"glacier half marathon\", \"rocky mountain half marathon\",\n   \"great smoky mountains half marathon\", \"acadia half marathon\", \"zion ultras\", \"grand circle trailfest\",\n   \"revel races\", \"mainly marathons\", \"rock n roll marathon\", \"rundisney\", \"disney princess half marathon\",\n   \"big sur marathon\", \"boston marathon\", \"new york marathon\", \"chicago marathon\", \"marine corps marathon\",\n   \"honolulu marathon\", \"napa valley marathon\", \"grandma's marathon\", \"missoula marathon\", \"st george marathon\",\n   \"utah valley marathon\", \"salt lake city marathon\", \"ogden marathon\", \"bolder boulder\", \"pikes peak ascent\",\n   \"moab half marathon\", \"antelope canyon ultra\", \"wine country half marathon\", \"hot chocolate run\", \"color run\",\n   \"turkey trot\", \"ragnar relay\", \"hood to coast\", \"ironman\", \"triathlon\", \"spartan race\", \"tough mudder\",\n   \"great wall marathon\", \"antarctica marathon\", \"reykjavik marathon\", \"iceland half marathon\", \"western states 100\",\n   \"leadville 100\", \"utmb\"\n  ],\n  \"National Parks & Destinations\": [\n   \"zion national park\", \"bryce canyon national park\", \"grand canyon\", \"yosemite\", \"grand teton national park\",\n   \"yellowstone national park\", \"glacier national park\", \"rocky mountain national park\",\n   \"great smoky mountains national park\", \"acadia national park\", \"arches national park\", \"canyonlands\",\n   \"capitol reef\", \"joshua tree\", \"sequoia national park\", \"olympic national park\", \"mount rainier\", \"crater lake\",\n   \"death valley\", \"big bend\", \"shenandoah national park\", \"badlands\", \"denali\", \"banff\", \"iceland\", \"reykjavik\",\n   \"torres del paine\", \"moab\", \"sedona\", \"jackson hole\", \"lake powell\", \"antelope canyon\", \"horseshoe bend\",\n   \"havasu falls\", \"angels landing\", \"the narrows zion\", \"half dome\", \"old faithful\", \"going to the sun road\",\n   \"gatlinburg\", \"pigeon forge\", \"bar harbor\", \"estes park\", \"west yellowstone\", \"springdale utah\", \"st george utah\",\n   \"kanab utah\", \"page arizona\", \"mammoth lakes\", \"lake tahoe\", \"national parks\", \"america the beautiful pass\"\n  ],\n  \"Running & Fitness\": [\n   \"strava\", \"garmin\", \"coros\", \"nike run club\", \"runkeeper\", \"mapmyrun\", \"peloton\", \"orangetheory\",\n   \"planet fitness\", \"f45\", \"crossfit\", \"pure barre\", \"yoga\", \"pilates\", \"hoka\", \"brooks running\", \"altra\",\n   \"on running\", \"saucony\", \"asics\", \"new balance\", \"nike\", \"salomon\", \"lululemon\", \"athleta\", \"vuori\",\n   \"couch to 5k\", \"half marathon training plan\", \"hal higdon\", \"jeff galloway\", \"run walk method\",\n   \"first half marathon\", \"marathon training plan\", \"trail running\", \"ultra marathon\", \"hydration vest\",\n   \"camelbak\", \"nathan hydration\", \"body glide\", \"running belt\", \"compression socks\", \"whoop\", \"oura ring\",\n   \"fitbit\", \"apple watch\", \"walking for weight loss\", \"hiking training\", \"stair climber\", \"treadmill\"\n  ],\n  \"Outdoor Hobbies\": [\n   \"hiking\", \"backpacking\", \"camping\", \"car camping\", \"canyoneering\", \"rock climbing\", \"bouldering\", \"kayaking\",\n   \"paddle boarding\", \"white water rafting\", \"mountain biking\", \"cycling\", \"gravel biking\", \"skiing\", \"snowboarding\",\n   \"cross country skiing\", \"snowshoeing\", \"fly fishing\", \"hunting\", \"birdwatching\", \"wildlife photography\",\n   \"landscape photography\", \"astrophotography\", \"stargazing\", \"geocaching\", \"national park passport\",\n   \"junior ranger\", \"pickleball\", \"golf\", \"tennis\", \"disc golf\", \"gardening\", \"woodworking\", \"crochet\",\n   \"board games\", \"video games\", \"fantasy football\", \"sourdough\", \"scrapbooking\", \"journaling\"\n  ],\n  \"Travel & Lodging\": [\n   \"airbnb\", \"vrbo\", \"marriott\", \"hilton\", \"hyatt\", \"best western\", \"holiday inn\", \"hampton inn\", \"la quinta\",\n   \"motel 6\", \"super 8\", \"koa campgrounds\", \"hipcamp\", \"recreation.gov\", \"under canvas\", \"autocamp\", \"glamping\",\n   \"cabin rental\", \"rv rental\", \"outdoorsy\", \"zion lodge\", \"yosemite valley lodge\", \"expedia\", \"kayak\",\n   \"booking.com\", \"hotels.com\", \"priceline\", \"tripadvisor\", \"google flights\", \"hopper\", \"road trip\",\n   \"utah mighty 5\", \"southwest airlines\", \"delta airlines\", \"united airlines\", \"american airlines\",\n   \"alaska airlines\", \"frontier airlines\", \"spirit airlines\", \"allegiant\", \"icelandair\", \"iceland ring road\",\n   \"blue lagoon iceland\", \"rei adventures\", \"backroads\", \"g adventures\", \"all inclusive resort\", \"cruise\",\n   \"chase sapphire\", \"tsa precheck\"\n  ],\n  \"Cars & Road Trip\": [\n   \"subaru outback\", \"subaru forester\", \"subaru crosstrek\", \"toyota 4runner\", \"toyota tacoma\", \"toyota rav4\",\n   \"toyota highlander\", \"honda cr-v\", \"honda pilot\", \"kia telluride\", \"hyundai palisade\", \"jeep wrangler\",\n   \"jeep grand cherokee\", \"ford bronco\", \"ford f150\", \"chevy silverado\", \"ram 1500\", \"tesla model y\",\n   \"tesla model 3\", \"rivian\", \"mercedes sprinter\", \"ford transit\", \"toyota sienna\", \"honda odyssey\", \"minivan\",\n   \"roof rack\", \"thule\", \"yakima\", \"rooftop tent\", \"van life\", \"ev charging stations near me\", \"hybrid suv\",\n   \"enterprise rent a car\", \"hertz\", \"avis\", \"turo\", \"national car rental\", \"rental car near me\", \"u-haul\",\n   \"aaa membership\", \"gas prices\", \"scenic drives\"\n  ],\n  \"Gear & Retail\": [\n   \"rei\", \"backcountry.com\", \"patagonia\", \"north face\", \"arc'teryx\", \"columbia sportswear\", \"cotopaxi\", \"osprey\",\n   \"merrell\", \"keen\", \"teva\", \"chaco\", \"yeti\", \"hydro flask\", \"stanley cup tumbler\", \"owala\", \"dick's sporting goods\",\n   \"scheels\", \"academy sports\", \"cabela's\", \"bass pro shops\", \"big 5 sporting goods\", \"running warehouse\",\n   \"road runner sports\", \"fleet feet\", \"costco\", \"target\", \"walmart\", \"amazon\", \"trader joe's\", \"whole foods\",\n   \"sprouts\", \"nordstrom\", \"tj maxx\", \"kohl's\", \"etsy\", \"shein\", \"temu\", \"gymshark\", \"sun bum\", \"goodr sunglasses\",\n   \"oakley\", \"black diamond headlamp\", \"moosejaw\", \"sierra trading post\"\n  ],\n  \"Sports\": [\n   \"nfl\", \"nba\", \"mlb\", \"nhl\", \"mls\", \"wnba\", \"premier league\", \"march madness\", \"college football\", \"olympics\",\n   \"world cup\", \"ufc\", \"pga tour\", \"nascar\", \"formula 1\", \"boston marathon\", \"new york marathon\", \"ironman\",\n   \"triathlon\", \"tour de france\", \"x games\", \"utah jazz\", \"real salt lake\", \"byu football\", \"utah utes\",\n   \"denver broncos\", \"denver nuggets\", \"colorado rockies\", \"arizona cardinals\", \"phoenix suns\",\n   \"golden state warriors\", \"san francisco 49ers\", \"los angeles dodgers\", \"los angeles lakers\", \"seattle seahawks\",\n   \"dallas cowboys\", \"kansas city chiefs\", \"green bay packers\", \"new york yankees\", \"boston celtics\",\n   \"atlanta braves\", \"tennessee titans\", \"vegas golden knights\", \"las vegas raiders\", \"boise state football\",\n   \"colorado buffaloes\"\n  ],\n  \"Food & Drink\": [\n   \"starbucks\", \"dutch bros\", \"chipotle\", \"cafe rio\", \"chick-fil-a\", \"in-n-out\", \"panera\", \"sweetgreen\", \"cava\",\n   \"olive garden\", \"texas roadhouse\", \"waffle house\", \"cracker barrel\", \"ihop\", \"denny's\", \"crumbl cookies\", \"swig\",\n   \"gatorade\", \"body armor\", \"nuun\", \"liquid iv\", \"lmnt\", \"clif bar\", \"kodiak cakes\", \"rxbar\", \"honey stinger\",\n   \"gu energy gel\", \"protein powder\", \"oatly\", \"kombucha\", \"craft beer\", \"athletic brewing\", \"white claw\",\n   \"coors light\", \"michelob ultra\", \"bourbon\", \"wine tasting\", \"farmers market\", \"meal prep\", \"whole30\",\n   \"intermittent fasting\", \"brunch near me\", \"charcuterie board\"\n  ],\n  \"Family & Life Stage\": [\n   \"baby names\", \"pregnancy\", \"daycare near me\", \"preschool\", \"pediatrician\", \"stroller\", \"jogging stroller\",\n   \"car seat\", \"disney world\", \"disneyland\", \"family vacation\", \"summer camp\", \"youth soccer\", \"girl scouts\",\n   \"boy scouts\", \"college applications\", \"empty nester\", \"wedding venues\", \"engagement rings\", \"honeymoon\",\n   \"bachelorette party\", \"girls trip\", \"couples getaway\", \"anniversary trip\", \"bucket list\", \"retirement\", \"401k\",\n   \"mortgage rates\", \"first time home buyer\", \"divorce lawyer\", \"dog park\", \"dog boarding\", \"dog friendly hotels\",\n   \"rover\", \"chewy\", \"petsmart\", \"veterinarian\", \"menopause\", \"40th birthday ideas\", \"50th birthday ideas\"\n  ],\n  \"Social & Media\": [\n   \"instagram\", \"facebook\", \"tiktok\", \"snapchat\", \"reddit\", \"pinterest\", \"youtube\", \"twitter\", \"linkedin\", \"threads\",\n   \"spotify\", \"apple music\", \"podcasts\", \"audible\", \"netflix\", \"hulu\", \"disney plus\", \"hbo max\", \"peacock\",\n   \"paramount plus\", \"espn\", \"runner's world\", \"women's running\", \"outside magazine\", \"trail runner magazine\",\n   \"backpacker magazine\", \"national geographic\", \"travel and leisure\", \"conde nast traveler\", \"afar\",\n   \"lonely planet\", \"the atlantic\", \"npr\", \"new york times\", \"wall street journal\", \"usa today\", \"cnn\", \"fox news\",\n   \"msnbc\", \"people magazine\", \"good morning america\", \"today show\", \"the points guy\"\n  ],\n  \"Politics & News\": [\n   \"fox news\", \"cnn\", \"msnbc\", \"npr\", \"breitbart\", \"daily wire\", \"huffpost\", \"newsmax\", \"politico\", \"axios\",\n   \"ben shapiro\", \"joe rogan\", \"tucker carlson\", \"rachel maddow\", \"sean hannity\", \"aoc\", \"bernie sanders\",\n   \"donald trump\", \"joe biden\", \"kamala harris\", \"ron desantis\", \"gavin newsom\", \"mitt romney\", \"mike lee\",\n   \"spencer cox\", \"nra\", \"planned parenthood\", \"aclu\", \"sierra club\", \"nature conservancy\",\n   \"national park foundation\", \"national park service\", \"public lands\", \"leave no trace\", \"turning point usa\",\n   \"moveon\", \"black lives matter\", \"second amendment\", \"climate change\", \"gun control\", \"immigration\",\n   \"student loan forgiveness\", \"medicare for all\", \"school choice\", \"electric vehicle tax credit\"\n  ],\n  \"Tech & Devices\": [\n   \"iphone\", \"android\", \"samsung galaxy\", \"ipad\", \"macbook\", \"chromebook\", \"gmail\", \"outlook\", \"yahoo mail\",\n   \"google maps\", \"apple maps\", \"waze\", \"alltrails\", \"gaia gps\", \"onx maps\", \"komoot\", \"garmin connect\",\n   \"myfitnesspal\", \"noom\", \"headspace\", \"calm app\", \"chatgpt\", \"venmo\", \"cash app\", \"zelle\", \"paypal\", \"apple pay\",\n   \"verizon\", \"at&t\", \"t-mobile\", \"starlink\", \"ring doorbell\", \"nest thermostat\", \"gopro\", \"dji drone\",\n   \"canon camera\", \"sony a7\", \"lightroom\", \"google photos\", \"instax\", \"kindle\", \"airpods\", \"nps app\", \"merlin bird id\"\n  ],\n  \"Movies, TV & Books\": [\n   \"yellowstone\", \"1883\", \"free solo\", \"the dawn wall\", \"14 peaks\", \"wild\", \"into the wild\", \"127 hours\",\n   \"nomadland\", \"a walk in the woods\", \"the way\", \"ken burns national parks\", \"planet earth\", \"our planet\",\n   \"survivor\", \"the amazing race\", \"alone\", \"naked and afraid\", \"ted lasso\", \"the bear\", \"white lotus\",\n   \"succession\", \"the office\", \"friends\", \"top gun maverick\", \"barbie\", \"oppenheimer\", \"dune\", \"game of thrones\",\n   \"stranger things\", \"bridgerton\", \"yellowjackets\", \"brittany runs a marathon\", \"mcfarland usa\", \"unbroken\",\n   \"forrest gump\", \"born to run\", \"the salt path\", \"eat pray love\", \"big little lies\"\n  ]\n },\n \"_substitutes_note\": \"Order = preference. Only meaning-preserving variants (spelling, apostrophe, 'com' suffix, 'shoes' for a shoe brand). NEVER a shopping-, streaming- or song-intent variant (Ragnar rejects: apple pay wallet, ring doorbell camera price, chariots of fire song, college football live). Find candidates in artifacts/h/<cycle>/rows.json by first token, not LIKE over master_keyword. Kept OUT of the substitutes dict because deck_data.py iterates every value as a keyword list.\",\n \"substitutes\": {\n  \"grand teton half marathon\": [\"grand tetons half marathon\", \"teton half marathon\"],\n  \"great smoky mountains half marathon\": [\"smoky mountains half marathon\", \"smokies half marathon\"],\n  \"rocky mountain half marathon\": [\"rocky mountain national park half marathon\", \"estes park half marathon\"],\n  \"iceland half marathon\": [\"iceland volcano marathon\", \"reykjavik half marathon\"],\n  \"zion ultras\": [\"zion ultra\", \"zion 100\"],\n  \"grand circle trailfest\": [\"trailfest\"],\n  \"revel races\": [\"revel big cottonwood\", \"revel mt charleston\", \"revel run\"],\n  \"mainly marathons\": [],\n  \"rundisney\": [\"run disney\", \"disney marathon\"],\n  \"rock n roll marathon\": [\"rock n roll half marathon\", \"rock and roll marathon\"],\n  \"grandma's marathon\": [\"grandmas marathon\"],\n  \"hot chocolate run\": [\"hot chocolate 15k\"],\n  \"wine country half marathon\": [\"napa to sonoma half marathon\"],\n  \"boston marathon\": [\"boston marathon date\"],\n  \"utmb\": [\"utmb mont blanc\", \"ultra trail du mont blanc\"],\n  \"grand teton national park\": [\"grand teton\", \"grand tetons\", \"tetons\"],\n  \"great smoky mountains national park\": [\"great smoky mountains\", \"smoky mountains\"],\n  \"rocky mountain national park\": [\"rmnp\", \"rocky mountain park\"],\n  \"bryce canyon national park\": [\"bryce canyon\"],\n  \"yellowstone national park\": [\"yellowstone park\"],\n  \"glacier national park\": [\"glacier park montana\"],\n  \"acadia national park\": [\"acadia maine\"],\n  \"yosemite\": [\"yosemite national park\", \"yosemite valley\"],\n  \"the narrows zion\": [\"zion narrows\", \"the narrows\"],\n  \"torres del paine\": [\"patagonia chile\", \"patagonia travel\"],\n  \"america the beautiful pass\": [\"national park pass\", \"national parks pass\", \"interagency pass\"],\n  \"st george utah\": [\"st. george utah\", \"saint george utah\"],\n  \"hoka\": [\"hoka shoes\", \"hoka one one\"],\n  \"altra\": [\"altra shoes\"],\n  \"on running\": [\"on running shoes\", \"on cloud shoes\"],\n  \"coros\": [\"coros watch\", \"coros pace 3\"],\n  \"hal higdon\": [\"hal higdon half marathon\"],\n  \"jeff galloway\": [\"galloway method\"],\n  \"half marathon training plan\": [\"half marathon training\", \"half marathon training plan 12 weeks\"],\n  \"nathan hydration\": [\"nathan running vest\"],\n  \"north face\": [\"the north face\"],\n  \"arc'teryx\": [\"arcteryx\"],\n  \"cabela's\": [\"cabelas\"],\n  \"dick's sporting goods\": [\"dicks sporting goods\"],\n  \"kohl's\": [\"kohls\"],\n  \"trader joe's\": [\"trader joes\"],\n  \"denny's\": [\"dennys\"],\n  \"chick-fil-a\": [\"chick fil a\"],\n  \"in-n-out\": [\"in n out\"],\n  \"at&t\": [\"att\"],\n  \"backcountry.com\": [\"backcountry com\"],\n  \"recreation.gov\": [\"recreation gov\"],\n  \"hipcamp\": [\"hipcamp com\"],\n  \"alltrails\": [\"alltrails com\"],\n  \"komoot\": [\"komoot com\"],\n  \"outdoorsy\": [\"outdoorsy com\"],\n  \"hotels.com\": [\"hotels com\"],\n  \"booking.com\": [\"booking com\"],\n  \"goodr sunglasses\": [\"goodr\"],\n  \"black diamond headlamp\": [\"black diamond equipment\"],\n  \"honda cr-v\": [\"honda crv\"],\n  \"ford f150\": [\"ford f-150\", \"f150\"],\n  \"ev charging stations near me\": [\"ev charging stations\", \"tesla supercharger\"],\n  \"nuun\": [\"nuun electrolytes\"],\n  \"clif bar\": [\"clif bars\"],\n  \"lmnt\": [\"lmnt electrolytes\"],\n  \"honey stinger\": [\"honey stinger waffles\"],\n  \"gu energy gel\": [\"gu gel\", \"gu energy\"],\n  \"oatly\": [\"oatly milk\"],\n  \"white claw\": [\"white claws\"],\n  \"athletic brewing\": [\"athletic brewing co run wild\"],\n  \"rover\": [\"rover dog sitting\", \"rover com\"],\n  \"dog friendly hotels\": [\"pet friendly hotels\"],\n  \"girls trip\": [\"girls trip ideas\", \"girls weekend\"],\n  \"couples getaway\": [\"romantic getaways\", \"weekend getaways for couples\"],\n  \"40th birthday ideas\": [\"40th birthday trip\"],\n  \"50th birthday ideas\": [\"50th birthday trip\"],\n  \"women's running\": [\"womens running magazine\"],\n  \"runner's world\": [\"runners world\"],\n  \"trail runner magazine\": [\"trail runner\"],\n  \"backpacker magazine\": [\"backpacker\"],\n  \"the points guy\": [\"thepointsguy\"],\n  \"ken burns national parks\": [\"the national parks america's best idea\", \"national parks documentary\"],\n  \"wild\": [\"wild reese witherspoon\", \"wild movie\"],\n  \"the way\": [\"the way martin sheen\"],\n  \"alone\": [\"alone tv show\", \"alone history channel\"],\n  \"1883\": [\"1883 show\"],\n  \"born to run\": [\"born to run book\"],\n  \"the salt path\": [\"salt path\"],\n  \"nps app\": [\"national park service app\"],\n  \"merlin bird id\": [\"merlin app\"],\n  \"dji drone\": [\"dji mini\", \"dji\"],\n  \"sony a7\": [\"sony a7iv\", \"sony alpha\"],\n  \"canon camera\": [\"canon eos\", \"canon r6\"],\n  \"samsung galaxy\": [],\n  \"chromebook\": [],\n  \"apple pay\": [],\n  \"zelle\": [],\n  \"apple maps\": [],\n  \"ring doorbell\": [],\n  \"college football\": [],\n  \"ted lasso\": []\n },\n \"_expected_missing_rows_on_0828_cycle\": [\n  \"vacation races\", \"revel races\", \"st george marathon\", \"salt lake city marathon\", \"ogden marathon\",\n  \"rock n roll marathon\", \"big sur marathon\", \"new york marathon\", \"chicago marathon\", \"western states 100\",\n  \"leadville 100\", \"camping near me\", \"hotels.com\", \"gaia gps\", \"onx maps\", \"garmin connect\", \"free solo\",\n  \"the dawn wall\", \"14 peaks\", \"into the wild\", \"brittany runs a marathon\", \"mcfarland usa\", \"gravel biking\",\n  \"cross country skiing\", \"snowshoeing\", \"liquid iv\", \"coors light\", \"michelob ultra\", \"jogging stroller\",\n  \"the athletic\", \"runner's world\", \"trail runner magazine\", \"kamala harris\", \"gavin newsom\", \"mitt romney\", \"mike lee\"\n ],\n \"out\": \"docs/vacation_races_deck/deck_data.json\"\n}\n"}, {"name": "content_static.json", "type": "text", "content": "{\n  \"_status\": \"SKELETON 2026-09-05. Every 'TBD' is a number or a name that must come from the live engine run; build_deck.js must not run until `grep -c TBD content.json` is 0 (same gate as `markitdown | grep -i lorem`). Personas and strategy pages are OUTLINES of what the measured lines are expected to support; rewrite from the entities that actually moved.\",\n  \"title\": \"VACATION RACES\",\n  \"subtitle\": \"Data Science Insights \u2014 the national-park destination runner: who they are, where they are, and how to reach them.\",\n  \"prepared\": \"Prepared for Vacation Races  \u00b7  Genomic Digital  \u00b7  September 2026\",\n  \"filename\": \"Vacation_Races_Data_Science_Insights_Sept2026.pptx\",\n  \"objective\": \"Vacation Races sells a finish line inside a national park: cupless half marathons and trail festivals at Zion, Bryce Canyon, the Grand Canyon, Yosemite, Grand Teton, Yellowstone, Glacier, Rocky Mountain, the Great Smoky Mountains and Acadia, and an international calendar that now includes Iceland. The purchase is a trip before it is a race \u2014 flights, a rental car, three nights near a park gate \u2014 and the buyer is very often booking for a couple or a group of friends, not for herself alone.\\n\\nThe goal of this work is to define that audience so it can be bought: to describe, with statistical confidence, what the people who search for Vacation Races' events also search for, drive, wear, watch and read, and where in the country they are \u2014 and to separate the destination runner cleanly from the two populations that sit next to her in search: the general national-park tourist, and the local road racer.\\n\\nGenomic Digital's Heimdall platform was used to build the segment from Vacation Races' own race vocabulary, correlate it against TBD million phrases of American search behaviour, and isolate the clusters that matter for strategy, creative and media placement.\",\n  \"agenda\": [\n    [\"METHODOLOGY\", \"How Heimdall builds an audience from language, and why the race phrases \u2014 not the park names \u2014 had to be the seeds\"],\n    [\"THE SEGMENT\", \"The destination-runner definition, its geography, and fourteen correlation categories read from the data\"],\n    [\"WHO WE ARE TALKING TO\", \"Roles that should not be collapsed: the series collector who returns, and the once-a-year trip runner who books for the group\"],\n    [\"PATH FORWARD\", \"Value proposition, creative hooks, channel guidance and campaign structure\"]\n  ],\n  \"method_steps\": [\n    [\"Identify segment characteristics\", \"Start from Vacation Races' own vocabulary: the brand, each race name as it is searched (zion half marathon, yosemite half marathon, grand teton half marathon \u2026), the trail festivals, and the category phrase 'national park half marathon'. Measure which carry real US search volume; the top TBD terms carry TBD% of it and form the core.\"],\n    [\"Generate a digital fingerprint\", \"Every phrase in the corpus carries a geo-spatial fingerprint \u2014 how its search interest distributes across the 51 states, 210 DMAs, countries and congressional districts. The segment's fingerprint is the signed combination of its seed phrases.\"],\n    [\"Run billions of correlations\", \"The segment is correlated against every one of TBD million phrases and TBD anchor columns in the Heimdall Matrix \u2014 public search behaviour, not a panel and not a survey. Every number in this deck is one of those correlations.\"],\n    [\"Isolate highest-value insights\", \"TBD named entities \u2014 parks, races, airlines, hotel brands, cars, retailers, media \u2014 are read against the segment by hand, category by category, and only the clusters that survive scrutiny are reported.\"]\n  ],\n  \"corpus_blurb\": \"Heimdall is a correlation engine over language. Each phrase people search is a row; each anchor an advertiser might buy against is a column; the cell is how closely their geographic search behaviour moves together. An audience is a signed formula over rows \u2014 positives added, competing senses subtracted \u2014 and every chart in this deck is that formula read down one category of named entities.\",\n  \"corpus_stats\": [\n    [\"TBD M\", \"phrases with a geographic search fingerprint (the rows)\"],\n    [\"TBD\", \"anchor and audience columns in the live cycle\"],\n    [\"4\", \"geographic resolutions \u2014 state, DMA, country, congressional district\"],\n    [\"TBD\", \"named entities hand-checked for this deck across 14 categories\"]\n  ],\n  \"senses_blurb\": \"A national park's name is not owned by the race that runs through it. In US search, 'yellowstone' is first a television drama, then a park; 'acadia' is first a GMC SUV; 'grand canyon' is, in several states, a university before it is a canyon; 'zion' is a basketball player and a scripture before it is a trailhead. Seeding the segment from park names would therefore build an audience of television viewers, SUV shoppers and online-degree applicants.\\n\\nThe segment is instead declared from the race phrases themselves \u2014 'zion half marathon', 'yosemite half marathon' \u2014 which are specific, and the competing senses that the semantic probe finds nearby are subtracted explicitly. That is the same device our Ragnar Races work used to subtract the Viking from the relay, and our TAB Bank work used to subtract job-seekers from a bank's customer pole.\",\n  \"senses\": [\n    [\"The races\", \"vacation races\", \"TBD\"],\n    [\"The races\", \"zion half marathon\", \"1,900 (08-28 cycle)\"],\n    [\"The races\", \"yosemite half marathon\", \"TBD\"],\n    [\"The races\", \"grand teton half marathon\", \"TBD\"],\n    [\"The races\", \"grand canyon half marathon\", \"TBD\"],\n    [\"TV drama\", \"yellowstone season 5\", \"TBD\"],\n    [\"SUV\", \"gmc acadia\", \"TBD\"],\n    [\"University\", \"grand canyon university\", \"TBD\"],\n    [\"NBA\", \"zion williamson\", \"TBD\"],\n    [\"Resort / cruise shopper\", \"all inclusive vacation\", \"TBD\"]\n  ],\n  \"senses_note\": \"TBD after POST /api/term_collisions: report the nearest embedded anchors of each positive seed and the cosine of any collision above ~0.75. Expected: the two-word race phrases are clean and the collisions attach to the bare park names \u2014 in which case the formula needs few or no subtractions and this page says so (a clean brand is also a finding).\",\n  \"disamb_blurb\": \"TBD \u2014 only if a subtraction was needed. Same corpus, same anchors; only the definition changes. Show the on-target anchors (distance running, half marathon training, national parks, hiking) under the naive park-name pole versus the declared race pole, and name which flipped sign. If no subtraction was needed, replace this page with the volume-ranked seed table and the 5-seed vs 12-seed comparison.\",\n  \"strengths\": [\n    [\"ASSUMPTION FREE\", \"No panel, no questionnaire, no audience framing by the researcher. The method reads what people actually search, where, and lets the correlations surface the clusters.\"],\n    [\"THE CLIENT'S OWN VOCABULARY\", \"The segment is built from Vacation Races' race names as people type them, not from a generic 'runner' or 'national park visitor' proxy \u2014 and the park-name senses that would pollute it are kept out by construction.\"],\n    [\"STATISTICALLY DERIVED, REPEATABLE\", \"Every figure is a correlation in the live Heimdall Matrix, reproducible on demand, and the segment now exists as a permanent column that can be re-read as the corpus grows \u2014 race by race, if wanted.\"]\n  ],\n  \"limitations\": [\n    [\"ART + SCIENCE\", \"Correlation over geography says who searches alongside whom, not why. Turning the clusters into strategy takes judgement, and this deck says where it is exercising it.\"],\n    [\"MAGNITUDES ARE RELATIVE\", \"The correlations are small in absolute terms (a destination half marathon is a small population). Read sign, ordering and distance from the average band \u2014 not the decimal.\"],\n    [\"NOT MEASURED HERE\", \"Age, income, household composition and gender were not scored in this pass. Vacation Races' own registration data (gender split, repeat rate, home ZIPs) outranks any correlation here and should be laid beside it.\"]\n  ],\n  \"segment_section_blurb\": \"The definition, its geography, and fourteen correlation categories \u2014 each read against named entities, with the average American searcher as the reference band.\",\n  \"segment_def_blurb\": \"TBD terms carry more than TBD% of Vacation Races' US search volume, so the segment is built from them. A longer twelve-seed definition (adding every race on the calendar and the trail festivals) was also built and measured; TBD \u2014 expected: it reads the same clusters with more noise, because low-volume race names carry noisy fingerprints and equal votes.\\n\\nThe formula is Heimdall's grammar: the same one our Ragnar pole used to subtract 'ragnar lothbrok'.\",\n  \"segment_formula\": [\n    {\"text\": \"National-park destination runner =\", \"dim\": false},\n    {\"text\": \"\", \"dim\": true},\n    {\"text\": \"  + zn( vacation races )               TBD / mo\", \"dim\": false},\n    {\"text\": \"  + zn( zion half marathon )            1,900 / mo\", \"dim\": false},\n    {\"text\": \"  + zn( yosemite half marathon )        TBD / mo\", \"dim\": false},\n    {\"text\": \"  + zn( grand teton half marathon )     TBD / mo\", \"dim\": false},\n    {\"text\": \"  + zn( grand canyon half marathon )    TBD / mo\", \"dim\": false},\n    {\"text\": \"\", \"dim\": true},\n    {\"text\": \"  - zn( TBD collision, if confirmed )*0.5     TBD / mo   <- TBD sense\", \"neg\": true},\n    {\"text\": \"\", \"dim\": true},\n    {\"text\": \"  published as  audience:saved:vacation-races-core\", \"dim\": true},\n    {\"text\": \"  cycle TBD \u00b7 TBD rows\", \"dim\": true},\n    {\"text\": \"\", \"dim\": true},\n    {\"text\": \"  zn( ) = z-normalised geographic fingerprint\", \"dim\": true},\n    {\"text\": \"  correlation with any phrase = Heimdall h\", \"dim\": true}\n  ],\n  \"categories_blurb\": \"Each category is a hand-built list of named entities \u2014 national parks and gateway towns, destination races, airlines and hotel brands, cars, retailers, streaming services, news outlets \u2014 read against the segment. The chart plots every entity by its correlation with the destination-runner segment (vertical), its political lean (horizontal) and its US search volume (size). The grey band is the average entity; anything above it is over-indexed for this audience.\",\n  \"category_titles_in_order\": [\n    \"Competitors & Races\", \"National Parks & Destinations\", \"Running & Fitness\", \"Outdoor Hobbies\",\n    \"Travel & Lodging\", \"Cars & Road Trip\", \"Gear & Retail\", \"Sports\", \"Food & Drink\", \"Family & Life Stage\",\n    \"Social & Media\", \"Politics & News\", \"Tech & Devices\", \"Movies, TV & Books\"\n  ],\n  \"geo_blurb\": \"The segment's search fingerprint by state, standardised. Positive means Vacation Races' events are searched more than the national rate; negative, less. This is the client's own footprint read from the corpus \u2014 not a lookalike.\",\n  \"geo_insight_title\": \"TBD \u2014 expected: THE MAP IS THE\\nDRIVE-TIME RADIUS OF THE PARKS\",\n  \"geo_insight\": \"TBD from geomap_states.json. Expected shape, to confirm or correct: Utah leads (St George headquarters, Zion and Bryce), with Nevada (Las Vegas is Zion's airport), Arizona, Colorado, Idaho, Wyoming and Montana behind it \u2014 the Intermountain West that can drive to a start line. California, Washington and Oregon follow for Yosemite and the western calendar. If Tennessee, North Carolina or Maine appear, the Smokies and Acadia races are pulling weight and the seed set is balanced; if they do not, the eastern races are under-represented in the seeds and the insight must say so.\\n\\nThe under-index is expected to be the large-population states without a park on the calendar and without a cheap flight to one: TBD.\\n\\nTwo implications to test against the real map: (1) the audience is regional to the parks and follows the calendar, so always-on spend should weight the park footprint and its drive-time radius, not population; (2) the largest under-indexed states are the fly-in destination-race prospects \u2014 the market list for a 'make it a vacation' campaign.\",\n  \"persona_section_blurb\": \"Roles, deliberately not collapsed. The collector comes back every year for the next park; the trip runner books once, for the group, and decides where everyone sleeps.\",\n  \"personas_outline\": [\n    {\"img\": \"collector.png\", \"kicker\": \"Persona 1 \u2014 the repeat participant\", \"name\": \"TBD name \u2014 THE COLLECTOR\", \"tag\": \"\\\"Seven parks down. Glacier's next.\\\"\",\n     \"compose_from\": [\"Competitors & Races: which other destination races (Revel, Mainly Marathons, rundisney, Big Sur, Missoula) sit above the band \u2014 the series-runner's substitutes\", \"National Parks: parks NOT yet on the calendar that over-index (Arches, Olympic, Sequoia, Crater Lake) \u2014 where she wants the next race\", \"Running & Fitness: Strava/Garmin/Coros, Hoka/Brooks/Altra, half-marathon training plans vs couch-to-5k\", \"Outdoor Hobbies: hiking/backpacking/photography/national-park-passport vs hunting/gardening/video games\", \"Travel: airlines and loyalty (Southwest vs Delta vs Alaska), America the Beautiful pass, KOA/Under Canvas vs Marriott/Hilton\"],\n     \"points\": [\"TBD \u2014 written strictly from the measured lines above; name entities and give values\"],\n     \"caveat\": \"Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed.\"},\n    {\"img\": \"planner.png\", \"kicker\": \"Persona 2 \u2014 the buyer of the trip\", \"name\": \"TBD name \u2014 THE TRIP PLANNER\", \"tag\": \"\\\"It's a girls' trip. The race is the excuse.\\\"\",\n     \"compose_from\": [\"Family & Life Stage: girls trip, couples getaway, bachelorette party, 40th/50th birthday ideas, bucket list vs pregnancy/daycare/pediatrician \u2014 the life stage, not a demographic\", \"Travel & Lodging: Airbnb/VRBO vs hotel chains, Expedia/Kayak/Google Flights, TSA PreCheck, Chase Sapphire \u2014 she books\", \"Cars & Road Trip: rental-car brands, Turo, hybrid SUVs vs pickups\", \"Food & Drink: brunch, wine tasting, charcuterie, Sweetgreen vs Waffle House/Cracker Barrel\", \"Social & Media: Instagram/Pinterest vs Facebook/TikTok; Travel + Leisure, Cond\u00e9 Nast Traveler, Afar, The Points Guy vs the running press\"],\n     \"points\": [\"TBD \u2014 written strictly from the measured lines above; name entities and give values\"],\n     \"caveat\": \"Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed.\"},\n    {\"img\": \"OPTIONAL\", \"kicker\": \"Persona 3 \u2014 only if the data splits it out\", \"name\": \"THE FIRST-TIMER\", \"tag\": \"\\\"I've never run 13.1. I'd do it in Yosemite.\\\"\",\n     \"compose_from\": [\"Running & Fitness: couch to 5k, first half marathon, run walk method, Jeff Galloway, walking for weight loss, Orangetheory/Peloton above the band while Strava/ultra/trail running are neutral\", \"Competitors: Turkey Trot, Color Run, Hot Chocolate Run, rundisney over Boston/Ironman/UTMB\"],\n     \"decision_rule\": \"Keep only if the on-ramp entities (couch to 5k, first half marathon, run walk method) over-index AND the hard-core endurance entities (ultra marathon, UTMB, Western States) sit at or below the band. If both sets over-index together, fold into Persona 1; if neither moves, drop.\",\n     \"caveat\": \"Composed strictly from measured correlations. Age, income, gender and household were not scored in this pass and are not claimed.\"}\n  ],\n  \"path_section_blurb\": \"What the data says to do \u2014 and, as importantly, what it says not to do.\",\n  \"strategy_pages_outline\": [\n    {\"kicker\": \"Strategic implications\", \"title\": \"VALUE PROPOSITION\\n& BRAND VOICE\", \"dark\": false,\n     \"lead\": \"TBD. Expected thesis to test: the corpus reads a trip-planning and place-collecting identity sitting on top of a moderate running habit \u2014 the park is the product, the distance is the permission slip. Confirm against the Parks vs Running charts before writing.\",\n     \"card_titles\": [\"The park is the product\", \"Cupless, slow, scenic \u2014 own the pace\", \"Speak to the planner, not the PR-chaser\", \"Regional to the parks, national to the fly-in\"]},\n    {\"kicker\": \"Strategic implications\", \"title\": \"CREATIVE\\nHOOKS\", \"dark\": true,\n     \"lead\": \"Each hook must be tied to a measured line in this deck, not to a hunch. Placeholder hooks below; keep only the ones the entities support.\",\n     \"card_titles\": [\"1 \u00b7 The next park (series/collector mechanic)\", \"2 \u00b7 The group trip (girls' trip, couples, milestone birthdays)\", \"3 \u00b7 Camp or lodge, not the chain hotel \u2014 OR the reverse, if Marriott/Hyatt over-index as they did for Ragnar\", \"4 \u00b7 The photograph (landscape photography, GoPro, astrophotography if they move)\", \"5 \u00b7 First 13.1 in a national park (only if Persona 3 survives)\"]},\n    {\"kicker\": \"Strategic implications\", \"title\": \"CHANNEL\\nGUIDANCE\", \"dark\": false,\n     \"lead\": \"TBD from Social & Media, Politics, Tech and Travel charts. Expected: travel-endemic and outdoor press over generic running inventory; airline/OTA co-marketing; Pinterest/Instagram over TikTok/Snapchat. Political inventory: expect a null and say so.\",\n     \"card_titles\": [\"Travel-endemic and outdoor press\", \"Airline, rental-car and lodging partners in the gateway markets\", \"Search intent around the trip (flights to Las Vegas, Zion lodging, Yosemite permits)\", \"What not to buy\"]},\n    {\"kicker\": \"Strategic implications\", \"title\": \"CAMPAIGN\\nSTRUCTURE\", \"dark\": false,\n     \"lead\": \"TBD. Expected pillars: retain the collector (next-park sequencing), prospect the planner (trip-intent and life-stage signals, geo-weighted to the footprint), fly-in destination markets (the under-indexed large states), and a brand layer that owns 'run the parks'.\",\n     \"card_titles\": [\"1 \u00b7 Retain the collector\", \"2 \u00b7 Prospect the planner\", \"3 \u00b7 Race-specific capacity by state footprint\", \"4 \u00b7 Own 'run the national parks'\"]}\n  ],\n  \"appendix_reading\": [\n    \"Vertical axis: Heimdall h \u2014 the correlation between the entity's geographic search fingerprint and the Vacation Races destination-runner segment column. Above the grey band = over-indexed for this audience.\",\n    \"Horizontal axis: political spectrum \u2014 the entity's correlation with a Republican audience column minus a Democratic one. The centre band is neutral.\",\n    \"Bubble size: US monthly search volume for the entity (log scale).\",\n    \"Amber points are the five strongest entities in the category; dark grey the three weakest. Labels are the search phrase as it exists in the corpus.\",\n    \"Entities missing from the corpus were substituted with their nearest real search phrase or dropped; every substitution is listed in the working file.\"\n  ],\n  \"appendix_provenance\": [\n    \"Heimdall Matrix cycle TBD: TBD rows \u00d7 TBD anchor + TBD audience columns; segment audience:saved:vacation-races-core.\",\n    \"Seeds and volumes: Google Ads national monthly averages via master_keyword; sense probe: POST /api/term_collisions (TBD embedded anchors).\",\n    \"Geography: per-state z-score of the mean fingerprint of the core race seeds.\",\n    \"Category charts: TBD named entities scored with POST /api/batch_score against the segment, a Democratic and a Republican column; working data docs/vacation_races_deck/deck_data.json.\",\n    \"Prior art: Ragnar Races Data Science Insights (Genomic Digital, Sept 2026) for the disambiguation method; TAB Bank Data Science Insights (Fluid, 2022) for the deliverable form.\",\n    \"Photography: generated illustrations, not race or park imagery; replace with client assets before external use.\"\n  ],\n  \"closing\": \"Questions, the working data, and a live read of any new audience: ben@genomicdigital.com\"\n}\n"}], "grading": {"expectations": [{"text": "client_config.json parses and has 12-14 categories with >=30 named entities each", "passed": true, "evidence": "14 categories, sizes [51, 52, 49, 40, 50, 42, 45, 46, 43, 40, 43, 45, 44, 40]"}, {"text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)", "passed": true, "evidence": "seed text sample: {\"client\": \"Vacation Races\", \"segment\": [\"audience:saved:vacation-races-core\"], \"segment_label\": \"the national-park destination runner\", \"left\": [\"audience:save"}, {"text": "client_config includes geo seeds for the geography chart", "passed": true, "evidence": "keys: ['client', 'segment', 'segment_label', 'left', 'right', '_planning_notes', 'seed_definition', 'geo_seeds', '_geo_expectation', 'categories', '_substitutes_note', 'substitutes']"}, {"text": "content_static.json parses and has both strengths and limitations", "passed": true, "evidence": "keys: ['_status', 'title', 'subtitle', 'prepared', 'filename', 'objective', 'agenda', 'method_steps', 'corpus_blurb', 'corpus_stats', 'senses_blurb', 'senses', 'senses_note', 'disamb_blurb']"}, {"text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)", "passed": true, "evidence": "drop=23 merge=13"}, {"text": "CHART_AUDIT.md includes a political-axis sanity check", "passed": true, "evidence": "political mentions=3"}, {"text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole", "passed": true, "evidence": "lift mentions=3, band mentions=6"}], "summary": {"passed": 7, "failed": 0, "total": 7, "pass_rate": 1.0}}}, {"id": "eval-0-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CHART_AUDIT.md", "type": "text", "content": "# CHART_AUDIT.md \u2014 Vacation Races (Heimdall correlation deck)\n\nStatus: PRE-ENGINE TEMPLATE. Every \"Observed\" field is empty by design. Fill after the scoring pass; do not edit the \"Expected\" or \"Drop/Merge rule\" fields after the fact without noting the change.\n\n## Global gates (apply to every category before the per-category rules)\n\n| Gate | Threshold | Action if failed |\n|---|---|---|\n| Entities resolved in corpus | >= 20 of the named list | Drop category, or merge into nearest sibling if >= 12 resolve |\n| Median |r| across resolved entities | >= 0.05 | Drop as \"flat\" unless the flatness itself is the story (note it) |\n| Spread (top-5 mean r minus bottom-5 mean r) | >= 0.10 | Merge with sibling; a chart with no spread teaches nothing |\n| Entities with volume below floor | <= 25% of resolved | Grey them out on the chart; exclude from ranking text |\n| Sense contamination | 0 entities whose top co-terms are from a declared negative sense | Re-run with stronger negative seeds before charting |\n| Sign sanity | Seed-adjacent entities (Zion NP, Garmin, Hoka) must be positive | If negative, the pole is inverted or collapsed; stop and fix the segment |\n\nChart form for every category: horizontal bar, entities sorted by r, positive right / negative left, volume as bar opacity, baseline zero line, top 15 and bottom 5 shown, remainder in appendix table.\n\n---\n\n## 1. running_footwear_apparel \u2014 Running Shoe & Apparel Brands\n\nExpected: Hoka, Altra, Salomon, Brooks, La Sportiva, Topo at the top. Nike/Adidas near zero (everyone searches them). Lululemon, Gymshark, Under Armour slightly negative. Sock brands (Darn Tough, Injinji, Balega) positive and a good \"niche proof\" talking point.\nStory if it lands: \"This audience shops trail-first brands; the fashion-athleisure money is wasted on them.\"\nDrop if: spread < 0.10 or Nike/Adidas top the chart (means the pole collapsed into generic running).\nMerge with: outdoor_retail, if both are thin; combined title \"Where They Shop and What They Wear.\"\nObserved: ___ resolved / median r ___ / spread ___ / verdict ___\n\n## 2. outdoor_retail \u2014 Outdoor & Sporting Goods Retailers\n\nExpected: REI, Backcountry, Fleet Feet, Running Warehouse, Public Lands strongly positive. Walmart, Target, Amazon near zero or negative. Regional shops (Salt Lake Running Co, Boulder Running Co, Scheels) positive but low volume; grey-out likely.\nStory if it lands: \"REI co-op partnership is the single highest-leverage retail relationship.\"\nDrop if: only national chains resolve and they all cluster near zero.\nMerge with: running_footwear_apparel.\nObserved: ___\n\n## 3. national_parks_public_lands \u2014 National Parks & Public Lands\n\nExpected: Very strong positives across the board because park names are in the seeds; this is partly circular. The useful signal is the RANK ORDER of parks with no Vacation Races event (Arches, Canyonlands, Olympic, Rainier, Acadia, Joshua Tree, Big Bend). Iceland sites (Thingvellir, Vatnajokull) positive but low volume.\nStory if it lands: \"Expansion list: parks this audience already searches where you have no race.\"\nDrop if: never; but if circularity dominates (every park > 0.3 with no rank separation), re-score with event-name seeds removed from the pole and chart that version instead. Note the re-score in this file.\nMerge with: adventure_activities if the activities chart is thin.\nObserved: ___\n\n## 4. race_series_competitors \u2014 Race Series & Competing Events\n\nExpected: Revel, Rock 'n' Roll, runDisney, St. George Marathon, Big Sur, Ragnar positive (same buyer). Boston/Chicago/NYC positive but weaker (aspirational). Spartan/Tough Mudder near zero or negative. Ironman near zero. Ultras (Western States, Leadville, UTMB) mildly positive; if strongly positive, the segment drifted toward ultrarunners and the persona page must say so.\nStory if it lands: \"Your real competitive set is Revel and runDisney, not Ironman.\"\nDrop if: fewer than 20 events resolve (many are regional and low-volume). Likely the thinnest category by volume.\nMerge with: none; if thin, keep as a 10-entity mini-chart inside the competitive-set strategy page rather than a standalone.\nObserved: ___\n\n## 5. travel_booking_platforms \u2014 Travel Booking & Trip-Planning Platforms\n\nExpected: Airbnb, VRBO, Recreation.gov, Hipcamp, AllTrails, Roadtrippers, Outdoorsy, Escape Campervans positive. Expedia, Priceline, Trivago near zero. Cruise-adjacent and Costco Travel negative or zero (negative-sense check on \"vacation\").\nStory if it lands: \"They book direct and stay in rentals; OTA display is the wrong channel, Airbnb/VRBO co-marketing is the right one.\"\nDrop if: everything clusters near zero (booking platforms are searched by everyone; low spread is a real risk).\nMerge with: lodging_hospitality into \"How They Book and Where They Stay.\"\nObserved: ___\n\n## 6. airlines_ground_transport \u2014 Airlines & Ground Transportation\n\nExpected: Southwest, Delta, Alaska, Icelandair positive; Spirit/Frontier near zero or negative; rental cars uniformly positive; SLC/LAS/JAC/BZN/FCA airports positive. TSA PreCheck / Global Entry / Clear positive (frequent-traveler signal).\nStory if it lands: \"Icelandair and Southwest are the two airline partnership conversations worth having.\"\nDrop if: airline spread < 0.10 (airlines are broadly searched). Airports and rental cars will likely carry the chart.\nMerge with: travel_booking_platforms if airlines are flat; keep airports + rental cars as the surviving sub-chart.\nObserved: ___\n\n## 7. lodging_hospitality \u2014 Lodging, Camping & Hospitality Brands\n\nExpected: Gateway properties (Zion Lodge, Cable Mountain, Tenaya, Jackson Lake Lodge, Under Canvas, KOA, Ruby's Inn) strongly positive but low volume. Mid-scale chains (Hampton, Holiday Inn Express, Best Western, La Quinta) positive. Luxury (Four Seasons class; none named, Ahwahnee proxies it) mixed. Motel 6 / Super 8 near zero.\nStory if it lands: \"Race-weekend room blocks belong at Hampton/Best Western tier plus glamping, not luxury.\"\nDrop if: gateway properties fail volume floor AND chains are flat. Likely partial: keep chains + Under Canvas/KOA, appendix the rest.\nMerge with: travel_booking_platforms.\nObserved: ___\n\n## 8. fitness_tech_wearables \u2014 Fitness Tech, Wearables & Training Apps\n\nExpected: Garmin, Strava, COROS, Suunto, TrainingPeaks, Runna, Gaia GPS, onX, Garmin inReach, Shokz strongly positive. Peloton, Zwift, Noom, Calm negative or zero. Apple Watch near zero (too broad). GoPro/Insta360 positive.\nStory if it lands: \"Garmin + Strava are the audience's operating system; a Strava club challenge is a near-free acquisition channel.\"\nDrop if: never expected to fail; this should be the cleanest chart in the deck. If it is flat, the pole is broken.\nMerge with: none.\nObserved: ___\n\n## 9. nutrition_hydration \u2014 Sports Nutrition & Hydration\n\nExpected: GU, Maurten, Tailwind, Skratch, Nuun, LMNT, Honey Stinger, Spring Energy, Precision positive. Gatorade near zero. Premier/Quest/Orgain near zero or negative. Hydration vests (Nathan, Salomon, CamelBak, Osprey) positive. Stanley Cup near zero (mass fad).\nStory if it lands: \"Course nutrition sponsor shortlist: Tailwind, Honey Stinger, Skratch, LMNT.\"\nDrop if: gel/electrolyte brands fail volume floor (niche brands are low-volume). If only Gatorade/Liquid IV/Celsius resolve, drop.\nMerge with: running_footwear_apparel as a \"Gear and Fuel\" page.\nObserved: ___\n\n## 10. adventure_activities \u2014 Adjacent Outdoor Activities & Trip Add-Ons\n\nExpected: Hiking, Angels Landing, The Narrows, Half Dome Permit, canyoneering, hot springs, stargazing, dark sky, backpacking, glamping, Utah Mighty 5, Ring Road, Northern Lights positive. Golf, spa, wine tasting near zero or negative. Skiing mixed by season.\nStory if it lands: \"Sell the trip, not the race: the add-on itinerary is the conversion lever.\"\nDrop if: generic words (hiking, camping, road trip) dominate with no spread among specifics; then re-score using only the named specifics (Angels Landing, Half Dome, Blue Lagoon) and chart those.\nMerge with: national_parks_public_lands.\nObserved: ___\n\n## 11. media_content_community \u2014 Running & Outdoor Media, Podcasts, Creators\n\nExpected: Runner's World, iRunFar, Trail Runner Mag, Outside, Believe in the Run, Ginger Runner, Courtney Dauwalter, Sally McRae, Dirtbag Diaries, Bearfoot Theory, Dirt in My Shoes, Earth Trekkers, r/nationalparks positive. Huberman, Rich Roll mildly positive. Yes Theory / Kara and Nate mixed. Sports-talk (none named) absent by design.\nStory if it lands: \"Media plan: podcast reads on SWAP / Nobody Asked Us, creator partnerships with park-itinerary bloggers.\"\nDrop if: individual creators and podcasts fail volume floor en masse. Likely partial: publications and Reddit survive, individual creators go to appendix.\nMerge with: none; if thin, fold surviving entities into the creative-direction strategy page.\nObserved: ___\n\n## 12. causes_charities \u2014 Causes, Charities & Conservation\n\nExpected: National Park Foundation, NPCA, Leave No Trace, park-specific conservancies (Yosemite Conservancy, Yellowstone Forever, Zion Forever), Protect Our Winters, Access Fund, Trail Sisters, Girls on the Run positive. Susan G. Komen, Relay for Life, Wounded Warrior near zero. Team in Training / St. Jude Heroes mildly positive.\nStory if it lands: \"Cause-marketing partner should be a park conservancy, not a disease charity.\"\nDrop if: park conservancies fail volume floor and only the big-name charities resolve at zero. Plausible failure; conservancies are small.\nMerge with: national_parks_public_lands (conservancies map 1:1 to parks).\nObserved: ___\n\n## 13. vehicles_gear_haul \u2014 Vehicles, Roof Boxes & Road-Trip Gear\n\nExpected: Subaru Outback/Forester/Crosstrek, 4Runner, Tacoma, Rivian, Bronco, Sprinter, Thule, Yakima, Roofnest, iKamper, Yeti Cooler, Goal Zero, Dometic strongly positive. Tesla Model Y, Telluride, Palisade near zero. F-150, Costco Tires, Discount Tire near zero. Airstream/Winnebago mildly positive.\nStory if it lands: \"Subaru and Rivian are viable title-sponsor conversations; Thule/Yakima are viable expo sponsors.\"\nDrop if: vehicle models resolve but rooftop/camping gear does not; then trim to a vehicles-only chart. If Subaru is NOT positive, question the pole before publishing anything.\nMerge with: none.\nObserved: ___\n\n## 14. life_stage_household \u2014 Life-Stage & Household Signals\n\nExpected: Empty nest, college tours, high school graduation, anniversary trip, girls trip, multigenerational trip, Chase Sapphire, Amex Platinum, Southwest Companion Pass, REI Mastercard, Costco Membership, dog friendly trails, Rover positive. Baby registry, daycare, babymoon, bachelor party negative or zero. Mortgage/refinance near zero.\nStory if it lands: \"Household is 35-55, no infants, travels as a couple or friend group, premium travel card in wallet.\"\nDrop if: spread < 0.10; life-stage phrases are broadly searched and this is the most likely category to be flat. If flat, drop the chart but keep the persona language as qualitative.\nMerge with: none; this is persona support, not a standalone insight if weak.\nObserved: ___\n\n---\n\n## Geo pass (not a category, but audited the same way)\n\nExpected: UT, CO, ID, WY, MT top the per-capita state list; CA, WA, OR, AZ, NV, TX, MN next. DMA level: Salt Lake City, Denver, Boise, Boulder (in Denver DMA), Bozeman, Missoula, Las Vegas, Phoenix, Seattle, Portland, Minneapolis. Deep South and Northeast lower except Boston and DC.\nDrop if: raw volume, not per-capita, is what came back; re-normalize before charting.\nWatch for: Iceland or any non-U.S. geo appearing as a source; suppress.\nObserved: ___\n\n## Expected final shape\n\nPlanned 14 categories. Expected to publish 10-11 standalone charts: predicted drops or merges are race_series (thin volume), life_stage (flat), causes (merge into parks), airlines (merge into travel). If more than 4 categories fail, the pole is under-specified; revisit seeds before rebuilding charts.\n\n## Change log\n\n| Date | Change | Reason |\n|---|---|---|\n| 2026-09-05 | Template created, pre-engine | Planning pass |\n"}, {"name": "client_config.json", "type": "text", "content": "{\n  \"client\": {\n    \"name\": \"Vacation Races\",\n    \"agency\": \"Genomic Digital\",\n    \"platform\": \"Heimdall\",\n    \"deck_slug\": \"vacation-races-audience-correlation-2026-09\",\n    \"business\": \"Destination half marathons and trail events staged at the gateways of U.S. national parks (Zion, Bryce Canyon, Grand Canyon, Grand Teton, Yellowstone, Glacier, Rocky Mountain, Great Smoky Mountains, Shenandoah, Yosemite, Lake Powell) plus an international Iceland event. Revenue = race registrations, merchandise, lodging/travel partner referrals, multi-race series bundles.\",\n    \"decision_the_deck_supports\": \"Where to spend acquisition dollars in the 2027 registration cycle: which adjacent interest clusters the runner-traveler audience over-indexes on, which source metros to prioritize, and which partner/sponsor categories are worth pursuing.\",\n    \"primary_kpi\": \"Cost per registration, by event and by source metro.\",\n    \"flagship_events_named_by_client\": [\"Zion Half Marathon\", \"Yosemite Half Marathon\", \"Grand Teton Half Marathon\", \"Iceland Half Marathon\"]\n  },\n\n  \"segment\": {\n    \"label\": \"Destination-race runner-travelers\",\n    \"definition\": \"People who plan a trip around a running event, especially a half marathon held at or near a national park. Combines two behaviors that rarely co-occur in a generic runner segment: bucket-list travel planning and race-day preparation.\",\n    \"positive_seeds\": [\n      \"destination half marathon\",\n      \"national park half marathon\",\n      \"zion half marathon\",\n      \"yosemite half marathon\",\n      \"grand teton half marathon\",\n      \"iceland half marathon\",\n      \"bryce canyon half marathon\",\n      \"grand canyon half marathon\",\n      \"yellowstone half marathon\",\n      \"glacier half marathon\",\n      \"rocky mountain half marathon\",\n      \"great smoky mountains half marathon\",\n      \"shenandoah half marathon\",\n      \"lake powell half marathon\",\n      \"vacation races\",\n      \"runcation\",\n      \"bucket list half marathon\",\n      \"scenic half marathon\",\n      \"trail half marathon\",\n      \"race weekend national park\",\n      \"half marathon travel\",\n      \"best destination races\",\n      \"run a half marathon in every state\",\n      \"half marathon training plan 12 weeks\",\n      \"hiking after half marathon\",\n      \"altitude half marathon training\"\n    ],\n    \"seed_weights_note\": \"Weight the event-name seeds (zion/yosemite/grand teton/iceland) 1.5x. Weight 'runcation' and 'destination half marathon' 1.5x. Keep generic 'half marathon training plan' at 0.75x so the pole does not collapse into a plain local-runner segment.\",\n\n    \"negative_senses\": [\n      {\"term\": \"vacation\", \"wrong_sense\": \"generic beach/cruise/all-inclusive travel with no running intent\", \"negative_seeds\": [\"all inclusive resort\", \"cruise deals\", \"beach vacation packages\", \"disney vacation\", \"vacation rental by owner\"]},\n      {\"term\": \"race\", \"wrong_sense\": \"motorsport, horse racing, ethnicity/demographics\", \"negative_seeds\": [\"nascar race\", \"f1 race\", \"horse race odds\", \"kentucky derby\", \"race and ethnicity\", \"drag race\"]},\n      {\"term\": \"marathon\", \"wrong_sense\": \"TV/streaming marathon, Marathon Oil/Petroleum, Marathon gas station\", \"negative_seeds\": [\"tv marathon\", \"movie marathon\", \"marathon petroleum\", \"marathon oil stock\", \"marathon gas station near me\"]},\n      {\"term\": \"zion\", \"wrong_sense\": \"Zion Williamson, Zion Illinois, Zionism, church names, Zion (Matrix)\", \"negative_seeds\": [\"zion williamson\", \"zion illinois\", \"zionism\", \"mount zion church\", \"zion lutheran\"]},\n      {\"term\": \"yosemite\", \"wrong_sense\": \"Yosemite Sam, macOS Yosemite\", \"negative_seeds\": [\"yosemite sam\", \"mac os yosemite\", \"os x yosemite download\"]},\n      {\"term\": \"teton\", \"wrong_sense\": \"Teton County government/real estate/ski\", \"negative_seeds\": [\"teton county assessor\", \"teton village real estate\", \"teton county jail\", \"jackson hole ski pass\"]},\n      {\"term\": \"iceland\", \"wrong_sense\": \"Iceland Foods (UK grocer), volcano news, Iceland national football\", \"negative_seeds\": [\"iceland foods\", \"iceland supermarket\", \"iceland volcano eruption today\", \"iceland football team\"]},\n      {\"term\": \"glacier\", \"wrong_sense\": \"climate/glacier melt news, Glacier Bay cruise\", \"negative_seeds\": [\"glacier melting climate change\", \"glacier bay cruise\", \"glacier water bottle\"]},\n      {\"term\": \"half\", \"wrong_sense\": \"half-and-half, half price, half time\", \"negative_seeds\": [\"half price books\", \"half and half\", \"halftime show\"]},\n      {\"term\": \"trail\", \"wrong_sense\": \"Oregon Trail game, paper trail, trail mix, trailer\", \"negative_seeds\": [\"oregon trail game\", \"trail mix recipe\", \"trailer hitch\"]},\n      {\"term\": \"rocky\", \"wrong_sense\": \"Rocky films, Rocky Mountain Chocolate, Rocky boots\", \"negative_seeds\": [\"rocky balboa\", \"rocky movie\", \"rocky mountain chocolate factory\"]},\n      {\"term\": \"smoky\", \"wrong_sense\": \"Smokey Bear, smoky eye makeup, Dollywood-only tourism\", \"negative_seeds\": [\"smokey bear\", \"smoky eye tutorial\", \"dollywood tickets\"]}\n    ],\n\n    \"declared_out_of_scope\": [\n      \"Ultra / 50k+ trail ultrarunning as a primary identity (overlaps but is a different buyer; keep as a comparison persona only)\",\n      \"Local 5k charity fun-run participants who do not travel\",\n      \"Triathlon and cycling event travelers (Ironman) unless the correlation data pulls them in strongly\"\n    ]\n  },\n\n  \"geo\": {\n    \"host_geos\": [\n      {\"name\": \"Springdale, UT\", \"event\": \"Zion Half\", \"dma\": \"Salt Lake City\"},\n      {\"name\": \"St. George, UT\", \"event\": \"Zion Half (lodging overflow)\", \"dma\": \"Salt Lake City\"},\n      {\"name\": \"Bass Lake / Oakhurst, CA\", \"event\": \"Yosemite Half\", \"dma\": \"Fresno-Visalia\"},\n      {\"name\": \"Jackson, WY\", \"event\": \"Grand Teton Half\", \"dma\": \"Idaho Falls-Pocatello\"},\n      {\"name\": \"Reykjavik, Iceland\", \"event\": \"Iceland Half\", \"dma\": null},\n      {\"name\": \"Bryce Canyon City, UT\", \"event\": \"Bryce Canyon Half\", \"dma\": \"Salt Lake City\"},\n      {\"name\": \"Tusayan, AZ\", \"event\": \"Grand Canyon Half\", \"dma\": \"Phoenix\"},\n      {\"name\": \"West Yellowstone, MT\", \"event\": \"Yellowstone Half\", \"dma\": \"Idaho Falls-Pocatello\"},\n      {\"name\": \"Whitefish, MT\", \"event\": \"Glacier Half\", \"dma\": \"Missoula\"},\n      {\"name\": \"Estes Park, CO\", \"event\": \"Rocky Mountain Half\", \"dma\": \"Denver\"},\n      {\"name\": \"Townsend, TN\", \"event\": \"Great Smoky Mountains Half\", \"dma\": \"Knoxville\"},\n      {\"name\": \"Luray, VA\", \"event\": \"Shenandoah Half\", \"dma\": \"Harrisonburg\"},\n      {\"name\": \"Page, AZ\", \"event\": \"Lake Powell Half\", \"dma\": \"Phoenix\"}\n    ],\n    \"source_market_seeds\": [\n      \"Salt Lake City\", \"Provo-Orem\", \"Las Vegas\", \"Phoenix\", \"Denver\", \"Los Angeles\", \"San Diego\",\n      \"San Francisco-Oakland-San Jose\", \"Sacramento\", \"Fresno\", \"Seattle-Tacoma\", \"Portland OR\",\n      \"Boise\", \"Idaho Falls\", \"Boulder\", \"Colorado Springs\", \"Albuquerque\", \"Dallas-Fort Worth\",\n      \"Austin\", \"Houston\", \"Chicago\", \"Minneapolis-St. Paul\", \"Atlanta\", \"Nashville\", \"Knoxville\",\n      \"Charlotte\", \"Raleigh-Durham\", \"Washington DC\", \"Boston\", \"New York\", \"Philadelphia\"\n    ],\n    \"geo_resolution_requested\": [\"state\", \"dma\"],\n    \"geo_note\": \"Expect UT, CO, ID, WY, MT, AZ, NV to over-index on the event-name seeds because of proximity. Normalize by state population so the deck shows propensity, not raw volume. Iceland volume will be almost entirely U.S.-origin; do not present Iceland as a source geo.\"\n  },\n\n  \"correlation_categories\": [\n    {\n      \"id\": \"running_footwear_apparel\",\n      \"title\": \"Running Shoe & Apparel Brands\",\n      \"hypothesis\": \"Trail-capable brands (Hoka, Altra, Salomon, Brooks) over-index; fashion-athleisure (Lululemon, Gymshark) indexes lower than for a generic runner segment.\",\n      \"entities\": [\"Hoka\", \"Brooks Running\", \"Altra\", \"Salomon\", \"Saucony\", \"Asics\", \"New Balance\", \"Nike Running\", \"Adidas Running\", \"On Running\", \"Mizuno\", \"Topo Athletic\", \"La Sportiva\", \"Merrell\", \"Inov-8\", \"Under Armour\", \"Lululemon\", \"Gymshark\", \"Tracksmith\", \"Janji\", \"Rabbit\", \"Patagonia\", \"Arc'teryx\", \"The North Face\", \"Smartwool\", \"Darn Tough\", \"Balega\", \"Feetures\", \"Injinji\", \"Oiselle\", \"Ciele\", \"Goodr\", \"Oakley\", \"Buff\", \"Outdoor Research\"],\n      \"substitutes\": {\"Hoka\": [\"hoka one one\", \"hoka shoes\"], \"On Running\": [\"on cloud shoes\", \"on cloudmonster\"], \"Rabbit\": [\"rabbit running apparel\"], \"Buff\": [\"buff headwear\"], \"Goodr\": [\"goodr sunglasses\"]}\n    },\n    {\n      \"id\": \"outdoor_retail\",\n      \"title\": \"Outdoor & Sporting Goods Retailers\",\n      \"hypothesis\": \"REI and Backcountry over-index strongly; big-box (Dick's, Academy) near baseline; specialty run shops appear as a long tail.\",\n      \"entities\": [\"REI\", \"Backcountry\", \"Moosejaw\", \"Dick's Sporting Goods\", \"Academy Sports\", \"Scheels\", \"Sportsman's Warehouse\", \"Cabela's\", \"Bass Pro Shops\", \"Public Lands\", \"Sierra\", \"Fleet Feet\", \"Road Runner Sports\", \"Running Warehouse\", \"JackRabbit\", \"Zappos\", \"Amazon\", \"Costco\", \"Target\", \"Walmart\", \"Big 5 Sporting Goods\", \"Eastern Mountain Sports\", \"Evo\", \"Steep and Cheap\", \"Left Lane Sports\", \"Holabird Sports\", \"Marathon Sports\", \"Salt Lake Running Company\", \"Boulder Running Company\", \"Runners Roost\", \"Kittery Trading Post\", \"Sun & Ski Sports\", \"Christy Sports\"],\n      \"substitutes\": {\"REI\": [\"rei co-op\", \"rei near me\"], \"Sierra\": [\"sierra trading post\"], \"Evo\": [\"evo ski shop\"], \"Public Lands\": [\"public lands store\"]}\n    },\n    {\n      \"id\": \"national_parks_public_lands\",\n      \"title\": \"National Parks & Public Lands\",\n      \"hypothesis\": \"The Big Five Utah parks and Yosemite dominate; Eastern parks (Acadia, Shenandoah) and lesser-known parks (Great Basin, Capitol Reef) reveal expansion candidates for new events.\",\n      \"entities\": [\"Zion National Park\", \"Bryce Canyon National Park\", \"Arches National Park\", \"Canyonlands National Park\", \"Capitol Reef National Park\", \"Grand Canyon National Park\", \"Yosemite National Park\", \"Grand Teton National Park\", \"Yellowstone National Park\", \"Glacier National Park\", \"Rocky Mountain National Park\", \"Great Smoky Mountains National Park\", \"Shenandoah National Park\", \"Acadia National Park\", \"Olympic National Park\", \"Mount Rainier National Park\", \"Crater Lake National Park\", \"Sequoia National Park\", \"Kings Canyon National Park\", \"Joshua Tree National Park\", \"Death Valley National Park\", \"Great Basin National Park\", \"Big Bend National Park\", \"Badlands National Park\", \"Wind Cave National Park\", \"Denali National Park\", \"Haleakala National Park\", \"Everglades National Park\", \"Antelope Canyon\", \"Horseshoe Bend\", \"Monument Valley\", \"Moab\", \"Lake Powell\", \"Glen Canyon\", \"Thingvellir National Park\", \"Vatnajokull\"],\n      \"substitutes\": {\"Thingvellir National Park\": [\"thingvellir\", \"golden circle iceland\"], \"Vatnajokull\": [\"vatnajokull glacier\"], \"Glen Canyon\": [\"glen canyon national recreation area\"]}\n    },\n    {\n      \"id\": \"race_series_competitors\",\n      \"title\": \"Race Series & Competing Events\",\n      \"hypothesis\": \"Rock 'n' Roll, runDisney, and Revel over-index (same buyer); Ironman/Spartan appear but weaker; the Abbott World Marathon Majors show as aspirational rather than substitutional.\",\n      \"entities\": [\"Rock 'n' Roll Running Series\", \"runDisney\", \"Revel Race Series\", \"Spartan Race\", \"Tough Mudder\", \"Ironman\", \"Ragnar Relay\", \"Hood to Coast\", \"Big Sur International Marathon\", \"Boston Marathon\", \"Chicago Marathon\", \"New York City Marathon\", \"Marine Corps Marathon\", \"Honolulu Marathon\", \"St. George Marathon\", \"Salt Lake City Marathon\", \"Colfax Marathon\", \"Bolder Boulder\", \"Pikes Peak Ascent\", \"Leadville Trail 100\", \"Western States 100\", \"UTMB\", \"Mesa Marathon\", \"Napa Valley Marathon\", \"Missoula Marathon\", \"Jackson Hole Marathon\", \"Bryce Canyon Ultras\", \"Antelope Canyon Ultra\", \"Grand Circle Trailfest\", \"Reykjavik Marathon\", \"Great Wall Marathon\", \"Big Five Marathon\", \"Athens Marathon\", \"Disney Princess Half Marathon\", \"Wine & Dine Half Marathon\", \"Surf City Marathon\", \"Las Vegas Rock n Roll\"],\n      \"substitutes\": {\"Rock 'n' Roll Running Series\": [\"rock n roll marathon\", \"rock n roll half marathon\"], \"runDisney\": [\"disney marathon\", \"run disney\"], \"Revel Race Series\": [\"revel big cottonwood\", \"revel race\"], \"UTMB\": [\"ultra trail du mont blanc\"]}\n    },\n    {\n      \"id\": \"travel_booking_platforms\",\n      \"title\": \"Travel Booking & Trip-Planning Platforms\",\n      \"hypothesis\": \"Airbnb, VRBO, and Recreation.gov over-index (group lodging + campground/permit booking); Expedia/Priceline near baseline; AllTrails and Roadtrippers over-index as planning tools.\",\n      \"entities\": [\"Airbnb\", \"VRBO\", \"Booking.com\", \"Expedia\", \"Hotels.com\", \"Kayak\", \"Priceline\", \"Hopper\", \"Google Flights\", \"Skyscanner\", \"Recreation.gov\", \"Hipcamp\", \"The Dyrt\", \"Campendium\", \"AllTrails\", \"Roadtrippers\", \"TripAdvisor\", \"Travelocity\", \"Orbitz\", \"Trivago\", \"Turo\", \"Outdoorsy\", \"RVshare\", \"Cruise America\", \"Escape Campervans\", \"Getaround\", \"Costco Travel\", \"Southwest Vacations\", \"Icelandair Stopover\", \"Guide to Iceland\", \"Viator\", \"GetYourGuide\", \"Rome2rio\", \"Wanderlog\", \"TripIt\"],\n      \"substitutes\": {\"VRBO\": [\"vrbo rentals\", \"vrbo near zion\"], \"Hipcamp\": [\"hipcamp near me\"], \"Escape Campervans\": [\"escape campervan rental\"]}\n    },\n    {\n      \"id\": \"airlines_ground_transport\",\n      \"title\": \"Airlines & Ground Transportation\",\n      \"hypothesis\": \"Southwest, Delta (SLC hub), Alaska, and Icelandair over-index; rental car brands index high because every event is a drive-in event.\",\n      \"entities\": [\"Southwest Airlines\", \"Delta Air Lines\", \"United Airlines\", \"American Airlines\", \"Alaska Airlines\", \"JetBlue\", \"Frontier Airlines\", \"Spirit Airlines\", \"Allegiant Air\", \"Sun Country Airlines\", \"Icelandair\", \"PLAY Airlines\", \"Hawaiian Airlines\", \"Breeze Airways\", \"Hertz\", \"Enterprise Rent-A-Car\", \"Avis\", \"Budget Rent a Car\", \"National Car Rental\", \"Alamo\", \"Sixt\", \"Amtrak\", \"Greyhound\", \"Salt Lake City Airport\", \"Las Vegas Airport\", \"Jackson Hole Airport\", \"Bozeman Airport\", \"Fresno Airport\", \"Kalispell Airport\", \"Denver International Airport\", \"Keflavik Airport\", \"TSA PreCheck\", \"Global Entry\", \"Clear\"],\n      \"substitutes\": {\"Salt Lake City Airport\": [\"slc airport\"], \"Las Vegas Airport\": [\"harry reid airport\", \"las vegas airport parking\"], \"Keflavik Airport\": [\"kef airport\"], \"Clear\": [\"clear airport security\"]}\n    },\n    {\n      \"id\": \"lodging_hospitality\",\n      \"title\": \"Lodging, Camping & Hospitality Brands\",\n      \"hypothesis\": \"Park-gateway lodging (Zion Lodge, Under Canvas, KOA) over-indexes; luxury chains under-index; mid-scale (Hampton, Holiday Inn Express, Best Western) over-index for race-weekend stays.\",\n      \"entities\": [\"Marriott\", \"Hilton\", \"Hyatt\", \"IHG\", \"Best Western\", \"Hampton Inn\", \"Holiday Inn Express\", \"La Quinta\", \"Fairfield Inn\", \"SpringHill Suites\", \"Courtyard by Marriott\", \"Home2 Suites\", \"Wyndham\", \"Choice Hotels\", \"Comfort Inn\", \"Super 8\", \"Motel 6\", \"Under Canvas\", \"AutoCamp\", \"Getaway House\", \"KOA\", \"Zion Lodge\", \"Cable Mountain Lodge\", \"Cliffrose Lodge\", \"Tenaya Lodge\", \"Yosemite Valley Lodge\", \"The Ahwahnee\", \"Jackson Lake Lodge\", \"Colter Bay Village\", \"Old Faithful Inn\", \"Many Glacier Hotel\", \"Stanley Hotel\", \"Ruby's Inn\", \"El Tovar Hotel\", \"Blue Lagoon Retreat\", \"Reykjavik Marina Hotel\", \"Hostelling International\"],\n      \"substitutes\": {\"IHG\": [\"ihg hotels\", \"holiday inn\"], \"Under Canvas\": [\"under canvas zion\", \"glamping zion\"], \"Cable Mountain Lodge\": [\"springdale utah hotels\"], \"Ruby's Inn\": [\"best western ruby's inn\"]}\n    },\n    {\n      \"id\": \"fitness_tech_wearables\",\n      \"title\": \"Fitness Tech, Wearables & Training Apps\",\n      \"hypothesis\": \"Garmin, Strava, and COROS over-index far above baseline; Peloton and home-fitness under-index; Gaia GPS / onX Backcountry over-index because of the outdoor overlap.\",\n      \"entities\": [\"Garmin\", \"Strava\", \"COROS\", \"Apple Watch\", \"Fitbit\", \"Whoop\", \"Oura Ring\", \"Polar\", \"Suunto\", \"Nike Run Club\", \"Runkeeper\", \"MapMyRun\", \"Runna\", \"TrainingPeaks\", \"Final Surge\", \"Hal Higdon\", \"Jeff Galloway\", \"Couch to 5K\", \"Peloton\", \"Zwift\", \"MyFitnessPal\", \"Noom\", \"Headspace\", \"Calm\", \"Gaia GPS\", \"onX Backcountry\", \"Komoot\", \"Relive\", \"Stryd\", \"Shokz\", \"AirPods Pro\", \"Jaybird\", \"GoPro\", \"Insta360\", \"Zoleo\", \"Garmin inReach\"],\n      \"substitutes\": {\"Shokz\": [\"aftershokz\", \"bone conduction headphones\"], \"Runna\": [\"runna app\"], \"Zoleo\": [\"satellite communicator\"], \"Garmin inReach\": [\"inreach mini\"]}\n    },\n    {\n      \"id\": \"nutrition_hydration\",\n      \"title\": \"Sports Nutrition & Hydration\",\n      \"hypothesis\": \"Gels/chews and electrolyte brands (GU, Maurten, Tailwind, LMNT, Nuun) over-index; mass-market protein near baseline; hydration packs (Nathan, Salomon, CamelBak) over-index because courses are remote.\",\n      \"entities\": [\"GU Energy\", \"Maurten\", \"Honey Stinger\", \"Clif Bar\", \"Clif Bloks\", \"Tailwind Nutrition\", \"Skratch Labs\", \"Nuun\", \"LMNT\", \"Liquid IV\", \"Gatorade\", \"Gatorade Endurance\", \"Precision Fuel & Hydration\", \"Huma Gel\", \"Spring Energy\", \"Untapped\", \"SIS\", \"Hammer Nutrition\", \"UCAN\", \"Kodiak Cakes\", \"RXBAR\", \"Larabar\", \"Premier Protein\", \"Quest\", \"Orgain\", \"Vital Proteins\", \"Athletic Greens\", \"Celsius\", \"Body Armor\", \"Pedialyte\", \"Nathan Sports\", \"CamelBak\", \"Salomon Hydration Vest\", \"Hydro Flask\", \"Stanley Cup\", \"Yeti\", \"Osprey Hydration\"],\n      \"substitutes\": {\"GU Energy\": [\"gu gel\", \"gu energy gel\"], \"SIS\": [\"science in sport gel\"], \"Athletic Greens\": [\"ag1\"], \"Salomon Hydration Vest\": [\"running vest\", \"hydration vest for running\"], \"Yeti\": [\"yeti cooler\", \"yeti tumbler\"]}\n    },\n    {\n      \"id\": \"adventure_activities\",\n      \"title\": \"Adjacent Outdoor Activities & Trip Add-Ons\",\n      \"hypothesis\": \"Hiking, canyoneering, hot springs, stargazing, and photography over-index; golf and spa under-index; ski indexes in winter-source metros only.\",\n      \"entities\": [\"Hiking\", \"Angels Landing\", \"The Narrows\", \"Half Dome Permit\", \"Canyoneering\", \"Rock Climbing\", \"Via Ferrata\", \"Mountain Biking\", \"Whitewater Rafting\", \"Kayaking\", \"Paddleboarding\", \"Fly Fishing\", \"Horseback Riding\", \"Hot Springs\", \"Blue Lagoon\", \"Sky Lagoon\", \"Northern Lights\", \"Stargazing\", \"Dark Sky Park\", \"Landscape Photography\", \"Wildlife Viewing\", \"Bison\", \"Elk Rut\", \"Backpacking\", \"Camping\", \"Glamping\", \"Overlanding\", \"Skiing\", \"Snowshoeing\", \"Golf\", \"Spa Day\", \"Wine Tasting\", \"Brewery Tour\", \"Scenic Drive\", \"Road Trip\", \"Utah Mighty 5\", \"Ring Road Iceland\", \"Golden Circle\", \"Ice Cave Tour\", \"Glacier Hike\", \"Whale Watching\"],\n      \"substitutes\": {\"Half Dome Permit\": [\"half dome lottery\", \"half dome hike\"], \"The Narrows\": [\"zion narrows hike\"], \"Ring Road Iceland\": [\"iceland ring road itinerary\"], \"Utah Mighty 5\": [\"mighty five utah road trip\"]}\n    },\n    {\n      \"id\": \"media_content_community\",\n      \"title\": \"Running & Outdoor Media, Podcasts, Creators\",\n      \"hypothesis\": \"Runner's World, iRunFar, Trail Runner Mag, and outdoor YouTube creators over-index; general fitness influencers and sports-talk media under-index.\",\n      \"entities\": [\"Runner's World\", \"Trail Runner Magazine\", \"iRunFar\", \"Outside Magazine\", \"Backpacker Magazine\", \"Believe in the Run\", \"The Running Channel\", \"Ginger Runner\", \"Sally McRae\", \"Courtney Dauwalter\", \"Kilian Jornet\", \"Des Linden\", \"Kara Goucher\", \"Molly Seidel\", \"Eliud Kipchoge\", \"Sage Canaday\", \"Ali on the Run\", \"Some Work All Play\", \"Nobody Asked Us\", \"Citius Mag\", \"Marathon Talk\", \"The Rich Roll Podcast\", \"Huberman Lab\", \"Dirtbag Diaries\", \"Kara and Nate\", \"Yes Theory\", \"Eamon and Bec\", \"Chris Burkard\", \"Peter McKinnon\", \"National Parks Traveler\", \"Dirt in My Shoes\", \"Earth Trekkers\", \"Bearfoot Theory\", \"The Mandagies\", \"Salomon TV\", \"Reddit r/running\", \"Reddit r/trailrunning\", \"Reddit r/nationalparks\", \"Strava Clubs\", \"Letsrun\"],\n      \"substitutes\": {\"Some Work All Play\": [\"swap podcast\"], \"Nobody Asked Us\": [\"nobody asked us podcast\"], \"Salomon TV\": [\"salomon tv youtube\"], \"Letsrun\": [\"letsrun.com\"]}\n    },\n    {\n      \"id\": \"causes_charities\",\n      \"title\": \"Causes, Charities & Conservation\",\n      \"hypothesis\": \"Conservation and public-lands nonprofits (National Park Foundation, Leave No Trace, Access Fund) over-index; disease-walk charities near baseline; charity-bib programs appear via Team in Training / St. Jude Heroes.\",\n      \"entities\": [\"National Park Foundation\", \"National Parks Conservation Association\", \"Leave No Trace\", \"The Conservation Alliance\", \"Access Fund\", \"Sierra Club\", \"The Nature Conservancy\", \"Trust for Public Land\", \"American Hiking Society\", \"Protect Our Winters\", \"1% for the Planet\", \"Outdoor Alliance\", \"Zion Forever Project\", \"Yosemite Conservancy\", \"Grand Teton National Park Foundation\", \"Yellowstone Forever\", \"Glacier National Park Conservancy\", \"Rocky Mountain Conservancy\", \"Friends of the Smokies\", \"Team in Training\", \"St. Jude Heroes\", \"Girls on the Run\", \"Back on My Feet\", \"Achilles International\", \"Wounded Warrior Project\", \"Team RWB\", \"Relay for Life\", \"Susan G. Komen\", \"Every Kid Outdoors\", \"Outdoor Afro\", \"Latino Outdoors\", \"Black Girls RUN!\", \"Big City Mountaineers\", \"Trail Sisters\", \"American Trail Running Association\"],\n      \"substitutes\": {\"Team RWB\": [\"team red white and blue\"], \"Zion Forever Project\": [\"zion forever\"], \"American Trail Running Association\": [\"atra trail running\"]}\n    },\n    {\n      \"id\": \"vehicles_gear_haul\",\n      \"title\": \"Vehicles, Roof Boxes & Road-Trip Gear\",\n      \"hypothesis\": \"Subaru, Toyota 4Runner/Tacoma, Rivian, Thule/Yakima over-index sharply; luxury sedans under-index. Most likely category to surprise the client and unlock auto sponsorships.\",\n      \"entities\": [\"Subaru Outback\", \"Subaru Forester\", \"Subaru Crosstrek\", \"Toyota 4Runner\", \"Toyota Tacoma\", \"Toyota RAV4\", \"Toyota Sequoia\", \"Honda CR-V\", \"Honda Pilot\", \"Jeep Wrangler\", \"Jeep Grand Cherokee\", \"Ford Bronco\", \"Ford F-150\", \"Rivian R1S\", \"Rivian R1T\", \"Tesla Model Y\", \"Kia Telluride\", \"Hyundai Palisade\", \"Volvo XC90\", \"Sprinter Van\", \"Ford Transit Camper\", \"Winnebago\", \"Airstream\", \"Thule\", \"Yakima\", \"Rhino-Rack\", \"Kuat Bike Rack\", \"Dometic Cooler\", \"Yeti Cooler\", \"Goal Zero\", \"Roof Cargo Box\", \"Roofnest\", \"iKamper\", \"Decked Drawer System\", \"Weathertech\", \"Costco Tires\", \"Discount Tire\"],\n      \"substitutes\": {\"Sprinter Van\": [\"sprinter van conversion\", \"camper van\"], \"Kuat Bike Rack\": [\"hitch bike rack\"], \"Roof Cargo Box\": [\"thule cargo box\"]}\n    },\n    {\n      \"id\": \"life_stage_household\",\n      \"title\": \"Life-Stage & Household Signals\",\n      \"hypothesis\": \"Married-with-teens, DINK, and empty-nester signals over-index; new-parent and college-student signals under-index. Supports the persona page and the 'travel with a partner/group' angle.\",\n      \"entities\": [\"Wedding Registry\", \"Honeymoon Ideas\", \"Babymoon\", \"Baby Registry\", \"Daycare Near Me\", \"Elementary School Ratings\", \"High School Graduation Gifts\", \"College Tours\", \"Empty Nest\", \"Retirement Planning\", \"401k Rollover\", \"Roth IRA\", \"Costco Membership\", \"Chase Sapphire Preferred\", \"Chase Sapphire Reserve\", \"Amex Platinum\", \"Capital One Venture\", \"Marriott Bonvoy Card\", \"Delta SkyMiles Card\", \"Southwest Companion Pass\", \"REI Co-op Mastercard\", \"Home Depot\", \"Lowe's\", \"Zillow\", \"Redfin\", \"Mortgage Rates\", \"Refinance\", \"Pet Friendly Hotels\", \"Dog Friendly Trails\", \"Chewy\", \"Rover\", \"Girl Scouts\", \"Boy Scouts\", \"Club Soccer\", \"Youth Cross Country\", \"Family Vacation Ideas\", \"Multigenerational Trip\", \"Anniversary Trip Ideas\", \"Girls Trip Ideas\", \"Bachelor Party Ideas\"],\n      \"substitutes\": {\"Southwest Companion Pass\": [\"companion pass\"], \"Youth Cross Country\": [\"high school cross country\"], \"Chase Sapphire Preferred\": [\"chase sapphire\"]}\n    }\n  ],\n\n  \"substitution_policy\": {\n    \"when_entity_missing_from_corpus\": \"Try the listed substitutes in order; if none resolve, try brand + 'shoes' / 'near me' / 'review' / 'coupon' as generic suffixes; if still missing, mark the entity dropped in CHART_AUDIT.md and do not silently replace it with an unrelated brand.\",\n    \"when_entity_is_ambiguous\": \"Prefer the disambiguated phrase (e.g. 'on cloud shoes' not 'on'; 'clear airport security' not 'clear'; 'buff headwear' not 'buff'; 'yeti cooler' not 'yeti').\",\n    \"minimum_entities_per_category_to_chart\": 20,\n    \"minimum_entities_per_category_to_keep_as_standalone\": 25,\n    \"general_fallback_pool\": [\"Fleet Feet\", \"Rock 'n' Roll Running Series\", \"Garmin\", \"Strava\", \"REI\", \"Airbnb\", \"Subaru Outback\", \"Hoka\", \"AllTrails\", \"National Park Foundation\"]\n  },\n\n  \"engine_run_plan\": {\n    \"note\": \"Planning only. Nothing below has been executed.\",\n    \"steps\": [\n      \"compose_pole from positive_seeds with the listed weights; subtract negative_seeds per sense\",\n      \"term_collisions check on every seed; expect collisions on zion, marathon, race, iceland, glacier, rocky, trail\",\n      \"score each category's entities against the pole at term resolution; record r and volume\",\n      \"geo pass at state + dma for the pole; population-normalize\",\n      \"flag categories where median |r| < 0.05 or where fewer than 20 entities resolve\",\n      \"export one CSV per category for chart build\"\n    ]\n  }\n}\n"}, {"name": "content_static.json", "type": "text", "content": "{\n  \"deck_title\": \"Vacation Races: Who the Destination-Race Runner Really Is\",\n  \"subtitle\": \"A Heimdall search-audience correlation study prepared by Genomic Digital\",\n  \"date\": \"2026-09\",\n  \"status\": \"SKELETON \u2014 numbers, charts, and persona details to be filled after the engine pass\",\n\n  \"objective\": {\n    \"headline\": \"Find the adjacent interests, places, and brands that separate a destination-race runner from an ordinary half-marathoner, so Vacation Races can buy media, pick partners, and write copy against the real audience rather than the assumed one.\",\n    \"questions_answered\": [\n      \"Which brand and interest clusters does the Vacation Races audience over-index on relative to the general search population?\",\n      \"Which of those clusters are unique to the destination-race buyer versus shared with every runner?\",\n      \"Which source metros carry the highest propensity per capita, and do they differ by event?\",\n      \"Which competing race series share the same buyer, and which are merely adjacent?\",\n      \"What sponsor and partner categories does the data justify pursuing?\"\n    ],\n    \"not_in_scope\": [\n      \"Individual-level targeting or PII; Heimdall works on aggregate search-phrase correlation only\",\n      \"Registration attribution; this is an audience study, not a conversion study\",\n      \"Iceland as a source market; it is a destination only in this data\"\n    ]\n  },\n\n  \"methodology_steps\": [\n    {\"step\": 1, \"title\": \"Define the segment\", \"text\": \"We seeded Heimdall with 26 search phrases that describe someone planning a trip around a half marathon at a national park (event names, 'runcation', 'destination half marathon', training-plan phrases). Each seed was weighted so that event and travel intent dominate over generic running intent.\"},\n    {\"step\": 2, \"title\": \"Remove the wrong meanings\", \"text\": \"Several seed words have unrelated meanings in search (Zion the basketball player, Marathon the oil company, Iceland the UK grocer, Yosemite the operating system). We declared 12 negative senses and subtracted them from the segment so those meanings do not leak in.\"},\n    {\"step\": 3, \"title\": \"Compose the audience vector\", \"text\": \"Heimdall combines the positive seeds into a single audience vector (a 'pole') in its search-behavior space, built from the geographic and temporal co-movement of millions of search phrases.\"},\n    {\"step\": 4, \"title\": \"Score the candidate entities\", \"text\": \"For each of 14 categories we named 30-40 brands, places, events, or interests and measured how strongly each one's search behavior correlates with the audience vector. Positive means the audience searches it more than the general population; negative means less.\"},\n    {\"step\": 5, \"title\": \"Map the geography\", \"text\": \"The same audience vector was scored at the state and DMA level and normalized by population, producing a propensity map of where destination-race runners live rather than where the parks are.\"},\n    {\"step\": 6, \"title\": \"Audit and prune\", \"text\": \"Categories where too few entities resolved, or where the correlations were flat, were dropped or merged. Every drop is documented in the chart audit so the client can see what was tested and rejected.\"},\n    {\"step\": 7, \"title\": \"Translate into personas and strategy\", \"text\": \"Clusters of over-indexing entities were grouped into two or three personas, and each strategy page ties a recommendation to the specific chart that supports it.\"}\n  ],\n\n  \"senses_table\": {\n    \"columns\": [\"Term\", \"Meaning we kept\", \"Meanings we removed\", \"How\"],\n    \"rows\": [\n      [\"Zion\", \"Zion National Park / Zion Half\", \"Zion Williamson, Zion IL, Zionism, church names\", \"negative seeds + collision check\"],\n      [\"Marathon\", \"26.2 / 13.1 running event\", \"TV marathon, Marathon Petroleum, Marathon gas\", \"negative seeds\"],\n      [\"Race\", \"Footrace / running event\", \"Motorsport, horse racing, ethnicity\", \"negative seeds\"],\n      [\"Vacation\", \"Trip built around a race\", \"Beach, cruise, all-inclusive, Disney\", \"negative seeds + 'runcation' positive weight\"],\n      [\"Iceland\", \"Destination for the Iceland Half\", \"Iceland Foods, volcano news, football\", \"negative seeds\"],\n      [\"Yosemite\", \"Yosemite National Park / Yosemite Half\", \"Yosemite Sam, macOS Yosemite\", \"negative seeds\"],\n      [\"Teton\", \"Grand Teton National Park / Jackson Hole\", \"County government, real estate, ski pass\", \"negative seeds\"],\n      [\"Glacier\", \"Glacier National Park / Glacier Half\", \"Climate news, Glacier Bay cruise\", \"negative seeds\"],\n      [\"Trail\", \"Trail running / hiking trail\", \"Oregon Trail, trail mix, trailer\", \"negative seeds\"],\n      [\"Rocky\", \"Rocky Mountain National Park\", \"Rocky films, Rocky Mountain Chocolate\", \"negative seeds\"],\n      [\"Smoky\", \"Great Smoky Mountains\", \"Smokey Bear, smoky-eye makeup\", \"negative seeds\"],\n      [\"Half\", \"Half marathon\", \"Half price, half-and-half, halftime\", \"negative seeds\"]\n    ]\n  },\n\n  \"strengths\": [\n    \"Built on real search behavior at scale, not survey self-report or panel extrapolation\",\n    \"Correlation is measured against a composed audience vector, so 'runner who travels' is distinguishable from 'runner' and from 'traveler'\",\n    \"Every entity is named and auditable; nothing is a black-box 'affinity score'\",\n    \"Geographic output is per-capita propensity, which surfaces small high-intent metros (Boise, Boulder, Bozeman) that raw volume hides\",\n    \"Negative senses are declared and documented, so the client can see what was excluded and why\"\n  ],\n\n  \"limitations\": [\n    \"Correlation is not causation; an over-indexing brand is a signal of shared audience, not proof that its customers register for races\",\n    \"Search volume for event-name seeds is small relative to general terms; confidence intervals on the smallest entities will be wide and are flagged in the audit\",\n    \"The audience vector reflects the last refresh of Heimdall's corpus; seasonal events (Iceland in summer, Zion in spring) may shift results by month\",\n    \"International behavior (Iceland) is observed only through U.S. searchers; no Icelandic-origin data is included\",\n    \"Brands with heavy generic-word names (On, Clear, Buff, Yeti) were scored via disambiguated phrases and may under-count\",\n    \"Heimdall measures search, not purchase; premium brands that are researched heavily but bought rarely can over-index\"\n  ],\n\n  \"personas_outline\": [\n    {\n      \"id\": \"bucket_list_couple\",\n      \"working_name\": \"The Bucket-List Couple\",\n      \"sketch\": \"Late 30s to 50s, travels as a pair or small friend group, runs 2-4 halves a year, books an Airbnb or mid-scale hotel, tacks on two days of hiking. Garmin on the wrist, Hoka on the feet, Subaru in the lot.\",\n      \"expected_supporting_categories\": [\"travel_booking_platforms\", \"lodging_hospitality\", \"vehicles_gear_haul\", \"adventure_activities\", \"life_stage_household\"],\n      \"fill_after_engine\": [\"top 5 over-indexing entities\", \"top 3 source DMAs\", \"one surprising negative\"]\n    },\n    {\n      \"id\": \"fifty_states_collector\",\n      \"working_name\": \"The Fifty-States Collector\",\n      \"sketch\": \"Goal-driven, tracks races on Strava and a spreadsheet, chases medals and state counts, loyal to series that offer bundles, flies Southwest, compares Vacation Races directly against Rock 'n' Roll and Revel.\",\n      \"expected_supporting_categories\": [\"race_series_competitors\", \"fitness_tech_wearables\", \"airlines_ground_transport\", \"media_content_community\"],\n      \"fill_after_engine\": [\"which competitor series correlate highest\", \"airline loyalty signal\", \"podcast/media overlap\"]\n    },\n    {\n      \"id\": \"trail_curious_hiker\",\n      \"working_name\": \"The Trail-Curious Hiker\",\n      \"sketch\": \"Came to running from hiking, not the other way around. Follows national-park content, donates to conservation groups, camps or glamps, and sees a park half marathon as a guided way to experience the place. Softer on pace, harder on scenery.\",\n      \"expected_supporting_categories\": [\"national_parks_public_lands\", \"causes_charities\", \"outdoor_retail\", \"nutrition_hydration\", \"adventure_activities\"],\n      \"fill_after_engine\": [\"parks that over-index but have no VR event (expansion list)\", \"conservation orgs for cause-marketing\", \"REI vs Fleet Feet split\"]\n    }\n  ],\n\n  \"strategy_page_titles\": [\n    \"Where the Runners Live: Source Metros Ranked by Propensity, Not Population\",\n    \"Buy Against Interests, Not Just 'Running': The Five Clusters That Separate This Audience\",\n    \"Competitive Set: Which Race Series Share Your Buyer and Which Only Look Like They Do\",\n    \"Partner and Sponsor Shortlist: Categories the Data Justifies Pitching\",\n    \"Creative Direction by Persona: Three Messages, Three Media Mixes\",\n    \"Expansion Signals: Parks the Audience Already Searches Where No Event Exists\",\n    \"Event-by-Event Notes: Zion, Yosemite, Grand Teton, Iceland\",\n    \"Seasonality and Timing: When Each Cluster Peaks Relative to Registration Windows\",\n    \"What We Dropped and Why: The Chart Audit in One Page\",\n    \"Next Steps and Measurement Plan\"\n  ],\n\n  \"appendix_pages\": [\n    \"Full entity tables per category with r and volume\",\n    \"Negative-sense seed lists\",\n    \"Geo table at state and DMA level\",\n    \"Glossary: pole, correlation, propensity index, resolution\"\n  ]\n}\n"}], "grading": {"expectations": [{"text": "client_config.json parses and has 12-14 categories with >=30 named entities each", "passed": false, "evidence": "0 categories, sizes []"}, {"text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)", "passed": false, "evidence": "seed text sample: {\"client\": {\"name\": \"Vacation Races\", \"agency\": \"Genomic Digital\", \"platform\": \"Heimdall\", \"deck_slug\": \"vacation-races-audience-correlation-2026-09\", \"business"}, {"text": "client_config includes geo seeds for the geography chart", "passed": true, "evidence": "keys: ['client', 'segment', 'geo', 'correlation_categories', 'substitution_policy', 'engine_run_plan']"}, {"text": "content_static.json parses and has both strengths and limitations", "passed": true, "evidence": "keys: ['deck_title', 'subtitle', 'date', 'status', 'objective', 'methodology_steps', 'senses_table', 'strengths', 'limitations', 'personas_outline', 'strategy_page_titles', 'appendix_pages']"}, {"text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)", "passed": true, "evidence": "drop=21 merge=20"}, {"text": "CHART_AUDIT.md includes a political-axis sanity check", "passed": false, "evidence": "political mentions=0"}, {"text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole", "passed": true, "evidence": "lift mentions=0, band mentions=0"}], "summary": {"passed": 4, "failed": 3, "total": 7, "pass_rate": 0.5714}}}, {"id": "eval-1-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CHART_AUDIT_row.md", "type": "text", "content": "# CHART_AUDIT row \u2014 Gear & Retail (running-shoe client, batch_score input of 12 entities)\n\n| chart | does the data make sense? | like the TAB example? | seeds / substitutions | verdict |\n|---|---|---|---|---|\n| Gear & Retail | Road Runner Sports +0.072 and REI +0.043 above the band; Hydro Flask +0.030 and \"nike outlet near me\" +0.030 at its upper edge; Scheels +0.023 inside; Nike \u22120.014 and Fleet Feet \u22120.011 neutral; Academy Sports \u22120.021, Yeti \u22120.037, Walmart \u22120.059 below. Band = middle half of the 10 charted = \u22120.019..+0.030. Political axis sanity holds: Walmart +0.09, Academy +0.084, Scheels +0.071 right; Hydro Flask \u22120.132, Road Runner \u22120.06, Yeti \u22120.051 left \u2014 the over-indexers are the specialty/outdoor channel and lean left, the mass-discount and Southern sporting-goods chains lean right; Scheels is the one right-leaning over-indexer (geography, not politics). Two things not smoothed: (a) **Fleet Feet in band at \u22120.011** for a running-shoe client \u2014 the specialty story runs through Road Runner Sports and REI, stated as a correction on the insight slide; (b) the Hydro Flask + / Yeti \u2212 split holds in sign but Yeti leans slightly *left* here, so the Ragnar \"hunting and trucks\" gloss is NOT imported \u2014 called a purchase-culture split until a hobbies chart backs it. Nike \u22120.014 at 24.9M vs Nike Outlet +0.030: bare mass brand neutral, outlet-shopping intent slightly over \u2014 plausible for a value-conscious specialty buyer, but +0.030 is band-edge, so read as ordering, not a claim. Volume range 246k\u201368M: bubble scale must be area-scaled/capped or Walmart and Nike erase the specialty rows. | TAB \"Retail/brands\" and the Ragnar Gear & Retail page (Road Runner Sports top, Walmart bottom, Hydro Flask + / Yeti \u2212): same shape, same top and bottom entity. | 12 scored, 10 charted, 2 dropped by name in `exclude.json`: **\"the running store\"** (unvolumed, +0.141 = 2\u00d7 the next entity, political exactly 0.000 \u2192 unvolumed variant/placeholder, would set the chart's top on an unverifiable point) and **\"temu\"** (unvolumed, \u22120.090 = largest negative \u2192 directionally right, unverifiable; same call as Ragnar). Kept \"nike outlet near me\" \u2014 it is a listed entity, not a substitute, and store-locator intent is the category's own intent; labelled \"(store search)\" on the slide. No substitutes used. Only 5 entities are positive, so the 6th callout is Fleet Feet at \u22120.011, labelled \"(in band)\" \u2014 it is the finding this client most needs to see, not padding. | **MERGE into Running & Fitness unless thickened before render.** 10 trustworthy entities is under the ~15 floor (Level 1 asks 30\u201350). To thicken, score by name: Dick's Sporting Goods, Big 5, Backcountry.com, Amazon, Target, Costco, Zappos, Running Warehouse, Foot Locker, Finish Line, JackRabbit, Marathon Sports, Brooks, Hoka, On Running, Asics, New Balance, Saucony, Altra, Garmin, Goodr, Feetures, Stanley (tumbler), Patagonia, The North Face, Lululemon, Dick's House of Sport, Kohl's, Shein, Etsy. If \u226515 survive Level 3, SHIP with the Fleet Feet correction stated; the entry JSON here is the draft for that case. |\n"}, {"name": "category.json", "type": "text", "content": "{\n  \"name\": \"Gear & Retail\",\n  \"chart\": \"gear_retail.png\",\n  \"chart_note\": \"Specialty running and outdoor retailers, gear brands and mass-market stores. Bubble = US monthly search volume (area-scaled and capped so Walmart at 68M and Nike at 24.9M do not swamp the 246k specialty rows); grey band = the middle half of the entities on this chart (-0.019 to +0.030).\",\n  \"insight_title\": \"ROAD RUNNER SPORTS AND REI,\\nNOT WALMART\",\n  \"insight\": \"Road Runner Sports is the top retailer in the category at +0.072, with REI second at +0.043 - the specialty running and outdoor channel, on the left of the political axis. Hydro Flask and the Nike Outlet store-locator search sit at the upper edge of the band, and Scheels just inside it; Scheels is the one over-indexer that leans right, which is the Upper Midwest and mountain geography showing through rather than a politics.\\n\\nThe mass-discount channel is the mirror image. Walmart is the weakest entity at -0.059 and Academy Sports is below the band at -0.021; both sit on the right of the political axis. Nike itself, at 24.9 million searches a month, is neutral (-0.014): the bare brand is a mass word, and the outlet-shopping intent sits above it. Among gear brands Hydro Flask (+0.030) and Yeti (-0.037) split on the segment axis, though on this chart both lean slightly left, so the split is a purchase-culture split rather than a political one.\\n\\nOne honest correction: Fleet Feet, the largest specialty running franchise in the country, sits inside the band at -0.011. The specialty-retail story is real, but it runs through Road Runner Sports and REI, not through Fleet Feet - co-op, in-store and partnership inventory should follow those two, with Scheels as the regional add.\",\n  \"callouts\": [[\"Road Runner Sports\", \"+0.072\"], [\"REI\", \"+0.043\"], [\"Hydro Flask\", \"+0.030\"], [\"Nike Outlet (store search)\", \"+0.030\"], [\"Scheels\", \"+0.023\"], [\"Fleet Feet (in band)\", \"-0.011\"]],\n  \"negatives\": [[\"Walmart\", \"-0.059\"], [\"Yeti\", \"-0.037\"], [\"Academy Sports\", \"-0.021\"]]\n}\n"}, {"name": "exclude.json", "type": "text", "content": "{\n  \"Gear & Retail\": {\n    \"the running store\": \"Unvolumed row (volume null) whose h=+0.141 is an outlier for the category - twice the next entity (Road Runner Sports +0.072) - and political exactly 0.000. Level 3: volume None with a large |h| is an unvolumed variant / placeholder, not a measurement. Would set the top of the chart on an unverifiable point. Directionally plausible; re-admit if a volumed row for the same phrase appears next cycle.\",\n    \"temu\": \"Unvolumed row (volume null) at h=-0.090 - the largest |h| on the negative side and an outlier for the category. Directionally right (mass-discount, like Walmart) but unverifiable; same decision as the Ragnar Gear & Retail chart. Re-admit when volumed.\"\n  }\n}\n"}], "grading": {"expectations": [{"text": "drops 'the running store' by name (unvolumed +0.141 outlier)", "passed": true, "evidence": "exclude: [\"the running store\", \"temu\"]"}, {"text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)", "passed": true, "evidence": "exclude: [\"the running store\", \"temu\"]"}, {"text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand", "passed": true, "evidence": "mentioned in insight/audit"}, {"text": "exactly 6 callouts and 3 negatives", "passed": true, "evidence": "callouts=6 negatives=3"}, {"text": "insight names Hydro Flask and Yeti together as a split", "passed": true, "evidence": "both present"}, {"text": "insight cites numeric correlations (e.g. +0.072)", "passed": true, "evidence": "['+0.072', '+0.043', '-0.059', '-0.021', '-0.014']"}, {"text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)", "passed": true, "evidence": "['MERGE', 'SHIP']"}], "summary": {"passed": 7, "failed": 0, "total": 7, "pass_rate": 1.0}}}, {"id": "eval-1-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CHART_AUDIT_row.md", "type": "text", "content": "| chart | does the data make sense | seeds/substitutions | verdict |\n|---|---|---|---|\n| Gear & Retail | Mostly yes. Positive side is coherent (running specialty + premium outdoor: road runner sports, rei, hydro flask, nike outlet near me, scheels) and negative side is coherent (mass/discount: temu, walmart, academy, plus yeti). nike near zero on 24.9M searches is the expected saturated-brand wash. Magnitudes are small (max charted r = 0.072), so the chart supports a direction, not a ranking. Two anomalies: (1) the positive/negative split tracks political lean almost one-for-one (positives lean left/neutral, negatives lean right), so the segment axis is partly a coastal-metro proxy; scheels and yeti are the only counter-examples. (2) fleet feet at -0.011 while road runner sports is +0.072 is out of pattern for two running-specialty chains; most likely a store-footprint (Southeast/Midwest vs West) effect rather than an audience miss. | 'the running store' (r = 0.141, political exactly 0.000, volume null) has the signature of a fallback/thin estimate on a generic phrase; dropped rather than let an unverifiable row headline the chart. temu volume null despite being a top-tier US query means the volume join missed, not that the term is unknown; kept, drawn unsized with a 'volume n/a' tag. No other visible substitutions; 'nike outlet near me' is a local-intent phrase, not a brand, and is labeled as such. | SHIP with 1 drop (the running store) and 1 flagged marker (temu). Re-onboard 'the running store' and fix temu volume before next revision; if 'the running store' holds at ~0.14 with real support it becomes the lead callout. |\n"}, {"name": "category.json", "type": "text", "content": "{\n  \"name\": \"Gear & Retail\",\n  \"chart_note\": \"Horizontal lollipop/bubble chart of 11 retail entities. X = segment_h (correlation with the client's audience segment, zero line drawn). Marker size = log(US monthly search volume); temu has no volume and is drawn as a hollow marker at the minimum size with a '(volume n/a)' tag. Marker color = political lean (right-minus-left, diverging scale, hydro flask at -0.132 is the left anchor, walmart at +0.09 the right anchor). Sort by segment_h descending. Dropped 'the running store' (see exclude.json). Axis label: 'Audience correlation (Pearson r)'. Add a footnote that |r| < 0.05 is directional only. nike is kept on the chart as the mega-brand baseline (24.9M searches, r = -0.014) so the reader has a 'zero' reference.\",\n  \"insight_title\": \"Your buyer shops specialty and outdoor, not mass and discount\",\n  \"insight\": [\n    \"Every retailer that indexes positively for this segment is either a running-specialty shop or a premium outdoor brand: road runner sports (+0.072) leads, followed by rei (+0.043), hydro flask (+0.030), nike outlet near me (+0.030) and scheels (+0.023). Every retailer that indexes negatively is mass-market or discount: temu (-0.090), walmart (-0.059), yeti (-0.037), academy sports (-0.021). The split is clean enough to act on even though the individual correlations are modest.\",\n    \"Two cautions before over-reading it. First, the magnitudes are small: the strongest charted signal is r = 0.072, and anything under about 0.05 (scheels, academy, fleet feet, nike) should be treated as directional, not as a ranking. Second, the pattern partly rides on geography and politics. The positive brands lean left or neutral (hydro flask -0.132, road runner sports -0.06, rei ~0) and the negative brands lean right (walmart +0.09, academy +0.084, temu +0.08), so part of what the segment axis is picking up is a coastal-metro, left-of-center outdoor shopper. scheels (+0.023 with a +0.071 right lean) and yeti (-0.037 with a -0.051 left lean) are the two exceptions that show the segment is not purely a political proxy. nike itself is a wash at -0.014 on 24.9M monthly searches: everyone searches nike, so it carries no audience information.\",\n    \"What to do with it: prioritize co-marketing, affiliate and retail-media placements with road runner sports and rei, and treat hydro flask's audience as a lookalike seed for prospecting. Avoid spending against walmart-, temu- and academy-adjacent inventory for this segment. fleet feet is the one to watch: a running-specialty chain at -0.011 is out of pattern and most likely reflects its Southeast and Midwest store footprint rather than a real audience miss, so test it regionally before writing it off. scheels is the right-leaning crossover if the client wants to extend the segment into the Upper Midwest and Mountain West.\"\n  ],\n  \"callouts\": [\n    [\"road runner sports\", \"+0.072 (246K/mo) \u2014 strongest retail signal; running specialty, west-coast footprint\"],\n    [\"rei\", \"+0.043 (4.1M/mo) \u2014 premium outdoor at real scale; politically neutral (-0.001)\"],\n    [\"hydro flask\", \"+0.030 (550K/mo) \u2014 positive AND the most left-leaning term in the set (-0.132)\"],\n    [\"nike outlet near me\", \"+0.030 (91K/mo) \u2014 local-intent Nike beats the brand term (nike -0.014)\"],\n    [\"scheels\", \"+0.023 (2.2M/mo) \u2014 the right-leaning exception (+0.071); crossover into Upper Midwest / Mountain West\"],\n    [\"fleet feet\", \"-0.011 (368K/mo) \u2014 running specialty but flat; likely a footprint effect, test regionally\"]\n  ],\n  \"negatives\": [\n    [\"temu\", \"-0.090 (volume n/a) \u2014 discount marketplace; strongest negative in the set\"],\n    [\"walmart\", \"-0.059 (68M/mo) \u2014 mass retail; right lean +0.09\"],\n    [\"yeti\", \"-0.037 (2.2M/mo) \u2014 premium but negative; the one premium brand that does not index with this buyer\"]\n  ]\n}\n"}, {"name": "exclude.json", "type": "text", "content": "{\n  \"category\": \"Gear & Retail\",\n  \"charted\": [\n    \"road runner sports\", \"rei\", \"hydro flask\", \"nike outlet near me\", \"scheels\",\n    \"fleet feet\", \"nike\", \"academy sports\", \"yeti\", \"walmart\", \"temu\"\n  ],\n  \"dropped\": [\n    {\n      \"label\": \"the running store\",\n      \"segment_h\": 0.141,\n      \"political\": 0.0,\n      \"volume\": null,\n      \"reason\": \"Highest segment_h in the set but the row has the signature of a thin or fallback estimate: political is exactly 0.000 and volume is null. 'the running store' is also a generic phrase (a Georgia chain, but as a search string it is indistinguishable from the common noun phrase), so its identity as a retail entity is not verifiable from the label alone. Putting a 0.141 on an unverifiable phrase at the top of a client chart would make it the headline and it cannot be defended. Re-onboard with volume and a real political estimate; if it holds, it becomes the lead callout next revision.\"\n    }\n  ],\n  \"flagged_but_kept\": [\n    {\n      \"label\": \"temu\",\n      \"segment_h\": -0.09,\n      \"political\": 0.08,\n      \"volume\": null,\n      \"reason\": \"Kept because the entity is unambiguous and the signal is directionally consistent with walmart and academy sports. Volume null is a lookup miss, not an unknown term (temu is a top-tier US query), so it is drawn as a hollow minimum-size marker with a 'volume n/a' tag rather than sized. Fix the volume join before the next deck.\"\n    },\n    {\n      \"label\": \"nike\",\n      \"segment_h\": -0.014,\n      \"political\": -0.035,\n      \"volume\": 24900000,\n      \"reason\": \"Near-zero on 24.9M searches. Kept as the saturated-brand baseline so the reader sees what 'no audience information' looks like; not a callout or a negative.\"\n    }\n  ]\n}\n"}], "grading": {"expectations": [{"text": "drops 'the running store' by name (unvolumed +0.141 outlier)", "passed": true, "evidence": "exclude: [\"the running store\"]"}, {"text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)", "passed": false, "evidence": "exclude: [\"the running store\"]"}, {"text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand", "passed": true, "evidence": "mentioned in insight/audit"}, {"text": "exactly 6 callouts and 3 negatives", "passed": true, "evidence": "callouts=6 negatives=3"}, {"text": "insight names Hydro Flask and Yeti together as a split", "passed": true, "evidence": "both present"}, {"text": "insight cites numeric correlations (e.g. +0.072)", "passed": true, "evidence": "['+0.072', '+0.043', '+0.030', '+0.030', '+0.023']"}, {"text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)", "passed": true, "evidence": "['SHIP']"}], "summary": {"passed": 6, "failed": 1, "total": 7, "pass_rate": 0.8571}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "heimdall-client-deck", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-09-06T02:50:18Z", "evals_run": [0, 1], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 7, "failed": 0, "total": 7, "time_seconds": 678.5, "tokens": 202206, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "client_config.json parses and has 12-14 categories with >=30 named entities each", "passed": true, "evidence": "14 categories, sizes [51, 52, 49, 40, 50, 42, 45, 46, 43, 40, 43, 45, 44, 40]"}, {"text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)", "passed": true, "evidence": "seed text sample: {\"client\": \"Vacation Races\", \"segment\": [\"audience:saved:vacation-races-core\"], \"segment_label\": \"the national-park destination runner\", \"left\": [\"audience:save"}, {"text": "client_config includes geo seeds for the geography chart", "passed": true, "evidence": "keys: ['client', 'segment', 'segment_label', 'left', 'right', '_planning_notes', 'seed_definition', 'geo_seeds', '_geo_expectation', 'categories', '_substitutes_note', 'substitutes']"}, {"text": "content_static.json parses and has both strengths and limitations", "passed": true, "evidence": "keys: ['_status', 'title', 'subtitle', 'prepared', 'filename', 'objective', 'agenda', 'method_steps', 'corpus_blurb', 'corpus_stats', 'senses_blurb', 'senses', 'senses_note', 'disamb_blurb']"}, {"text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)", "passed": true, "evidence": "drop=23 merge=13"}, {"text": "CHART_AUDIT.md includes a political-axis sanity check", "passed": true, "evidence": "political mentions=3"}, {"text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole", "passed": true, "evidence": "lift mentions=3, band mentions=6"}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 7, "failed": 0, "total": 7, "time_seconds": 130.9, "tokens": 128585, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "drops 'the running store' by name (unvolumed +0.141 outlier)", "passed": true, "evidence": "exclude: [\"the running store\", \"temu\"]"}, {"text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)", "passed": true, "evidence": "exclude: [\"the running store\", \"temu\"]"}, {"text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand", "passed": true, "evidence": "mentioned in insight/audit"}, {"text": "exactly 6 callouts and 3 negatives", "passed": true, "evidence": "callouts=6 negatives=3"}, {"text": "insight names Hydro Flask and Yeti together as a split", "passed": true, "evidence": "both present"}, {"text": "insight cites numeric correlations (e.g. +0.072)", "passed": true, "evidence": "['+0.072', '+0.043', '-0.059', '-0.021', '-0.014']"}, {"text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)", "passed": true, "evidence": "['MERGE', 'SHIP']"}], "notes": []}, {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5714, "passed": 4, "failed": 3, "total": 7, "time_seconds": 417.3, "tokens": 137460, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "client_config.json parses and has 12-14 categories with >=30 named entities each", "passed": false, "evidence": "0 categories, sizes []"}, {"text": "segment definition declares at least one NEGATIVE sense seed (leading '-' term)", "passed": false, "evidence": "seed text sample: {\"client\": {\"name\": \"Vacation Races\", \"agency\": \"Genomic Digital\", \"platform\": \"Heimdall\", \"deck_slug\": \"vacation-races-audience-correlation-2026-09\", \"business"}, {"text": "client_config includes geo seeds for the geography chart", "passed": true, "evidence": "keys: ['client', 'segment', 'geo', 'correlation_categories', 'substitution_policy', 'engine_run_plan']"}, {"text": "content_static.json parses and has both strengths and limitations", "passed": true, "evidence": "keys: ['deck_title', 'subtitle', 'date', 'status', 'objective', 'methodology_steps', 'senses_table', 'strengths', 'limitations', 'personas_outline', 'strategy_page_titles', 'appendix_pages']"}, {"text": "CHART_AUDIT.md states a drop-or-merge rule per category (>=12 mentions of drop/merge)", "passed": true, "evidence": "drop=21 merge=20"}, {"text": "CHART_AUDIT.md includes a political-axis sanity check", "passed": false, "evidence": "political mentions=0"}, {"text": "y-axis is the segment correlation, not per-entity lift vs an average-person pole", "passed": true, "evidence": "lift mentions=0, band mentions=0"}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8571, "passed": 6, "failed": 1, "total": 7, "time_seconds": 112.9, "tokens": 109195, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "drops 'the running store' by name (unvolumed +0.141 outlier)", "passed": true, "evidence": "exclude: [\"the running store\"]"}, {"text": "drops 'temu' by name (unvolumed row \u2014 unverifiable, per the skill's Level-3 rule)", "passed": false, "evidence": "exclude: [\"the running store\"]"}, {"text": "flags 'nike outlet near me' as a shopping-intent phrase distinct from the brand", "passed": true, "evidence": "mentioned in insight/audit"}, {"text": "exactly 6 callouts and 3 negatives", "passed": true, "evidence": "callouts=6 negatives=3"}, {"text": "insight names Hydro Flask and Yeti together as a split", "passed": true, "evidence": "both present"}, {"text": "insight cites numeric correlations (e.g. +0.072)", "passed": true, "evidence": "['+0.072', '+0.043', '+0.030', '+0.030', '+0.023']"}, {"text": "audit row carries an explicit verdict (SHIP/MERGE/DROP)", "passed": true, "evidence": "['SHIP']"}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 404.7, "stddev": 387.2117, "min": 130.9, "max": 678.5}, "tokens": {"mean": 165395.5, "stddev": 52057.9083, "min": 128585, "max": 202206}}, "without_skill": {"pass_rate": {"mean": 0.7143, "stddev": 0.202, "min": 0.5714, "max": 0.8571}, "time_seconds": {"mean": 265.1, "stddev": 215.2433, "min": 112.9, "max": 417.3}, "tokens": {"mean": 123327.5, "stddev": 19986.3732, "min": 109195, "max": 137460}}, "delta": {"pass_rate": "+0.29", "time_seconds": "+139.6", "tokens": "+42068"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+{
+  "client": {
+    "name": "Vacation Races",
+    "agency": "Genomic Digital",
+    "platform": "Heimdall",
+    "deck_slug": "vacation-races-audience-correlation-2026-09",
+    "business": "Destination half marathons and trail events staged at the gateways of U.S. national parks (Zion, Bryce Canyon, Grand Canyon, Grand Teton, Yellowstone, Glacier, Rocky Mountain, Great Smoky Mountains, Shenandoah, Yosemite, Lake Powell) plus an international Iceland event. Revenue = race registrations, merchandise, lodging/travel partner referrals, multi-race series bundles.",
+    "decision_the_deck_supports": "Where to spend acquisition dollars in the 2027 registration cycle: which adjacent interest clusters the runner-traveler audience over-indexes on, which source metros to prioritize, and which partner/sponsor categories are worth pursuing.",
+    "primary_kpi": "Cost per registration, by event and by source metro.",
+    "flagship_events_named_by_client": ["Zion Half Marathon", "Yosemite Half Marathon", "Grand Teton Half Marathon", "Iceland Half Marathon"]
+  },
+
+  "segment": {
+    "label": "Destination-race runner-travelers",
+    "definition": "People who plan a trip around a running event, especially a half marathon held at or near a national park. Combines two behaviors that rarely co-occur in a generic runner segment: bucket-list travel planning and race-day preparation.",
+    "positive_seeds": [
+      "destination half marathon",
+      "national park half marathon",
+      "zion half marathon",
+      "yosemite half marathon",
+      "grand teton half marathon",
+      "iceland half marathon",
+      "bryce canyon half marathon",
+      "grand canyon half marathon",
+      "yellowstone half marathon",
+      "glacier half marathon",
+      "rocky mountain half marathon",
+      "great smoky mountains half marathon",
+      "shenandoah half marathon",
+      "lake powell half marathon",
+      "vacation races",
+      "runcation",
+      "bucket list half marathon",
+      "scenic half marathon",
+      "trail half marathon",
+      "race weekend national park",
+      "half marathon travel",
+      "best destination races",
+      "run a half marathon in every state",
+      "half marathon training plan 12 weeks",
+      "hiking after half marathon",
+      "altitude half marathon training"
+    ],
+    "seed_weights_note": "Weight the event-name seeds (zion/yosemite/grand teton/iceland) 1.5x. Weight 'runcation' and 'destination half marathon' 1.5x. Keep generic 'half marathon training plan' at 0.75x so the pole does not collapse into a plain local-runner segment.",
+
+    "negative_senses": [
+      {"term": "vacation", "wrong_sense": "generic beach/cruise/all-inclusive travel with no running intent", "negative_seeds": ["all inclusive resort", "cruise deals", "beach vacation packages", "disney vacation", "vacation rental by owner"]},
+      {"term": "race", "wrong_sense": "motorsport, horse racing, ethnicity/demographics", "negative_seeds": ["nascar race", "f1 race", "horse race odds", "kentucky derby", "race and ethnicity", "drag race"]},
+      {"term": "marathon", "wrong_sense": "TV/streaming marathon, Marathon Oil/Petroleum, Marathon gas station", "negative_seeds": ["tv marathon", "movie marathon", "marathon petroleum", "marathon oil stock", "marathon gas station near me"]},
+      {"term": "zion", "wrong_sense": "Zion Williamson, Zion Illinois, Zionism, church names, Zion (Matrix)", "negative_seeds": ["zion williamson", "zion illinois", "zionism", "mount zion church", "zion lutheran"]},
+      {"term": "yosemite", "wrong_sense": "Yosemite Sam, macOS Yosemite", "negative_seeds": ["yosemite sam", "mac os yosemite", "os x yosemite download"]},
+      {"term": "teton", "wrong_sense": "Teton County government/real estate/ski", "negative_seeds": ["teton county assessor", "teton village real estate", "teton county jail", "jackson hole ski pass"]},
+      {"term": "iceland", "wrong_sense": "Iceland Foods (UK grocer), volcano news, Iceland national football", "negative_seeds": ["iceland foods", "iceland supermarket", "iceland volcano eruption today", "iceland football team"]},
+      {"term": "glacier", "wrong_sense": "climate/glacier melt news, Glacier Bay cruise", "negative_seeds": ["glacier melting climate change", "glacier bay cruise", "glacier water bottle"]},
+      {"term": "half", "wrong_sense": "half-and-half, half price, half time", "negative_seeds": ["half price books", "half and half", "halftime show"]},
+      {"term": "trail", "wrong_sense": "Oregon Trail game, paper trail, trail mix, trailer", "negative_seeds": ["oregon trail game", "trail mix recipe", "trailer hitch"]},
+      {"term": "rocky", "wrong_sense": "Rocky films, Rocky Mountain Chocolate, Rocky boots", "negative_seeds": ["rocky balboa", "rocky movie", "rocky mountain chocolate factory"]},
+      {"term": "smoky", "wrong_sense": "Smokey Bear, smoky eye makeup, Dollywood-only tourism", "negative_seeds": ["smokey bear", "smoky eye tutorial", "dollywood tickets"]}
+    ],
+
+    "declared_out_of_scope": [
+      "Ultra / 50k+ trail ultrarunning as a primary identity (overlaps but is a different buyer; keep as a comparison persona only)",
+      "Local 5k charity fun-run participants who do not travel",
+      "Triathlon and cycling event travelers (Ironman) unless the correlation data pulls them in strongly"
+    ]
+  },
+
+  "geo": {
+    "host_geos": [
+      {"name": "Springdale, UT", "event": "Zion Half", "dma": "Salt Lake City"},
+      {"name": "St. George, UT", "event": "Zion Half (lodging overflow)", "dma": "Salt Lake City"},
+      {"name": "Bass Lake / Oakhurst, CA", "event": "Yosemite Half", "dma": "Fresno-Visalia"},
+      {"name": "Jackson, WY", "event": "Grand Teton Half", "dma": "Idaho Falls-Pocatello"},
+      {"name": "Reykjavik, Iceland", "event": "Iceland Half", "dma": null},
+      {"name": "Bryce Canyon City, UT", "event": "Bryce Canyon Half", "dma": "Salt Lake City"},
+      {"name": "Tusayan, AZ", "event": "Grand Canyon Half", "dma": "Phoenix"},
+      {"name": "West Yellowstone, MT", "event": "Yellowstone Half", "dma": "Idaho Falls-Pocatello"},
+      {"name": "Whitefish, MT", "event": "Glacier Half", "dma": "Missoula"},
+      {"name": "Estes Park, CO", "event": "Rocky Mountain Half", "dma": "Denver"},
+      {"name": "Townsend, TN", "event": "Great Smoky Mountains Half", "dma": "Knoxville"},
+      {"name": "Luray, VA", "event": "Shenandoah Half", "dma": "Harrisonburg"},
+      {"name": "Page, AZ", "event": "Lake Powell Half", "dma": "Phoenix"}
+    ],
+    "source_market_seeds": [
+      "Salt Lake City", "Provo-Orem", "Las Vegas", "Phoenix", "Denver", "Los Angeles", "San Diego",
+      "San Francisco-Oakland-San Jose", "Sacramento", "Fresno", "Seattle-Tacoma", "Portland OR",
+      "Boise", "Idaho Falls", "Boulder", "Colorado Springs", "Albuquerque", "Dallas-Fort Worth",
+      "Austin", "Houston", "Chicago", "Minneapolis-St. Paul", "Atlanta", "Nashville", "Knoxville",
+      "Charlotte", "Raleigh-Durham", "Washington DC", "Boston", "New York", "Philadelphia"
+    ],
+    "geo_resolution_requested": ["state", "dma"],
+    "geo_note": "Expect UT, CO, ID, WY, MT, AZ, NV to over-index on the event-name seeds because of proximity. Normalize by state population so the deck shows propensity, not raw volume. Iceland volume will be almost entirely U.S.-origin; do not present Iceland as a source geo."
+  },
+
+  "correlation_categories": [
+    {
+      "id": "running_footwear_apparel",
+      "title": "Running Shoe & Apparel Brands",
+      "hypothesis": "Trail-capable brands (Hoka, Altra, Salomon, Brooks) over-index; fashion-athleisure (Lululemon, Gymshark) indexes lower than for a generic runner segment.",
+      "entities": ["Hoka", "Brooks Running", "Altra", "Salomon", "Saucony", "Asics", "New Balance", "Nike Running", "Adidas Running", "On Running", "Mizuno", "Topo Athletic", "La Sportiva", "Merrell", "Inov-8", "Under Armour", "Lululemon", "Gymshark", "Tracksmith", "Janji", "Rabbit", "Patagonia", "Arc'teryx", "The North Face", "Smartwool", "Darn Tough", "Balega", "Feetures", "Injinji", "Oiselle", "Ciele", "Goodr", "Oakley", "Buff", "Outdoor Research"],
+      "substitutes": {"Hoka": ["hoka one one", "hoka shoes"], "On Running": ["on cloud shoes", "on cloudmonster"], "Rabbit": ["rabbit running apparel"], "Buff": ["buff headwear"], "Goodr": ["goodr sunglasses"]}
+    },
+    {
+      "id": "outdoor_retail",
+      "title": "Outdoor & Sporting Goods Retailers",
+      "hypothesis": "REI and Backcountry over-index strongly; big-box (Dick's, Academy) near baseline; specialty run shops appear as a long tail.",
+      "entities": ["REI", "Backcountry", "Moosejaw", "Dick's Sporting Goods", "Academy Sports", "Scheels", "Sportsman's Warehouse", "Cabela's", "Bass Pro Shops", "Public Lands", "Sierra", "Fleet Feet", "Road Runner Sports", "Running Warehouse", "JackRabbit", "Zappos", "Amazon", "Costco", "Target", "Walmart", "Big 5 Sporting Goods", "Eastern Mountain Sports", "Evo", "Steep and Cheap", "Left Lane Sports", "Holabird Sports", "Marathon Sports", "Salt Lake Running Company", "Boulder Running Company", "Runners Roost", "Kittery Trading Post", "Sun & Ski Sports", "Christy Sports"],
+      "substitutes": {"REI": ["rei co-op", "rei near me"], "Sierra": ["sierra trading post"], "Evo": ["evo ski shop"], "Public Lands": ["public lands store"]}
+    },
+    {
+      "id": "national_parks_public_lands",
+      "title": "National Parks & Public Lands",
+      "hypothesis": "The Big Five Utah parks and Yosemite dominate; Eastern parks (Acadia, Shenandoah) and lesser-known parks (Great Basin, Capitol Reef) reveal expansion candidates for new events.",
+      "entities": ["Zion National Park", "Bryce Canyon National Park", "Arches National Park", "Canyonlands National Park", "Capitol Reef National Park", "Grand Canyon National Park", "Yosemite National Park", "Grand Teton National Park", "Yellowstone National Park", "Glacier National Park", "Rocky Mountain National Park", "Great Smoky Mountains National Park", "Shenandoah National Park", "Acadia National Park", "Olympic National Park", "Mount Rainier National Park", "Crater Lake National Park", "Sequoia National Park", "Kings Canyon National Park", "Joshua Tree National Park", "Death Valley National Park", "Great Basin National Park", "Big Bend National Park", "Badlands National Park", "Wind Cave National Park", "Denali National Park", "Haleakala National Park", "Everglades National Park", "Antelope Canyon", "Horseshoe Bend", "Monument Valley", "Moab", "Lake Powell", "Glen Canyon", "Thingvellir National Park", "Vatnajokull"],
+      "substitutes": {"Thingvellir National Park": ["thingvellir", "golden circle iceland"], "Vatnajokull": ["vatnajokull glacier"], "Glen Canyon": ["glen canyon national recreation area"]}
+    },
+    {
+      "id": "race_series_competitors",
+      "title": "Race Series & Competing Events",
+      "hypothesis": "Rock 'n' Roll, runDisney, and Revel over-index (same buyer); Ironman/Spartan appear but weaker; the Abbott World Marathon Majors show as aspirational rather than substitutional.",
+      "entities": ["Rock 'n' Roll Running Series", "runDisney", "Revel Race Series", "Spartan Race", "Tough Mudder", "Ironman", "Ragnar Relay", "Hood to Coast", "Big Sur International Marathon", "Boston Marathon", "Chicago Marathon", "New York City Marathon", "Marine Corps Marathon", "Honolulu Marathon", "St. George Marathon", "Salt Lake City Marathon", "Colfax Marathon", "Bolder Boulder", "Pikes Peak Ascent", "Leadville Trail 100", "Western States 100", "UTMB", "Mesa Marathon", "Napa Valley Marathon", "Missoula Marathon", "Jackson Hole Marathon", "Bryce Canyon Ultras", "Antelope Canyon Ultra", "Grand Circle Trailfest", "Reykjavik Marathon", "Great Wall Marathon", "Big Five Marathon", "Athens Marathon", "Disney Princess Half Marathon", "Wine & Dine Half Marathon", "Surf City Marathon", "Las Vegas Rock n Roll"],
+      "substitutes": {"Rock 'n' Roll Running Series": ["rock n roll marathon", "rock n roll half marathon"], "runDisney": ["disney marathon", "run disney"], "Revel Race Series": ["revel big cottonwood", "revel race"], "UTMB": ["ultra trail du mont blanc"]}
+    },
+    {
+      "id": "travel_booking_platforms",
+      "title": "Travel Booking & Trip-Planning Platforms",
+      "hypothesis": "Airbnb, VRBO, and Recreation.gov over-index (group lodging + campground/permit booking); Expedia/Priceline near baseline; AllTrails and Roadtrippers over-index as planning tools.",
+      "entities": ["Airbnb", "VRBO", "Booking.com", "Expedia", "Hotels.com", "Kayak", "Priceline", "Hopper", "Google Flights", "Skyscanner", "Recreation.gov", "Hipcamp", "The Dyrt", "Campendium", "AllTrails", "Roadtrippers", "TripAdvisor", "Travelocity", "Orbitz", "Trivago", "Turo", "Outdoorsy", "RVshare", "Cruise America", "Escape Campervans", "Getaround", "Costco Travel", "Southwest Vacations", "Icelandair Stopover", "Guide to Iceland", "Viator", "GetYourGuide", "Rome2rio", "Wanderlog", "TripIt"],
+      "substitutes": {"VRBO": ["vrbo rentals", "vrbo near zion"], "Hipcamp": ["hipcamp near me"], "Escape Campervans": ["escape campervan rental"]}
+    },
+    {
+      "id": "airlines_ground_transport",
+      "title": "Airlines & Ground Transportation",
+      "hypothesis": "Southwest, Delta (SLC hub), Alaska, and Icelandair over-index; rental car brands index high because every event is a drive-in event.",
+      "entities": ["Southwest Airlines", "Delta Air Lines", "United Airlines", "American Airlines", "Alaska Airlines", "JetBlue", "Frontier Airlines", "Spirit Airlines", "Allegiant Air", "Sun Country Airlines", "Icelandair", "PLAY Airlines", "Hawaiian Airlines", "Breeze Airways", "Hertz", "Enterprise Rent-A-Car", "Avis", "Budget Rent a Car", "National Car Rental", "Alamo", "Sixt", "Amtrak", "Greyhound", "Salt Lake City Airport", "Las Vegas Airport", "Jackson Hole Airport", "Bozeman Airport", "Fresno Airport", "Kalispell Airport", "Denver International Airport", "Keflavik Airport", "TSA PreCheck", "Global Entry", "Clear"],
+      "substitutes": {"Salt Lake City Airport": ["slc airport"], "Las Vegas Airport": ["harry reid airport", "las vegas airport parking"], "Keflavik Airport": ["kef airport"], "Clear": ["clear airport security"]}
+    },
+    {
+      "id": "lodging_hospitality",
+      "title": "Lodging, Camping & Hospitality Brands",
+      "hypothesis": "Park-gateway lodging (Zion Lodge, Under Canvas, KOA) over-indexes; luxury chains under-index; mid-scale (Hampton, Holiday Inn Express, Best Western) over-index for race-weekend stays.",
+      "entities": ["Marriott", "Hilton", "Hyatt", "IHG", "Best Western", "Hampton Inn", "Holiday Inn Express", "La Quinta", "Fairfield Inn", "SpringHill Suites", "Courtyard by Marriott", "Home2 Suites", "Wyndham", "Choice Hotels", "Comfort Inn", "Super 8", "Motel 6", "Under Canvas", "AutoCamp", "Getaway House", "KOA", "Zion Lodge", "Cable Mountain Lodge", "Cliffrose Lodge", "Tenaya Lodge", "Yosemite Valley Lodge", "The Ahwahnee", "Jackson Lake Lodge", "Colter Bay Village", "Old Faithful Inn", "Many Glacier Hotel", "Stanley Hotel", "Ruby's Inn", "El Tovar Hotel", "Blue Lagoon Retreat", "Reykjavik Marina Hotel", "Hostelling International"],
+      "substitutes": {"IHG": ["ihg hotels", "holiday inn"], "Under Canvas": ["under canvas zion", "glamping zion"], "Cable Mountain Lodge": ["springdale utah hotels"], "Ruby's Inn": ["best western ruby's inn"]}
+    },
+    {
+      "id": "fitness_tech_wearables",
+      "title": "Fitness Tech, Wearables & Training Apps",
+      "hypothesis": "Garmin, Strava, and COROS over-index far above baseline; Peloton and home-fitness under-index; Gaia GPS / onX Backcountry over-index because of the outdoor overlap.",
+      "entities": ["Garmin", "Strava", "COROS", "Apple Watch", "Fitbit", "Whoop", "Oura Ring", "Polar", "Suunto", "Nike Run Club", "Runkeeper", "MapMyRun", "Runna", "TrainingPeaks", "Final Surge", "Hal Higdon", "Jeff Galloway", "Couch to 5K", "Peloton", "Zwift", "MyFitnessPal", "Noom", "Headspace", "Calm", "Gaia GPS", "onX Backcountry", "Komoot", "Relive", "Stryd", "Shokz", "AirPods Pro", "Jaybird", "GoPro", "Insta360", "Zoleo", "Garmin inReach"],
+      "substitutes": {"Shokz": ["aftershokz", "bone conduction headphones"], "Runna": ["runna app"], "Zoleo": ["satellite communicator"], "Garmin inReach": ["inreach mini"]}
+    },
+    {
+      "id": "nutrition_hydration",
+      "title": "Sports Nutrition & Hydration",
+      "hypothesis": "Gels/chews and electrolyte brands (GU, Maurten, Tailwind, LMNT, Nuun) over-index; mass-market protein near baseline; hydration packs (Nathan, Salomon, CamelBak) over-index because courses are remote.",
+      "entities": ["GU Energy", "Maurten", "Honey Stinger", "Clif Bar", "Clif Bloks", "Tailwind Nutrition", "Skratch Labs", "Nuun", "LMNT", "Liquid IV", "Gatorade", "Gatorade Endurance", "Precision Fuel & Hydration", "Huma Gel", "Spring Energy", "Untapped", "SIS", "Hammer Nutrition", "UCAN", "Kodiak Cakes", "RXBAR", "Larabar", "Premier Protein", "Quest", "Orgain", "Vital Proteins", "Athletic Greens", "Celsius", "Body Armor", "Pedialyte", "Nathan Sports", "CamelBak", "Salomon Hydration Vest", "Hydro Flask", "Stanley Cup", "Yeti", "Osprey Hydration"],
+      "substitutes": {"GU Energy": ["gu gel", "gu energy gel"], "SIS": ["science in sport gel"], "Athletic Greens": ["ag1"], "Salomon Hydration Vest": ["running vest", "hydration vest for running"], "Yeti": ["yeti cooler", "yeti tumbler"]}
+    },
+    {
+      "id": "adventure_activities",
+      "title": "Adjacent Outdoor Activities & Trip Add-Ons",
+      "hypothesis": "Hiking, canyoneering, hot springs, stargazing, and photography over-index; golf and spa under-index; ski indexes in winter-source metros only.",
+      "entities": ["Hiking", "Angels Landing", "The Narrows", "Half Dome Permit", "Canyoneering", "Rock Climbing", "Via Ferrata", "Mountain Biking", "Whitewater Rafting", "Kayaking", "Paddleboarding", "Fly Fishing", "Horseback Riding", "Hot Springs", "Blue Lagoon", "Sky Lagoon", "Northern Lights", "Stargazing", "Dark Sky Park", "Landscape Photography", "Wildlife Viewing", "Bison", "Elk Rut", "Backpacking", "Camping", "Glamping", "Overlanding", "Skiing", "Snowshoeing", "Golf", "Spa Day", "Wine Tasting", "Brewery Tour", "Scenic Drive", "Road Trip", "Utah Mighty 5", "Ring Road Iceland", "Golden Circle", "Ice Cave Tour", "Glacier Hike", "Whale Watching"],
+      "substitutes": {"Half Dome Permit": ["half dome lottery", "half dome hike"], "The Narrows": ["zion narrows hike"], "Ring Road Iceland": ["iceland ring road itinerary"], "Utah Mighty 5": ["mighty five utah road trip"]}
+    },
+    {
+      "id": "media_content_community",
+      "title": "Running & Outdoor Media, Podcasts, Creators",
+      "hypothesis": "Runner's World, iRunFar, Trail Runner Mag, and outdoor YouTube creators over-index; general fitness influencers and sports-talk media under-index.",
+      "entities": ["Runner's World", "Trail Runner Magazine", "iRunFar", "Outside Magazine", "Backpacker Magazine", "Believe in the Run", "The Running Channel", "Ginger Runner", "Sally McRae", "Courtney Dauwalter", "Kilian Jornet", "Des Linden", "Kara Goucher", "Molly Seidel", "Eliud Kipchoge", "Sage Canaday", "Ali on the Run", "Some Work All Play", "Nobody Asked Us", "Citius Mag", "Marathon Talk", "The Rich Roll Podcast", "Huberman Lab", "Dirtbag Diaries", "Kara and Nate", "Yes Theory", "Eamon and Bec", "Chris Burkard", "Peter McKinnon", "National Parks Traveler", "Dirt in My Shoes", "Earth Trekkers", "Bearfoot Theory", "The Mandagies", "Salomon TV", "Reddit r/running", "Reddit r/trailrunning", "Reddit r/nationalparks", "Strava Clubs", "Letsrun"],
+      "substitutes": {"Some Work All Play": ["swap podcast"], "Nobody Asked Us": ["nobody asked us podcast"], "Salomon TV": ["salomon tv youtube"], "Letsrun": ["letsrun.com"]}
+    },
+    {
+      "id": "causes_charities",
+      "title": "Causes, Charities & Conservation",
+      "hypothesis": "Conservation and public-lands nonprofits (National Park Foundation, Leave No Trace, Access Fund) over-index; disease-walk charities near baseline; charity-bib programs appear via Team in Training / St. Jude Heroes.",
+      "entities": ["National Park Foundation", "National Parks Conservation Association", "Leave No Trace", "The Conservation Alliance", "Access Fund", "Sierra Club", "The Nature Conservancy", "Trust for Public Land", "American Hiking Society", "Protect Our Winters", "1% for the Planet", "Outdoor Alliance", "Zion Forever Project", "Yosemite Conservancy", "Grand Teton National Park Foundation", "Yellowstone Forever", "Glacier National Park Conservancy", "Rocky Mountain Conservancy", "Friends of the Smokies", "Team in Training", "St. Jude Heroes", "Girls on the Run", "Back on My Feet", "Achilles International", "Wounded Warrior Project", "Team RWB", "Relay for Life", "Susan G. Komen", "Every Kid Outdoors", "Outdoor Afro", "Latino Outdoors", "Black Girls RUN!", "Big City Mountaineers", "Trail Sisters", "American Trail Running Association"],
+      "substitutes": {"Team RWB": ["team red white and blue"], "Zion Forever Project": ["zion forever"], "American Trail Running Association": ["atra trail running"]}
+    },
+    {
+      "id": "vehicles_gear_haul",
+      "title": "Vehicles, Roof Boxes & Road-Trip Gear",
+      "hypothesis": "Subaru, Toyota 4Runner/Tacoma, Rivian, Thule/Yakima over-index sharply; luxury sedans under-index. Most likely category to surprise the client and unlock auto sponsorships.",
+      "entities": ["Subaru Outback", "Subaru Forester", "Subaru Crosstrek", "Toyota 4Runner", "Toyota Tacoma", "Toyota RAV4", "Toyota Sequoia", "Honda CR-V", "Honda Pilot", "Jeep Wrangler", "Jeep Grand Cherokee", "Ford Bronco", "Ford F-150", "Rivian R1S", "Rivian R1T", "Tesla Model Y", "Kia Telluride", "Hyundai Palisade", "Volvo XC90", "Sprinter Van", "Ford Transit Camper", "Winnebago", "Airstream", "Thule", "Yakima", "Rhino-Rack", "Kuat Bike Rack", "Dometic Cooler", "Yeti Cooler", "Goal Zero", "Roof Cargo Box", "Roofnest", "iKamper", "Decked Drawer System", "Weathertech", "Costco Tires", "Discount Tire"],
+      "substitutes": {"Sprinter Van": ["sprinter van conversion", "camper van"], "Kuat Bike Rack": ["hitch bike rack"], "Roof Cargo Box": ["thule cargo box"]}
+    },
+    {
+      "id": "life_stage_household",
+      "title": "Life-Stage & Household Signals",
+      "hypothesis": "Married-with-teens, DINK, and empty-nester signals over-index; new-parent and college-student signals under-index. Supports the persona page and the 'travel with a partner/group' angle.",
+      "entities": ["Wedding Registry", "Honeymoon Ideas", "Babymoon", "Baby Registry", "Daycare Near Me", "Elementary School Ratings", "High School Graduation Gifts", "College Tours", "Empty Nest", "Retirement Planning", "401k Rollover", "Roth IRA", "Costco Membership", "Chase Sapphire Preferred", "Chase Sapphire Reserve", "Amex Platinum", "Capital One Venture", "Marriott Bonvoy Card", "Delta SkyMiles Card", "Southwest Companion Pass", "REI Co-op Mastercard", "Home Depot", "Lowe's", "Zillow", "Redfin", "Mortgage Rates", "Refinance", "Pet Friendly Hotels", "Dog Friendly Trails", "Chewy", "Rover", "Girl Scouts", "Boy Scouts", "Club Soccer", "Youth Cross Country", "Family Vacation Ideas", "Multigenerational Trip", "Anniversary Trip Ideas", "Girls Trip Ideas", "Bachelor Party Ideas"],
+      "substitutes": {"Southwest Companion Pass": ["companion pass"], "Youth Cross Country": ["high school cross country"], "Chase Sapphire Preferred": ["chase sapphire"]}
+    }
+  ],
+
+  "substitution_policy": {
+    "when_entity_missing_from_corpus": "Try the listed substitutes in order; if none resolve, try brand + 'shoes' / 'near me' / 'review' / 'coupon' as generic suffixes; if still missing, mark the entity dropped in CHART_AUDIT.md and do not silently replace it with an unrelated brand.",
+    "when_entity_is_ambiguous": "Prefer the disambiguated phrase (e.g. 'on cloud shoes' not 'on'; 'clear airport security' not 'clear'; 'buff headwear' not 'buff'; 'yeti cooler' not 'yeti').",
+    "minimum_entities_per_category_to_chart": 20,
+    "minimum_entities_per_category_to_keep_as_standalone": 25,
+    "general_fallback_pool": ["Fleet Feet", "Rock 'n' Roll Running Series", "Garmin", "Strava", "REI", "Airbnb", "Subaru Outback", "Hoka", "AllTrails", "National Park Foundation"]
+  },
+
+  "engine_run_plan": {
+    "note": "Planning only. Nothing below has been executed.",
+    "steps": [
+      "compose_pole from positive_seeds with the listed weights; subtract negative_seeds per sense",
+      "term_collisions check on every seed; expect collisions on zion, marathon, race, iceland, glacier, rocky, trail",
+      "score each category's entities against the pole at term resolution; record r and volume",
+      "geo pass at state + dma for the pole; population-normalize",
+      "flag categories where median |r| < 0.05 or where fewer than 20 entities resolve",
+      "export one CSV per category for chart build"
+    ]
+  }
+}
